@@ -1,0 +1,7 @@
+services:
+  lakehouse:
+    build: .
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: python etl-pipelines/proficio_sync.py

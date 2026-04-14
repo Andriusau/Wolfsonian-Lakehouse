@@ -1,0 +1,27 @@
+# --- Core Data Science & Lakehouse ---
+pandas
+numpy
+duckdb
+pyarrow           
+fastparquet     
+openpyxl       
+
+# --- API, Web & Scrapy ---
+requests
+urllib3
+beautifulsoup4
+lxml          
+
+# --- Databases & Connectivity ---
+sqlalchemy
+pyodbc       
+psycopg2-binary  
+
+# --- Library Specific (Alma/MARC) ---
+pymarc
+
+# --- Utility & Performance ---
+configparser
+pathlib
+python-dateutil
+tqdm            
