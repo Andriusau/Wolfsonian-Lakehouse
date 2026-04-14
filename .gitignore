@@ -1,0 +1,24 @@
+# Ignore local data folders
+data/
+logs/
+
+# Ignore mounted network drives (just in case)
+/mnt/
+
+# Ignore massive data files anywhere
+*.csv
+*.mrc
+*.parquet
+*.json
+*.tif
+*.tiff
+
+# Ignore Python cache and hidden environment variables (passwords)
+__pycache__/
+*.pyc
+.env
+.env.*
+
+# Ignore Server Logs
+logs/
+*.log
