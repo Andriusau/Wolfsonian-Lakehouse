@@ -12,7 +12,7 @@ BATCH_SIZE = 20         # Fetch 20 pages at a time
 
 # This path running inside the Docker container
 # mapped to data folder.
-OUTPUT_FILE = "app/data/raw/islandora_lookup.parquet" 
+OUTPUT_FILE = "/app/data/raw/islandora_lookup.parquet" 
 
 def fetch_page(url_template, page_number, items_per_page):
     """
