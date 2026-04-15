@@ -1,11 +1,11 @@
 import pandas as pd
 import sqlalchemy as sa
-import urllib
+from sqlalchemy.engine import URL
 import configparser
 import os
 import sys
+import subprocess
 
-# 1. Load Configuration
 config = configparser.ConfigParser()
 config_path = '/app/config.ini'
 
@@ -16,57 +16,66 @@ if not os.path.exists(config_path):
 config.read(config_path)
 
 def get_proficio_connection():
-    try:
-        server = config['proficio']['server']
-        database = config['proficio']['database']
-        username = config['proficio']['username']
-        password = config['proficio']['password']
-    except KeyError as e:
-        print(f"❌ Error: Missing key in config.ini: {e}")
+    server = config['proficio']['server'].strip()
+    database = config['proficio']['database'].strip()
+    username = config['proficio']['username'].strip()
+    password = config['proficio']['password'].strip()
+
+    # --- 1. THE FIX: AUTOMATE KERBEROS INSIDE THE CONTAINER ---
+    print(f"🔑 Generating Kerberos ticket for {username}...")
+    
+    # This acts like a human typing the password into the kinit prompt
+    kinit_process = subprocess.run(
+        ['kinit', username],
+        input=password,
+        text=True,
+        capture_output=True
+    )
+
+    if kinit_process.returncode != 0:
+        print(f"❌ Kerberos Auth Failed: {kinit_process.stderr}")
+        print("💡 Ensure 'krb5-user' is installed in your Dockerfile!")
         sys.exit(1)
 
-    # Building the raw string first to avoid over-quoting
-    conn_str = (
-        f"DRIVER={{ODBC Driver 18 for SQL Server}};"
-        f"SERVER={server};"
-        f"DATABASE={database};"
-        f"UID={username};"
-        f"PWD={password};"
-        f"Authentication=ActiveDirectoryPassword;"
-        f"Encrypt=yes;"
-        f"TrustServerCertificate=yes;"
+    print("✅ Kerberos ticket acquired successfully!")
+
+    # --- 2. THE CONNECTION STRING ---
+    # Now that we have a ticket, we use Trusted_Connection=yes
+    # No UID or PWD goes into this string!
+    connection_url = URL.create(
+        drivername="mssql+pyodbc",
+        host=server,
+        database=database,
+        query={
+            "driver": "ODBC Driver 18 for SQL Server",
+            "Trusted_Connection": "yes",
+            "Encrypt": "yes",
+            "TrustServerCertificate": "yes"
+        }
     )
     
-    # Encode for SQLAlchemy
-    params = urllib.parse.quote_plus(conn_str)
-    return sa.create_engine(f"mssql+pyodbc:///?odbc_connect={params}")
+    return sa.create_engine(connection_url)
 
-def sync_table(table_name, output_path):
+def raw_data_dump(table_name, output_path):
     engine = get_proficio_connection()
-    print(f"🚀 Attempting to sync '{table_name}' from Proficio...")
+    print(f"🚀 Connecting to Proficio to dump '{table_name}'...")
 
     query = f"SELECT * FROM {table_name}"
 
     try:
-        # Using a context manager for the connection is safer
         with engine.connect() as conn:
-            df = pd.read_sql(query, conn)
+            df = pd.read_sql(sa.text(query), conn)
 
         if df.empty:
-            print(f"⚠️ Warning: Table '{table_name}' returned no data.")
+            print(f"⚠️ Warning: No data found in '{table_name}'.")
             return
 
-        # Ensure directory exists
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-
-        # Save as Parquet
         df.to_parquet(output_path, index=False)
-        print(f"✅ Success! Saved {len(df)} rows to {output_path}")
+        print(f"✅ Success! Dumped {len(df)} rows straight to {output_path}")
 
     except Exception as e:
-        print(f"❌ Error syncing {table_name}:")
-        print(f"   {str(e)}")
+        print(f"\n❌ Connection Error:\n{str(e)}")
 
 if __name__ == "__main__":
-    # Change "objects" to the actual table name in your Proficio DB
-    sync_table("objects", "/app/data/raw/proficio/objects.parquet")
+    raw_data_dump("objects", "/app/data/raw/proficio/objects_raw_dump.parquet")
