@@ -19,25 +19,23 @@ def get_proficio_connection():
     server = config['proficio']['server'].strip()
     database = config['proficio']['database'].strip()
     username = config['proficio']['username'].strip()
-    password = config['proficio']['password'].strip()
+    keytab = config['proficio']['keytab_path'].strip()
 
     # --- 1. THE FIX: AUTOMATE KERBEROS INSIDE THE CONTAINER ---
     print(f"🔑 Generating Kerberos ticket for {username}...")
     
     # This acts like a human typing the password into the kinit prompt
     kinit_process = subprocess.run(
-        ['kinit', username],
-        input=password,
+        ['kinit','-k','-t', keytab, username],
         text=True,
         capture_output=True
     )
 
     if kinit_process.returncode != 0:
         print(f"❌ Kerberos Auth Failed: {kinit_process.stderr}")
-        print("💡 Ensure 'krb5-user' is installed in your Dockerfile!")
         sys.exit(1)
 
-    print("✅ Kerberos ticket acquired successfully!")
+    print("✅ Secure Ketyab Authentication Success!!")
 
     # --- 2. THE CONNECTION STRING ---
     # Now that we have a ticket, we use Trusted_Connection=yes

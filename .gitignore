@@ -1,6 +1,7 @@
 # Ignore local data folders
 data/
 config.ini
+aaukstuo.keytab
 
 # Ignore mounted network drives (just in case)
 /mnt/
