@@ -48,22 +48,27 @@ The Wolfsonian Lakehouse is an automated ELT (Extract, Load, Transform) pipeline
 
 ```text
 wolf-lakehouse/
-├── docker-compose.yml           # The Master Switch for orchestration
-├── Dockerfile                   # Builds the Python 3.10 environment + ODBC/Kerberos
 ├── config.ini                   # Database credentials (Ignored in Git)
-├── aaukstuo.keytab              # Kerberos Keytab (Ignored in Git)
-│
-├── etl-pipelines/               # Core Extraction Microservices
-│   ├── extract_islandora_raw.py # REST API -> Parquet
-│   ├── extract_proficio_raw.py  # SQL Server -> Parquet
-│   ├── extract_alma_raw.py      # Binary MARC -> Parquet
-│   └── requirements.txt         
-│
 ├── data/                        # The Lakehouse Storage
+│   ├── gold/                    # Gold Layer: Clean DuckDB views/Parquet
 │   ├── raw/                     # Bronze Layer: Unaltered source dumps
 │   │   ├── alma/
+│   │   │   └── BIBLIOGRAPHIC_16308238980006571_16308238960006571_1.mrc
 │   │   ├── islandora/
+│   │   │   └── islandora_lookup.parquet
 │   │   └── proficio/
-│   └── gold/                    # Gold Layer: Clean DuckDB views/Parquet
-│
-└── visualization/               # Metabase configuration and dashboards
+│   │       └── objects_raw_dump.parquet
+│   └── silver/                  # Silver Layer: Staged and cleaned transformations
+├── docker-compose.yml           # The Master Switch for orchestration
+├── Dockerfile                   # Builds the Python 3.10 environment + ODBC/Kerberos
+├── etl-pipelines/               # Core Extraction Microservices
+│   ├── export_proficio_to_workbench.py
+│   ├── extract_alma_raw.py
+│   ├── extract_islandora_raw.py
+│   ├── extract_proficio_raw.py
+│   ├── requirements.txt
+│   ├── transform_alma_raw.py
+│   └── transform_proficio_silver.py
+├── logs/                        # Transformation and extraction logs
+└── README.md
+```
