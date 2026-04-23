@@ -15,7 +15,7 @@ def get_latest_marc_file(directory):
         print(f" ❌ Error: No BIBLIOGRAPHIC*.mrc files found in {directory}")
         sys.exit(1)
         
-    target_file = found_mrc_files
+    target_file = sorted(found_mrc_files)
     print(f" 🎯 Dynamically loaded MARC file: {target_file.name}")
     return target_file
 
