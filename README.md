@@ -26,7 +26,7 @@
 The Wolfsonian Lakehouse is an automated ELT (Extract, Load, Transform) pipeline designed to unify disparate data sources into a single, high-performance analytics layer. It extracts data from APIs, legacy SQL Server databases, and binary MARC files, staging them as raw Parquet files before transforming them into a clean, "Gold" standard layer for visualization in Metabase.
 
 ## 🏗️ Architecture & Tech Stack
-* **Orchestration:** Docker & Docker Compose
+* **Orchestration:** Prefect & Docker Compose
 * **Data Extraction:** Python 3.10 (Pandas, PyArrow, requests, pymarc)
 * **Database Connectivity:** SQLAlchemy, pyodbc (ODBC Driver 18 for SQL Server)
 * **Authentication:** Automated Kerberos (`kinit`) integration inside containers
@@ -41,6 +41,7 @@ The Wolfsonian Lakehouse is an automated ELT (Extract, Load, Transform) pipeline
 * **Seamless Kerberos Auth:** The Proficio extraction script automatically generates Kerberos tickets inside the Docker container to securely query internal SQL Server databases without exposing passwords in connection strings.
 * **Binary File Processing:** Safely extracts hundreds of complex, nested diagnostic fields from Alma `.mrc` library files.
 * **Medallion Architecture:** Strictly separates raw, untransformed data (`data/raw/`) from business-ready, clean data (`data/gold/`).
+* **Robust Workflow Orchestration:** Uses Prefect to manage the ELT pipeline, providing a UI dashboard for monitoring, task-level retries, and execution logs.
 
 ---
 
@@ -66,9 +67,36 @@ wolf-lakehouse/
 │   ├── extract_alma_raw.py
 │   ├── extract_islandora_raw.py
 │   ├── extract_proficio_raw.py
+│   ├── orchestrate_prefect.py   # Master Prefect Workflow
 │   ├── requirements.txt
 │   ├── transform_alma_raw.py
 │   └── transform_proficio_silver.py
 ├── logs/                        # Transformation and extraction logs
 └── README.md
 ```
+
+---
+
+## 🚀 Pipeline Execution (Powered by Prefect)
+
+We have migrated from a sequential bash script to a robust workflow orchestrator using Prefect!
+
+**1. Rebuild the Docker Image**
+If you've recently updated `requirements.txt` or the Dockerfile:
+```bash
+docker compose build
+```
+
+**2. Start the Prefect UI**
+Spin up the local Prefect Server to monitor your runs:
+```bash
+docker compose up prefect-server -d
+```
+*You can now open [http://localhost:4200](http://localhost:4200) in your web browser to view the Prefect Dashboard.*
+
+**3. Run the Pipeline**
+Trigger the extraction and transformation workflow:
+```bash
+docker compose run --rm lakehouse
+```
+*Watch your pipeline execute in real-time in the Prefect UI! If any task fails, you can retry just that specific task from the dashboard without starting over.*

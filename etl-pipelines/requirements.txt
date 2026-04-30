@@ -25,3 +25,6 @@ configparser
 pathlib
 python-dateutil
 tqdm            
+
+# --- Orchestration ---
+prefect
