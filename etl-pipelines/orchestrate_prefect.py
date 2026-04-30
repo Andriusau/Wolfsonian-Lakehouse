@@ -50,7 +50,11 @@ def lakehouse_flow():
     alma_silver = transform_alma.submit(wait_for=[alma_raw])
 
     # Export Phase
-    export_proficio.submit(wait_for=[proficio_silver])
+    export_fut = export_proficio.submit(wait_for=[proficio_silver])
+
+    # Explicitly wait for terminal tasks to complete so the flow doesn't exit early
+    export_fut.wait()
+    alma_silver.wait()
 
 if __name__ == "__main__":
     lakehouse_flow()
