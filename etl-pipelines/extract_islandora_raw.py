@@ -92,14 +92,21 @@ if __name__ == "__main__":
     # 2. Format columns dynamically based on what the API actually returned
     if not df_external_nodes.empty:
         node_col = 'nid' if 'nid' in df_external_nodes.columns else 'node'
-        accn_col = 'field_identifier' if 'field_identifier' in df_external_nodes.columns else 'accn'
+        
+        # Dynamically find the accession/identifier column
+        if 'field_identifier_external' in df_external_nodes.columns:
+            accn_col = 'field_identifier_external'
+        elif 'field_identifier' in df_external_nodes.columns:
+            accn_col = 'field_identifier'
+        else:
+            accn_col = 'accn'
 
         if node_col not in df_external_nodes.columns: df_external_nodes[node_col] = None
         if accn_col not in df_external_nodes.columns: df_external_nodes[accn_col] = None
 
         df_external_nodes = df_external_nodes.rename(columns={
             node_col: 'node_id', 
-            accn_col: 'field_identifier_external'
+            accn_col: 'field_identifier'
         })
         
         # 3. Save it to Parquet
