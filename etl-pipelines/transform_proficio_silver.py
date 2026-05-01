@@ -321,6 +321,16 @@ if __name__ == "__main__":
     df_fail = df_master[~df_master['qa_pass']].copy()
     logging.info(f"QA Results: {len(df_pass)} rows passed, {len(df_fail)} rows failed.")
 
+    QA_FAILURES_PARQUET = Path('/app/data/gold/proficio_qa_failures.parquet')
+    if not df_fail.empty:
+        df_fail['qa_errors_str'] = df_fail['qa_errors'].apply(lambda x: " | ".join(x))
+        df_fail.astype(str).drop(columns=['qa_errors']).to_parquet(QA_FAILURES_PARQUET, index=False)
+        logging.info(f"💾 Saved {len(df_fail)} failed records to {QA_FAILURES_PARQUET}")
+    
+    metrics['proficio_qa_failures'] = len(df_fail)
+    with open(metrics_path, 'w') as f:
+        json.dump(metrics, f)
+
     logging.info("--- 🔄 4. FIND MISSING RECORDS ---")
     identifier_column = 'field_identifier'
     if identifier_column not in df_pass.columns and 'access_nbr' in df_pass.columns:
