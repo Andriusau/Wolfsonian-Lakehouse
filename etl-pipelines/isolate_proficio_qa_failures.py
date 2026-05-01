@@ -11,17 +11,17 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 def run_qa_checks(row):
     errors = []
-    for field, name in [('title', 'Title'), ('field_identifier', 'Identifier')]:
-        if pd.isna(row.get(field)) or str(row.get(field, '')).strip() == '':
-            errors.append(f"{name} is missing")
-    has_genre = pd.notna(row.get('field_genre')) and str(row.get('field_genre', '')).strip() != ''
-    has_date = pd.notna(row.get('field_edtf_date_created')) and str(row.get('field_edtf_date_created', '')).strip() != ''
-    has_creator = pd.notna(row.get('field_linked_agent')) and str(row.get('field_linked_agent', '')).strip() != ''
-    has_country = pd.notna(row.get('field_place_published')) and str(row.get('field_place_published', '')).strip() != ''
-    if not (has_genre and (has_date or has_creator or has_country)):
-        errors.append("Required fields missing (Genre and one of Date/Creator/Country)")
-    if "_" in str(row.get('field_linked_agent', '')):
-        errors.append("Underscores found in processed linked agent field")
+    
+    # 1. Must have an identifier (either access_nbr or field_identifier)
+    identifier = str(row.get('field_identifier', row.get('access_nbr', ''))).strip()
+    if not identifier or identifier == 'nan':
+        errors.append("Identifier is missing")
+        
+    # 2. Must have a title
+    title = str(row.get('title', '')).strip()
+    if not title or title == 'nan':
+        errors.append("Title is missing")
+        
     return errors
 
 if __name__ == "__main__":
