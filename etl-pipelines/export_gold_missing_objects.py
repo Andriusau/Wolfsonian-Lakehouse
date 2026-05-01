@@ -1,0 +1,96 @@
+import pandas as pd
+import logging
+import sys
+import unicodedata
+import re
+import json
+from pathlib import Path
+
+MASTER_SILVER = Path('/app/data/silver/proficio_silver.parquet')
+RAW_ISLANDORA = Path('/app/data/raw/islandora/islandora_lookup.parquet')
+OUTPUT_PARQUET = Path('/app/data/gold/missing_objects.parquet')
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def normalize_identifier(s):
+    if pd.isna(s): return None
+    s = str(s)
+    s = unicodedata.normalize('NFKC', s).lower()
+    s = re.sub(r"[()\[\]'_]", ' ', s)
+    s = re.sub(r'[.\s,-]+', '.', s)
+    s = s.strip('.')
+    return s
+
+if __name__ == "__main__":
+    if not MASTER_SILVER.exists() or not RAW_ISLANDORA.exists():
+        logging.warning("Missing required Silver or Islandora files.")
+        sys.exit(0)
+        
+    logging.info("--- 🔄 GENERATE GOLD MISSING OBJECTS ---")
+    df_master = pd.read_parquet(MASTER_SILVER)
+    df_islandora = pd.read_parquet(RAW_ISLANDORA)
+    
+    # Filter to only passed QA checks
+    df_pass = df_master[df_master['qa_pass']].copy() if 'qa_pass' in df_master.columns else df_master.copy()
+    
+    identifier_column = 'field_identifier'
+    if identifier_column not in df_pass.columns and 'access_nbr' in df_pass.columns:
+        identifier_column = 'access_nbr'
+
+    df_pass['norm_id'] = df_pass[identifier_column].apply(normalize_identifier)
+    
+    if 'accn' in df_islandora.columns:
+        df_islandora = df_islandora.rename(columns={'accn': 'field_identifier'})
+    elif 'field_identifier_external' in df_islandora.columns:
+        df_islandora = df_islandora.rename(columns={'field_identifier_external': 'field_identifier'})
+        
+    df_islandora['norm_id'] = df_islandora['field_identifier'].apply(normalize_identifier)
+
+    df_islandora_norm_keys = df_islandora[['norm_id']].dropna().drop_duplicates()
+
+    merged_df = pd.merge(
+        df_pass,
+        df_islandora_norm_keys,
+        on='norm_id',
+        how='left',
+        indicator=True
+    )
+
+    df_results = merged_df[merged_df['_merge'] == 'left_only'].drop(columns=['_merge', 'norm_id'])
+    
+    missing_count = len(df_results)
+    logging.info(f"Found {missing_count} records missing from Islandora.")
+    
+    OUTPUT_PARQUET.parent.mkdir(parents=True, exist_ok=True)
+    if not df_results.empty:
+        df_results.loc[:, 'id'] = range(1, missing_count + 1)
+        final_columns = [
+            'id', 'field_resource_type', 'field_model', 'parent_id', 'field_weight',
+            'field_member_of', 'file', 'media_use_tid', 'field_display_hints',
+            identifier_column, 'url_alias', 'title', 'field_linked_agent',
+            'field_genre', 'field_edtf_date_created', 'field_place_published',
+            'field_subject', 'field_description_long', 'field_credit_line',
+            'field_physical_form', 'field_extent', 'field_collection_type',
+            'qa_pass'
+        ]
+        
+        if identifier_column != 'field_identifier':
+            df_results = df_results.rename(columns={identifier_column: 'field_identifier'})
+            if identifier_column in final_columns:
+                final_columns[final_columns.index(identifier_column)] = 'field_identifier'
+                
+        final_columns_exist = [col for col in final_columns if col in df_results.columns]
+        
+        df_results[final_columns_exist].astype(str).to_parquet(OUTPUT_PARQUET, index=False)
+        logging.info(f"Saved Gold Parquet results to {OUTPUT_PARQUET}")
+        
+    metrics_path = '/app/data/metrics.json'
+    metrics = {}
+    if Path(metrics_path).exists():
+        try:
+            with open(metrics_path, 'r') as f: metrics = json.load(f)
+        except: pass
+        
+    metrics['missing_objects_found'] = missing_count
+    with open(metrics_path, 'w') as f:
+        json.dump(metrics, f)

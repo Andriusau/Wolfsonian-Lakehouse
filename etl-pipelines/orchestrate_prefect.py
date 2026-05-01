@@ -16,6 +16,9 @@ def run_script(script_path: str):
     else:
         logger.info(f"Successfully ran {script_path}")
 
+# ==========================================
+# 1. BRONZE LAYER (Extraction)
+# ==========================================
 @task(name="Extract Proficio Raw")
 def extract_proficio():
     run_script('etl-pipelines/extract_proficio_raw.py')
@@ -28,14 +31,46 @@ def extract_islandora():
 def extract_alma():
     run_script('etl-pipelines/extract_alma_raw.py')
 
+# ==========================================
+# 2. SILVER LAYER (Cleansing & Merging)
+# ==========================================
 @task(name="Transform Proficio Silver")
 def transform_proficio():
     run_script('etl-pipelines/transform_proficio_silver.py')
+
+@task(name="Transform Alma Silver")
+def transform_alma():
+    run_script('etl-pipelines/transform_alma_silver.py')
+
+# ==========================================
+# 3. GOLD LAYER (Validation & Export)
+# ==========================================
+@task(name="Isolate QA Failures")
+def isolate_qa_failures():
+    run_script('etl-pipelines/isolate_proficio_qa_failures.py')
+
+@task(name="Generate Gold Missing Objects")
+def generate_missing_objects():
+    run_script('etl-pipelines/export_gold_missing_objects.py')
 
 @task(name="Export Proficio to Workbench")
 def export_proficio():
     run_script('etl-pipelines/export_proficio_to_workbench.py')
 
+@task(name="Export Alma to Workbench")
+def export_alma():
+    run_script('etl-pipelines/export_alma_to_workbench.py')
+
+# ==========================================
+# 4. SERVING LAYER (DuckDB Metabase)
+# ==========================================
+@task(name="Build DuckDB Metabase Views")
+def build_duckdb():
+    run_script('etl-pipelines/build_duckdb_views.py')
+
+# ==========================================
+# 5. MONITORING
+# ==========================================
 @task(name="Report Pipeline Metrics")
 def report_metrics():
     metrics_path = '/app/data/metrics.json'
@@ -55,7 +90,9 @@ def report_metrics():
         Proficio Records Extracted (Delta): {metrics.get('proficio_extracted', 0)}
         Proficio Deltas Processed:          {metrics.get('proficio_deltas_processed', 0)}
         Total Silver Master Records:        {metrics.get('proficio_silver_total', 0)}
+        QA Validation Failures:             {metrics.get('proficio_qa_failures', 0)}
         Missing Records Sent to Gold:       {metrics.get('missing_objects_found', 0)}
+        Alma Silver Records Processed:      {metrics.get('alma_silver_total', 0)}
         ==================================================
         """
         logger.info(summary)
@@ -64,21 +101,32 @@ def report_metrics():
 
 @flow(name="Wolfsonian Lakehouse Pipeline")
 def lakehouse_flow():
-    # Extraction Phase
+    # 1. Extraction Phase
     proficio_raw = extract_proficio.submit()
     islandora_raw = extract_islandora.submit()
     alma_raw = extract_alma.submit()
 
-    # Transformation Phase
-    proficio_silver = transform_proficio.submit(wait_for=[proficio_raw, islandora_raw])
+    # 2. Transformation Phase (Silver)
+    proficio_silver = transform_proficio.submit(wait_for=[proficio_raw])
+    alma_silver = transform_alma.submit(wait_for=[alma_raw])
 
-    # Export Phase
-    export_fut = export_proficio.submit(wait_for=[proficio_silver])
+    # 3. Validation Phase (QA)
+    qa_failures = isolate_qa_failures.submit(wait_for=[proficio_silver])
+
+    # 4. Gold Generation Phase
+    missing_objects = generate_missing_objects.submit(wait_for=[qa_failures, islandora_raw])
+
+    # 5. Export Phase (CSV to Workbench)
+    proficio_csv = export_proficio.submit(wait_for=[missing_objects])
+    alma_csv = export_alma.submit(wait_for=[alma_silver])
     
-    # Metrics Dashboard Phase
-    metrics_fut = report_metrics.submit(wait_for=[export_fut, alma_raw])
+    # 6. Serving Layer Phase (DuckDB)
+    duckdb_fut = build_duckdb.submit(wait_for=[proficio_csv, alma_csv])
+    
+    # 7. Metrics Dashboard Phase
+    metrics_fut = report_metrics.submit(wait_for=[duckdb_fut])
 
-    # Explicitly wait for terminal tasks to complete so the flow doesn't exit early
+    # Explicitly wait for terminal tasks to complete
     metrics_fut.wait()
 
 if __name__ == "__main__":

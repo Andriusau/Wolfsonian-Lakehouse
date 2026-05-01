@@ -1,104 +1,133 @@
-<div align="center">
+import subprocess
+import logging
+import json
+import os
+from prefect import flow, task
 
-  # 🐺 Wolfsonian Lakehouse ETL
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-  *A robust, containerized Data Lakehouse architecture for extracting, staging, and incrementally merging museum and library collection data using Python, DuckDB, and Parquet.*
+def run_script(script_path: str):
+    """Runs a Python script as a subprocess and raises an error if it fails."""
+    logger.info(f"Running script: {script_path}")
+    result = subprocess.run(['python', script_path])
+    if result.returncode != 0:
+        raise RuntimeError(f"Script {script_path} failed with exit code {result.returncode}")
+    else:
+        logger.info(f"Successfully ran {script_path}")
 
-  [![Python 3.10](https://img.shields.io/badge/Python-3.10-blue.svg)](#)
-  [![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED.svg)](#)
-  [![DuckDB](https://img.shields.io/badge/DuckDB-OLAP-yellow.svg)](#)
-  [![Data](https://img.shields.io/badge/Architecture-Medallion-brightgreen.svg)](#)
-</div>
+# ==========================================
+# 1. BRONZE LAYER (Extraction)
+# ==========================================
+@task(name="Extract Proficio Raw")
+def extract_proficio():
+    run_script('etl-pipelines/extract_proficio_raw.py')
 
----
+@task(name="Extract Islandora Raw")
+def extract_islandora():
+    run_script('etl-pipelines/extract_islandora_raw.py')
 
-## 📖 Table of Contents
-- [About the Project](#-about-the-project)
-- [Architecture & Tech Stack](#-architecture--tech-stack)
-- [Key Features](#-key-features)
-- [Project Structure](#-project-structure)
-- [Pipeline Execution](#-pipeline-execution)
+@task(name="Extract Alma Raw")
+def extract_alma():
+    run_script('etl-pipelines/extract_alma_raw.py')
 
----
+# ==========================================
+# 2. SILVER LAYER (Cleansing & Merging)
+# ==========================================
+@task(name="Transform Proficio Silver")
+def transform_proficio():
+    run_script('etl-pipelines/transform_proficio_silver.py')
 
-## 🧐 About the Project
-The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transform) pipeline designed to unify disparate data sources into a single, high-performance analytics layer. It extracts data from APIs, legacy SQL Server databases, and binary MARC files, staging them as raw Parquet files before transforming them into a clean, "Gold" standard layer for downstream systems like Workbench and Metabase.
+@task(name="Transform Alma Silver")
+def transform_alma():
+    run_script('etl-pipelines/transform_alma_silver.py')
 
-## 🏗️ Architecture & Tech Stack
-* **Orchestration:** Prefect 3 & Docker Compose
-* **Data Extraction:** Python 3.10 (Pandas, PyArrow, requests, pymarc)
-* **Database Connectivity:** SQLAlchemy, pyodbc (ODBC Driver 18 for SQL Server)
-* **Authentication:** Automated Kerberos (`kinit`) integration inside containers
-* **Storage Format:** Apache Parquet (High-speed, columnar, immutable storage)
-* **Serving Layer:** DuckDB
-* **Data Pattern:** Medallion Architecture with Incremental Delta Merges (Upserts) and QA Quarantine.
+# ==========================================
+# 3. GOLD LAYER (Validation & Export)
+# ==========================================
+@task(name="Isolate QA Failures")
+def isolate_qa_failures():
+    run_script('etl-pipelines/isolate_proficio_qa_failures.py')
 
----
+@task(name="Generate Gold Missing Objects")
+def generate_missing_objects():
+    run_script('etl-pipelines/export_gold_missing_objects.py')
 
-## ⚡ Key Features
+@task(name="Export Proficio to Workbench")
+def export_proficio():
+    run_script('etl-pipelines/export_proficio_to_workbench.py')
 
-* **Incremental Delta Merges (Upserts):** To avoid expensive full table scans, the Proficio extractor utilizes a high-watermark tracker to selectively pull only records created or modified since the last run. The Silver layer then seamlessly merges (upserts) these deltas into a persistent master Parquet table without duplicating data.
-* **Metabase Serving Layer (DuckDB):** The pipeline concludes by automatically generating a persistent DuckDB database with instantaneous, zero-copy Views pointing directly to the Parquet files. Metabase easily connects to this DuckDB file for lightning-fast BI visualization.
-* **QA Quarantine (Dead Letter Queue):** Records that fail critical data quality checks (missing identifiers, empty titles) are automatically isolated into a `proficio_qa_failures.parquet` file instead of breaking the pipeline. This allows data stewards to easily identify and fix dirty source data.
-* **Concurrent API Fetching:** The Islandora microservice utilizes a `ThreadPoolExecutor` and auto-discovery logic to fetch paginated API data rapidly, utilizing exponential backoff for network resilience.
-* **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline, providing a UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries (extracted, processed, quarantined, and missing rows) at the end of every flow.
+@task(name="Export Alma to Workbench")
+def export_alma():
+    run_script('etl-pipelines/export_alma_to_workbench.py')
 
----
+# ==========================================
+# 4. SERVING LAYER (DuckDB Metabase)
+# ==========================================
+@task(name="Build DuckDB Metabase Views")
+def build_duckdb():
+    run_script('etl-pipelines/build_duckdb_views.py')
 
-## 📂 Project Structure
+# ==========================================
+# 5. MONITORING
+# ==========================================
+@task(name="Report Pipeline Metrics")
+def report_metrics():
+    metrics_path = '/app/data/metrics.json'
+    if not os.path.exists(metrics_path):
+        logger.warning("No metrics.json found. Summary cannot be generated.")
+        return
 
-```text
-wolf-lakehouse/
-├── config.ini                   # Database credentials (Ignored in Git)
-├── data/                        # The Lakehouse Storage Volume
-│   ├── wolfsonian_lakehouse.duckdb # Serving Layer Database for Metabase
-│   ├── metrics.json             # Execution metrics for Prefect dashboard
-│   ├── watermark_proficio.json  # State tracker for Incremental Delta loads
-│   ├── gold/                    # Gold Layer: Clean outputs & QA failures
-│   │   ├── missing_objects.parquet
-│   │   └── proficio_qa_failures.parquet
-│   ├── raw/                     # Bronze Layer: Unaltered source dumps
-│   │   ├── alma/
-│   │   ├── islandora/
-│   │   └── proficio/
-│   │       └── incremental/     # Timestamped delta Parquet files
-│   └── silver/                  # Silver Layer: Persistent, deduplicated master tables
-├── docker-compose.yml           # The Master Switch for orchestration
-├── Dockerfile                   # Builds the Python 3.10 environment + ODBC/Kerberos
-├── etl-pipelines/               # Core Extraction & Transformation Microservices
-│   ├── extract_alma_raw.py
-│   ├── extract_islandora_raw.py
-│   ├── extract_proficio_raw.py
-│   ├── transform_proficio_silver.py
-│   ├── transform_alma_silver.py # Cleans MARC dumps (strips empty columns & whitespace)
-│   ├── export_proficio_to_workbench.py
-│   ├── build_duckdb_views.py    # Builds the Metabase Serving Layer
-│   └── orchestrate_prefect.py   # Master Prefect Workflow
-└── README.md
-```
+    try:
+        with open(metrics_path, 'r') as f:
+            metrics = json.load(f)
+            
+        summary = f"""
+        \n
+        ==================================================
+        📊 WOLFSONIAN LAKEHOUSE METRICS SUMMARY
+        ==================================================
+        Proficio Records Extracted (Delta): {metrics.get('proficio_extracted', 0)}
+        Proficio Deltas Processed:          {metrics.get('proficio_deltas_processed', 0)}
+        Total Silver Master Records:        {metrics.get('proficio_silver_total', 0)}
+        QA Validation Failures:             {metrics.get('proficio_qa_failures', 0)}
+        Missing Records Sent to Gold:       {metrics.get('missing_objects_found', 0)}
+        Alma Silver Records Processed:      {metrics.get('alma_silver_total', 0)}
+        ==================================================
+        """
+        logger.info(summary)
+    except Exception as e:
+        logger.warning(f"Could not load metrics summary: {e}")
 
----
+@flow(name="Wolfsonian Lakehouse Pipeline")
+def lakehouse_flow():
+    # 1. Extraction Phase
+    proficio_raw = extract_proficio.submit()
+    islandora_raw = extract_islandora.submit()
+    alma_raw = extract_alma.submit()
 
-## 🚀 Pipeline Execution (Powered by Prefect)
+    # 2. Transformation Phase (Silver)
+    proficio_silver = transform_proficio.submit(wait_for=[proficio_raw])
+    alma_silver = transform_alma.submit(wait_for=[alma_raw])
 
-The pipeline is managed by a master orchestrator (`orchestrate_prefect.py`) which coordinates all asynchronous tasks, monitors state, and aggregates metrics.
+    # 3. Validation Phase (QA)
+    qa_failures = isolate_qa_failures.submit(wait_for=[proficio_silver])
 
-**1. Rebuild the Docker Image**
-If you've recently updated `requirements.txt` or the Dockerfile:
-```bash
-docker compose build
-```
+    # 4. Gold Generation Phase
+    missing_objects = generate_missing_objects.submit(wait_for=[qa_failures, islandora_raw])
 
-**2. Start the Prefect UI**
-Spin up the local Prefect Server to monitor your runs:
-```bash
-docker compose up prefect-server -d
-```
-*You can now open your server IP (e.g., `http://<server-ip>:4200`) in your web browser to view the Prefect Dashboard.*
+    # 5. Export Phase (CSV to Workbench)
+    proficio_csv = export_proficio.submit(wait_for=[missing_objects])
+    alma_csv = export_alma.submit(wait_for=[alma_silver])
+    
+    # 6. Serving Layer Phase (DuckDB)
+    duckdb_fut = build_duckdb.submit(wait_for=[proficio_csv, alma_csv])
+    
+    # 7. Metrics Dashboard Phase
+    metrics_fut = report_metrics.submit(wait_for=[duckdb_fut])
 
-**3. Run the Pipeline**
-Trigger the extraction and transformation workflow:
-```bash
-docker compose run --rm lakehouse
-```
-*Watch your pipeline execute in real-time in the terminal. The flow will conclude by building the DuckDB views and printing a dashboard summarizing the exact rows processed by the Delta Merge logic!*
+    # Explicitly wait for terminal tasks to complete
+    metrics_fut.wait()
+
+if __name__ == "__main__":
+    lakehouse_flow()
