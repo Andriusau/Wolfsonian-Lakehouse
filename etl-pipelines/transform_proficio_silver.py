@@ -228,6 +228,14 @@ if __name__ == "__main__":
     logging.info("--- 🔄 2. PROCESS PROFICIO DELTAS (SILVER LAYER) ---")
     
     delta_files = list(DELTA_DIR.glob('*.parquet'))
+    RAW_DUMP = Path('/app/data/raw/proficio/objects_raw_dump.parquet')
+    
+    # If there is no Silver Master, treat the entire historical raw dump as a new "delta"
+    # so that all 14,000+ records are properly transformed.
+    if not MASTER_SILVER.exists() and RAW_DUMP.exists():
+        logging.info("No Silver Master exists. Adding historical raw dump to deltas to rebuild from scratch.")
+        delta_files.append(RAW_DUMP)
+        
     df_deltas = pd.DataFrame()
     
     if delta_files:
@@ -289,9 +297,12 @@ if __name__ == "__main__":
         logging.warning("No data in Silver Master or Deltas. Exiting.")
         sys.exit(0)
 
-    # Force all columns to string to prevent DuckDB from inferring 'NULL' or 'UNKNOWN' types
-    # which causes the Metabase DuckDB JDBC driver to crash during schema sync.
-    df_master = df_master.astype(str)
+    # Clean string columns and drop completely empty ones (prevents DuckDB 'UNKNOWN' type crashes)
+    str_cols = df_master.select_dtypes(include=['object', 'string']).columns
+    for col in str_cols:
+        df_master[col] = df_master[col].astype(str).str.strip().replace('', pd.NA).replace('nan', pd.NA).replace('None', pd.NA)
+        
+    df_master = df_master.dropna(axis=1, how='all')
     
     # Save the Master Silver table
     df_master.to_parquet(MASTER_SILVER, index=False)
@@ -309,8 +320,10 @@ if __name__ == "__main__":
     with open(metrics_path, 'w') as f:
         json.dump(metrics, f)
 
-    # Cleanup processed deltas
+    # Cleanup processed deltas (do NOT delete the baseline raw dump)
     for f in delta_files:
+        if f.name == 'objects_raw_dump.parquet':
+            continue
         try:
             f.unlink()
         except: pass
