@@ -1,5 +1,5 @@
 FROM metabase/metabase:latest
 USER root
 RUN apk add --no-cache libstdc++ || (apt-get update && apt-get install -y libstdc++6)
-USER 2000
+
 
