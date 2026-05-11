@@ -107,3 +107,25 @@ Trigger the extraction and transformation workflow:
 docker compose run --rm lakehouse
 ```
 *Watch your pipeline execute in real-time in the terminal. The flow will conclude by building the DuckDB views and printing a dashboard summarizing the exact rows processed by the Delta Merge logic!*
+
+**4. Visualizing with Metabase**
+The pipeline includes a custom-built Metabase container equipped with the DuckDB driver for lightning-fast BI reporting.
+```bash
+docker compose up metabase -d
+```
+*Access Metabase at `http://<server-ip>:3030`.*
+
+> [!WARNING]
+> **CRITICAL DUCKDB SETUP STEP:** When connecting Metabase to DuckDB for the first time, you **must** enable Read-Only mode or the container will fatally crash due to thread deadlocking.
+> 1. Go through the initial Setup Wizard. On the "Add your data" step, scroll down and click **"I'll add my data later"** to bypass the hidden defaults.
+> 2. From the main dashboard, click the **Gear Icon ⚙️** -> **Admin Settings** -> **Databases** -> **Add Database**.
+> 3. Add the DuckDB Database file path: `/metabase-data/wolfsonian_lakehouse.duckdb`
+> 4. **Toggle "Establish a read-only connection" to ON.**
+> 5. Click Save.
+
+**Troubleshooting Metabase Crash Loops:** 
+If you accidentally hit save without the toggle and the container crashes, a simple restart won't fix it because Metabase saves its settings to a persistent anonymous volume. Run the following commands to perform a hard wipe and reset the Setup Wizard:
+```bash
+docker compose rm -s -f -v metabase
+docker compose up metabase -d
+```
