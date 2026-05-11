@@ -1,5 +1,6 @@
 FROM metabase/metabase:latest
 USER root
-RUN apk add --no-cache libstdc++ || (apt-get update && apt-get install -y libstdc++6)
+RUN apk add --no-cache libstdc++ gcompat libc6-compat || (apt-get update && apt-get install -y libstdc++6 libc6)
+
 
 
