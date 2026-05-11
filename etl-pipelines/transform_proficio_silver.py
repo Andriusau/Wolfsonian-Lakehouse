@@ -289,6 +289,10 @@ if __name__ == "__main__":
         logging.warning("No data in Silver Master or Deltas. Exiting.")
         sys.exit(0)
 
+    # Force all columns to string to prevent DuckDB from inferring 'NULL' or 'UNKNOWN' types
+    # which causes the Metabase DuckDB JDBC driver to crash during schema sync.
+    df_master = df_master.astype(str)
+    
     # Save the Master Silver table
     df_master.to_parquet(MASTER_SILVER, index=False)
     

@@ -29,6 +29,7 @@ services:
       - "3030:3000"
     volumes:
       - ./data:/metabase-data
+      - ./data:/app/data
       - ./metabase-plugins:/plugins
 
 volumes:
