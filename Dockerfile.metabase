@@ -1,11 +1,5 @@
 FROM metabase/metabase:latest
-
-# Metabase runs as a restricted user, so we briefly switch to root
 USER root
-
-# Install the C++ standard library which DuckDB requires
-# We try both Alpine (apk) and Debian (apt-get) just to be safe across Metabase versions
 RUN apk add --no-cache libstdc++ || (apt-get update && apt-get install -y libstdc++6)
+USER 2000
 
-# Switch back to the secure metabase user
-USER metabase
