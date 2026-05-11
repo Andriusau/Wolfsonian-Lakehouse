@@ -22,7 +22,9 @@ services:
     command: bash -c "sleep 5 && python etl-pipelines/orchestrate_prefect.py"
 
   metabase:
-    image: metabase/metabase:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.metabase
     ports:
       - "3030:3000"
     volumes:
