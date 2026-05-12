@@ -53,6 +53,10 @@ def isolate_qa_failures():
 def generate_missing_objects():
     run_script('etl-pipelines/export_gold_missing_objects.py')
 
+@task(name="Generate Gold Unified Catalog")
+def generate_unified_catalog():
+    run_script('etl-pipelines/export_gold_unified_catalog.py')
+
 @task(name="Export Proficio to Workbench")
 def export_proficio():
     run_script('etl-pipelines/export_proficio_to_workbench.py')
@@ -115,6 +119,7 @@ def lakehouse_flow():
 
     # 4. Gold Generation Phase
     missing_objects = generate_missing_objects.submit(wait_for=[qa_failures, islandora_raw])
+    unified_catalog = generate_unified_catalog.submit(wait_for=[proficio_silver, alma_silver])
 
     # 5. Export Phase (CSV to Workbench)
     proficio_csv = export_proficio.submit(wait_for=[missing_objects])
