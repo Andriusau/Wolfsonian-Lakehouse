@@ -208,24 +208,7 @@ def normalize_identifier(s):
 # ==========================================
 
 if __name__ == "__main__":
-    logging.info("--- 📥 1. LOAD ISLANDORA DATA ---")
-    try:
-        logging.info(f"Reading Islandora raw data from {RAW_ISLANDORA}")
-        df_islandora = pd.read_parquet(RAW_ISLANDORA)
-        
-        if 'accn' in df_islandora.columns:
-            df_islandora = df_islandora.rename(columns={'accn': 'field_identifier'})
-        elif 'field_identifier_external' in df_islandora.columns:
-            df_islandora = df_islandora.rename(columns={'field_identifier_external': 'field_identifier'})
-            
-        initial_count = len(df_islandora)
-        df_islandora = df_islandora.drop_duplicates(subset=['field_identifier'])
-        logging.info(f"✂️ Deduplication: Reduced Islandora Data from {initial_count} to {len(df_islandora)} unique identifiers.")
-    except Exception as e:
-        logging.error(f"Failed to load Islandora data. Error: {e}")
-        sys.exit(1)
-
-    logging.info("--- 🔄 2. PROCESS PROFICIO DELTAS (SILVER LAYER) ---")
+    logging.info("--- 🔄 1. PROCESS PROFICIO DELTAS (SILVER LAYER) ---")
     
     delta_files = list(DELTA_DIR.glob('*.parquet'))
     RAW_DUMP = Path('/app/data/raw/proficio/objects_raw_dump.parquet')

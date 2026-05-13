@@ -118,7 +118,7 @@ def lakehouse_flow():
     qa_failures = isolate_qa_failures.submit(wait_for=[proficio_silver])
 
     # 4. Gold Generation Phase
-    missing_objects = generate_missing_objects.submit(wait_for=[qa_failures, islandora_raw])
+    missing_objects = generate_missing_objects.submit(wait_for=[qa_failures, islandora_raw, unified_catalog])
     unified_catalog = generate_unified_catalog.submit(wait_for=[proficio_silver, alma_silver])
 
     # 5. Export Phase (CSV to Workbench)
@@ -126,7 +126,7 @@ def lakehouse_flow():
     alma_csv = export_alma.submit(wait_for=[alma_silver])
     
     # 6. Serving Layer Phase (DuckDB)
-    duckdb_fut = build_duckdb.submit(wait_for=[proficio_csv, alma_csv])
+    duckdb_fut = build_duckdb.submit(wait_for=[proficio_csv, alma_csv, unified_catalog])
     
     # 7. Metrics Dashboard Phase
     metrics_fut = report_metrics.submit(wait_for=[duckdb_fut])

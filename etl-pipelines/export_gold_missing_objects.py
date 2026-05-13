@@ -6,7 +6,7 @@ import re
 import json
 from pathlib import Path
 
-MASTER_SILVER = Path('/app/data/silver/proficio_silver.parquet')
+UNIFIED_CATALOG = Path('/app/data/gold/unified_catalog.parquet')
 RAW_ISLANDORA = Path('/app/data/raw/islandora/islandora_lookup.parquet')
 OUTPUT_PARQUET = Path('/app/data/gold/missing_objects.parquet')
 
@@ -22,12 +22,12 @@ def normalize_identifier(s):
     return s
 
 if __name__ == "__main__":
-    if not MASTER_SILVER.exists() or not RAW_ISLANDORA.exists():
-        logging.warning("Missing required Silver or Islandora files.")
+    if not UNIFIED_CATALOG.exists() or not RAW_ISLANDORA.exists():
+        logging.warning("Missing required Unified Catalog or Islandora files.")
         sys.exit(0)
         
     logging.info("--- 🔄 GENERATE GOLD MISSING OBJECTS ---")
-    df_master = pd.read_parquet(MASTER_SILVER)
+    df_master = pd.read_parquet(UNIFIED_CATALOG)
     df_islandora = pd.read_parquet(RAW_ISLANDORA)
     
     # Filter to only passed QA checks
@@ -81,7 +81,12 @@ if __name__ == "__main__":
                 
         final_columns_exist = [col for col in final_columns if col in df_results.columns]
         
-        df_results[final_columns_exist].astype(str).to_parquet(OUTPUT_PARQUET, index=False)
+        df_export = df_results[final_columns_exist]
+        str_cols = df_export.select_dtypes(include=['object', 'string']).columns
+        for col in str_cols:
+            df_export.loc[:, col] = df_export[col].astype(str).str.strip().replace('', pd.NA).replace('nan', pd.NA).replace('None', pd.NA)
+        df_export = df_export.dropna(axis=1, how='all')
+        df_export.to_parquet(OUTPUT_PARQUET, index=False)
         logging.info(f"Saved Gold Parquet results to {OUTPUT_PARQUET}")
         
     metrics_path = '/app/data/metrics.json'
