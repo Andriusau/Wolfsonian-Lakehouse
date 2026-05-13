@@ -10,7 +10,16 @@ def create_views():
     logging.info(f"🦆 Connecting to DuckDB database at {DB_PATH}")
     
     # Connect to DuckDB
-    con = duckdb.connect(DB_PATH)
+    try:
+        con = duckdb.connect(DB_PATH)
+    except duckdb.IOException as e:
+        if "lock" in str(e).lower():
+            logging.warning("⚠️ DuckDB file is locked (likely by Metabase).")
+            logging.warning("Skipping view recreation. Metabase will automatically query the freshly updated Parquet files!")
+            import sys
+            sys.exit(0)
+        else:
+            raise e
     
     # Define our tables/views and their Parquet sources
     views_to_create = {
