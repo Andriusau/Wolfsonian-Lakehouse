@@ -1,0 +1,8 @@
+2026-05-13 18:24:49 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "PROFICO_QA_FAILURES" not found; SQL statement:
+-- Metabase:: userID: 1 queryType: native queryHash: 09734d6bf45a3de8bc5e5619fccce999e8d5a49019603277753fb676b73869ba
+SELECT * FROM profico_qa_failures [42102-214]
+2026-05-13 18:25:07 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Table "PROFICO_QA_FAILURES" not found; SQL statement:
+-- Metabase:: userID: 1 queryType: native queryHash: 3614c6b414e6836c2e6d200a82c44741c1bde6d8797765456c0a6da2aabbe001
+SELECT * FROM profico_qa_failures; [42102-214]

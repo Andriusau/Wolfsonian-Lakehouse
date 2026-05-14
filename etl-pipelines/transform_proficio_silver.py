@@ -295,6 +295,10 @@ if __name__ == "__main__":
     else:
         logging.info("No Silver Master exists. Creating new from Deltas.")
         df_master = df_deltas
+        # Still deduplicate even on first build — multiple delta files (raw dump + fresh pull) can overlap
+        if 'field_identifier' in df_master.columns:
+            df_master = df_master.drop_duplicates(subset=['field_identifier'], keep='last')
+            logging.info(f"Deduplication on fresh build: {len(df_master)} unique records.")
 
     if df_master.empty:
         logging.warning("No data in Silver Master or Deltas. Exiting.")
