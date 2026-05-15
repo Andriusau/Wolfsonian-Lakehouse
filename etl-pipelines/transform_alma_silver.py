@@ -53,9 +53,21 @@ if __name__ == "__main__":
         'new_260_a': 'field_place_published',
         'new_546_a': 'field_language',
         'new_300_c': 'field_physical_form',
-        'new_610_a': 'field_subjects_name'
+        'new_610_a': 'field_subjects_name',
+        'new_100_a': 'field_linked_agent',   # MARC primary personal name
     }
     df = df.rename(columns=alma_rename_map)
+    
+    # Append additional creators (MARC 700) to field_linked_agent
+    if 'new_700_a' in df.columns and 'field_linked_agent' in df.columns:
+        def merge_creators(row):
+            primary = str(row['field_linked_agent']).strip() if pd.notna(row['field_linked_agent']) else ''
+            additional = str(row['new_700_a']).strip() if pd.notna(row['new_700_a']) else ''
+            if primary and additional:
+                return f"{primary}||{additional}"
+            return primary or additional or None
+        df['field_linked_agent'] = df.apply(merge_creators, axis=1)
+        df['field_linked_agent'] = df['field_linked_agent'].replace('', pd.NA)
     
     # Construct a composite title if the pieces exist
     if 'new_245_a' in df.columns:
@@ -111,4 +123,3 @@ if __name__ == "__main__":
         json.dump(metrics, f)
         
     logging.info("✅ Alma Silver Pipeline Finished!")
-
