@@ -16,65 +16,45 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # ---------------------------------------------------------------------------
 GENRE_MAP = {
     # Posters
-    'POSTER': 'POSTER', 'POSTERS': 'POSTER', 'BROADSIDE': 'POSTER',
+    'POSTER': 'Poster', 'POSTERS': 'Poster', 'BROADSIDE': 'Poster',
     # Pamphlets
-    'PAMPHLET': 'PAMPHLET', 'PAMPHLETS': 'PAMPHLET',
-    'BROCHURE': 'PAMPHLET', 'LEAFLET': 'PAMPHLET',
+    'PAMPHLET': 'Pamphlet', 'PAMPHLETS': 'Pamphlet',
+    'BROCHURE': 'Pamphlet.', 'LEAFLET': 'Pamphlet',
     # Books
-    'BOOK': 'BOOKS', 'BOOKS': 'BOOKS', 'MONOGRAPH': 'BOOKS',
+    'BOOK': 'Book', 'BOOKS': 'Book', 'MONOGRAPH': 'Book', 'Biography', 'BIOGRAPHY', 'Books.',
     # Periodicals
-    'PERIODICAL': 'PERIODICAL', 'JOURNAL': 'PERIODICAL',
-    'MAGAZINE': 'PERIODICAL', 'SERIAL': 'PERIODICAL',
+    'PERIODICAL': 'Periodical', 'JOURNAL': 'Periodical',
+    'MAGAZINE': 'Periodical', 'SERIAL': 'Periodical',
     # Photographs
-    'PHOTOGRAPH': 'PHOTOGRAPH', 'PHOTO': 'PHOTOGRAPH',
-    'PHOTOGRAPHY': 'PHOTOGRAPH', 'NEGATIVE': 'PHOTOGRAPH',
-    'SLIDE': 'PHOTOGRAPH',
+    'PHOTOGRAPH': 'Photograph', 'PHOTO': 'Photograph',
+    'PHOTOGRAPHY': 'Photograph', 'NEGATIVE': 'Photograph',
+    'SLIDE': 'Photograph',
     # Drawings
-    'DRAWING': 'DRAWING', 'DRAWINGS': 'DRAWING', 'SKETCH': 'DRAWING',
+    'DRAWING': 'Drawing', 'DRAWINGS': 'Drawing', 'SKETCH': 'Drawing',
     # Prints
-    'PRINT': 'PRINT', 'PRINTS': 'PRINT', 'LITHOGRAPH': 'PRINT',
-    'ETCHING': 'PRINT', 'WOODCUT': 'PRINT', 'ENGRAVING': 'PRINT',
+    'PRINT': 'Print', 'PRINTS': 'Print', 'LITHOGRAPH': 'Print',
+    'ETCHING': 'Print', 'WOODCUT': 'Print', 'ENGRAVING': 'Print',
     # Postcards
-    'POSTCARD': 'POSTCARD', 'POST CARD': 'POSTCARD', 'POSTCARDS': 'POSTCARD',
+    'POSTCARD': 'Postcard', 'POST CARD': 'Postcard', 'POSTCARDS': 'Postcard',
     # Ephemera
-    'EPHEMERA': 'EPHEMERA', 'EPHEMERAL': 'EPHEMERA', 'ADVERTISING EPHEMERA': 'EPHEMERA',
+    'EPHEMERA': 'Ephemera', 'EPHEMERAL': 'Ephemera',
     # Mixed media / objects
-    'MIXED MEDIA': 'MIXED MEDIA', 'MIXED-MEDIA': 'MIXED MEDIA',
-    'OBJECT': 'OBJECT', 'OBJECTS': 'OBJECT', 'MUSEUM OBJECT': 'OBJECT',
+    'MIXED MEDIA': 'Mixed Media', 'MIXED-MEDIA': 'Mixed Media',
+    'OBJECT': 'Object', 'OBJECTS': 'Object',
     # Paintings / art
-    'PAINTING': 'PAINTING', 'PAINTINGS': 'PAINTING',
-    'SCULPTURE': 'SCULPTURE', 'STATUE': 'SCULPTURE',
-    'TEXTILE': 'TEXTILE', 'TEXTILES': 'TEXTILE', 'FABRIC': 'TEXTILE', 'CLOTHING': 'TEXTILE',
+    'PAINTING': 'Painting', 'PAINTINGS': 'Painting',
+    'SCULPTURE': 'Sculpture',
+    'TEXTILE': 'Textile', 'TEXTILES': 'Textile', 'FABRIC': 'Textile',
     # Maps
-    'MAP': 'MAP', 'MAPS': 'MAP', 'CARTOGRAPHIC': 'MAP',
+    'MAP': 'Map', 'MAPS': 'Map',
     # Furniture / design
-    'FURNITURE': 'FURNITURE', 'DECORATIVE ARTS': 'FURNITURE',
-    # Library Specifics
-    'EXHIBITION CATALOGS': 'EXHIBITION CATALOG', 'EXHIBITION CATALOG': 'EXHIBITION CATALOG',
-    'BIBLIOGRAPHY': 'BOOKS', 'CATALOGS': 'CATALOG', 'COLLECTION': 'COLLECTION',
+    'FURNITURE': 'Furniture',
 }
 
 def normalize_genre(val):
-    if pd.isna(val) or str(val).strip() == '' or str(val).lower() == 'none':
+    if pd.isna(val) or str(val).strip() == '':
         return pd.NA
-    
-    # Strip whitespace and make uppercase
-    raw_val = str(val).strip().upper()
-    # Remove any trailing punctuation (.,;:)
-    clean_val = re.sub(r'[.,;:!]$', '', raw_val).strip()
-    
-    if clean_val in GENRE_MAP:
-        return GENRE_MAP[clean_val]
-    
-    # If not in map, just return the cleaned uppercase version
-    return clean_val
-
-def normalize_subject(val):
-    if pd.isna(val) or str(val).strip() == '' or str(val).lower() == 'none':
-        return pd.NA
-    # If it's a pipe-separated list, clean each item
-    parts = [p.strip().rstrip('.') for p in str(val).split('||')]
-    return ' || '.join([p for p in parts if p]) if parts else pd.NA
+    return GENRE_MAP.get(str(val).strip().upper(), str(val).strip().title())
 
 
 # ---------------------------------------------------------------------------
@@ -134,14 +114,6 @@ if __name__ == '__main__':
     if 'field_genre' in df.columns:
         df['field_genre'] = df['field_genre'].apply(normalize_genre)
         logging.info('✅ Normalized field_genre.')
-        # Diagnostic: show top 5 genres
-        top_genres = df['field_genre'].value_counts().head(5).to_dict()
-        logging.info(f"Top 5 Genres: {top_genres}")
-
-    # --- Subject ---
-    if 'field_subject' in df.columns:
-        df['field_subject'] = df['field_subject'].apply(normalize_subject)
-        logging.info('✅ Normalized field_subject.')
 
     # --- Title ---
     if 'title' in df.columns:

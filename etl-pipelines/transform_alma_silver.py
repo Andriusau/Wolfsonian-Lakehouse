@@ -3,6 +3,7 @@ import logging
 import json
 import sys
 import os
+import re
 from pathlib import Path
 
 # Setup paths
@@ -54,9 +55,24 @@ if __name__ == "__main__":
         'new_546_a': 'field_language',
         'new_300_c': 'field_physical_form',
         'new_610_a': 'field_subjects_name',
+        'new_650_a': 'field_subject',       # Added standard library subjects
         'new_100_a': 'field_linked_agent',   # MARC primary personal name
     }
     df = df.rename(columns=alma_rename_map)
+
+    # Construct EDTF Date (field_edtf_date_created)
+    # Prefer 264$c (modern production date) over 260$c (legacy imprint date)
+    if 'new_264_c' in df.columns or 'new_260_c' in df.columns:
+        def get_date(row):
+            d264 = str(row['new_264_c']).strip() if 'new_264_c' in row and pd.notna(row['new_264_c']) else ''
+            d260 = str(row['new_260_c']).strip() if 'new_260_c' in row and pd.notna(row['new_260_c']) else ''
+            val = d264 or d260
+            # Clean up MARC date punctuation (e.g., [1934], 1934., c1934)
+            if val:
+                val = re.sub(r'[\[\]\(\)\.\,c]', '', val).strip()
+            return val if val else None
+        
+        df['field_edtf_date_created'] = df.apply(get_date, axis=1)
     
     # Append additional creators (MARC 700) to field_linked_agent
     if 'new_700_a' in df.columns and 'field_linked_agent' in df.columns:
