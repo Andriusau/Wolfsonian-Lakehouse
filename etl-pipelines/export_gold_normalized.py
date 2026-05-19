@@ -153,11 +153,26 @@ if __name__ == '__main__':
         df['field_linked_agent'] = df['field_linked_agent'].apply(normalize_creator)
         logging.info('✅ Normalized field_linked_agent.')
 
-    # --- Date: add derived year + decade columns for charting ---
-    if 'field_edtf_date_created' in df.columns:
-        df['year_created']   = df['field_edtf_date_created'].apply(extract_year)
-        df['decade_created'] = df['year_created'].apply(year_to_decade)
-        logging.info('✅ Derived year_created and decade_created columns.')
+    # --- Dates: extract derived year + decade columns for any date fields ---
+    date_columns = [
+        'field_edtf_date_created', 
+        'original_date'   # Add any other date columns you want to normalize here!
+    ]
+    
+    for date_col in date_columns:
+        if date_col in df.columns:
+            year_col = f"{date_col}_year"
+            decade_col = f"{date_col}_decade"
+            
+            df[year_col] = df[date_col].apply(extract_year).astype('Int64')
+            df[decade_col] = df[year_col].apply(year_to_decade).astype('Int64')
+            logging.info(f'✅ Derived {year_col} and {decade_col} from {date_col}.')
+            
+    # For backwards compatibility with any existing dashboards, 
+    # alias the primary date fields
+    if 'field_edtf_date_created_year' in df.columns:
+        df['year_created'] = df['field_edtf_date_created_year']
+        df['decade_created'] = df['field_edtf_date_created_decade']
 
     # --- Drop fully empty columns ---
     before = len(df.columns)

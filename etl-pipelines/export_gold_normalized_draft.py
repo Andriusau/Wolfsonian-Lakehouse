@@ -19,7 +19,7 @@ GENRE_MAP = {
     'POSTER': 'Poster', 'POSTERS': 'Poster', 'BROADSIDE': 'Poster',
     # Pamphlets
     'PAMPHLET': 'Pamphlet', 'PAMPHLETS': 'Pamphlet',
-    'BROCHURE': 'Pamphlet.', 'LEAFLET': 'Pamphlet',
+    #'BROCHURE': 'Pamphlet.', 'LEAFLET': 'Pamphlet',
     # Books
     'BOOK': 'Book', 'BOOKS': 'Book', 'MONOGRAPH': 'Book', 'Biography', 'BIOGRAPHY', 'Books.',
     # Periodicals
@@ -33,7 +33,7 @@ GENRE_MAP = {
     'DRAWING': 'Drawing', 'DRAWINGS': 'Drawing', 'SKETCH': 'Drawing',
     # Prints
     'PRINT': 'Print', 'PRINTS': 'Print', 'LITHOGRAPH': 'Print',
-    'ETCHING': 'Print', 'WOODCUT': 'Print', 'ENGRAVING': 'Print',
+    #'ETCHING': 'Print', 'WOODCUT': 'Print', 'ENGRAVING': 'Print',
     # Postcards
     'POSTCARD': 'Postcard', 'POST CARD': 'Postcard', 'POSTCARDS': 'Postcard',
     # Ephemera
