@@ -42,7 +42,7 @@ The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transf
 
 | Source | System | Records | Method |
 |---|---|---|---|
-| **Alma** | Ex Libris Library Management | ~54,860 | Binary MARC (`.mrc`) file parsing via PyMARC |
+| **Alma** | Ex Libris Library Management | ~54,983 | Binary MARC (`.mrc`) file parsing via PyMARC |
 | **Proficio** | Museum Collection Database | ~60,566 | Kerberos-authenticated SQL Server via ODBC |
 | **Islandora** | Public Digital Archive | ~265,193 | Paginated REST API with concurrent fetching |
 | **Unified Gold Catalog** | Merged output | ~115,000 | Alma + Proficio aligned and concatenated |
@@ -67,41 +67,58 @@ The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transf
 
 ```text
 wolf-lakehouse/
+├── aaukstuo.keytab              # Kerberos auth key (Ignored in Git)
 ├── config.ini                   # Database credentials (Ignored in Git)
 ├── data/                        # The Lakehouse Storage Volume
-│   ├── wolfsonian_lakehouse.duckdb # Serving Layer Database for Metabase
-│   ├── metrics.json             # Execution metrics for Prefect dashboard
-│   ├── watermark_proficio.json  # State tracker for Incremental Delta loads
+│   ├── export/
+│   │   └── workbench_upload.csv
 │   ├── gold/                    # Gold Layer: Clean outputs & QA failures
-│   │   ├── unified_catalog.parquet
-│   │   ├── unified_catalog_normalized.parquet  # Harmonized analytics view
+│   │   ├── alma_workbench_export.csv
 │   │   ├── missing_objects.parquet
 │   │   ├── proficio_qa_failures.parquet
-│   │   ├── proficio_workbench_export.csv
-│   │   └── alma_workbench_export.csv
+│   │   ├── unified_catalog_normalized.parquet  # Harmonized analytics view
+│   │   └── unified_catalog.parquet
+│   ├── metrics.json             # Execution metrics for Prefect dashboard
 │   ├── raw/                     # Bronze Layer: Unaltered source dumps
 │   │   ├── alma/
+│   │   │   ├── alma_raw_dump.parquet
+│   │   │   ├── BIBLIOGRAPHIC_16308238980006571_16308238960006571_1.mrc
+│   │   │   └── BIBLIOGRAPHIC_16429188970006571_16429188950006571_1.mrc
 │   │   ├── islandora/
+│   │   │   └── islandora_lookup.parquet
 │   │   └── proficio/
 │   │       └── incremental/     # Timestamped delta Parquet files
-│   └── silver/                  # Silver Layer: Persistent, deduplicated master tables
+│   ├── silver/                  # Silver Layer: Persistent, deduplicated tables
+│   │   ├── alma_silver.parquet
+│   │   └── proficio_silver.parquet
+│   ├── transform.log            # Execution logs
+│   ├── watermark_proficio.json  # State tracker for Incremental Delta loads
+│   └── wolfsonian_lakehouse.duckdb # Serving Layer Database for Metabase
 ├── docker-compose.yml           # The Master Switch for orchestration
 ├── Dockerfile                   # Builds the Python 3.10 environment + ODBC/Kerberos
 ├── Dockerfile.metabase          # Custom Ubuntu image for Metabase DuckDB support
 ├── etl-pipelines/               # Core Extraction & Transformation Microservices
+│   ├── build_duckdb_views.py
+│   ├── export_alma_to_workbench.py
+│   ├── export_gold_missing_objects.py
+│   ├── export_gold_normalized_draft.py
+│   ├── export_gold_normalized.py    # Cross-system harmonization
+│   ├── export_gold_unified_catalog.py
+│   ├── export_proficio_to_workbench.py
 │   ├── extract_alma_raw.py
 │   ├── extract_islandora_raw.py
 │   ├── extract_proficio_raw.py
-│   ├── transform_proficio_silver.py
-│   ├── transform_alma_silver.py
 │   ├── isolate_proficio_qa_failures.py
-│   ├── export_gold_missing_objects.py
-│   ├── export_gold_unified_catalog.py
-│   ├── export_gold_normalized.py    # Cross-system harmonization (genres, dates, creators)
-│   ├── export_proficio_to_workbench.py
-│   ├── export_alma_to_workbench.py
-│   ├── build_duckdb_views.py    
-│   └── orchestrate_prefect.py   # Master 13-Node Prefect Workflow
+│   ├── orchestrate_prefect.py   # Master Prefect Workflow
+│   ├── requirements.txt
+│   ├── transform_alma_raw.py
+│   ├── transform_alma_silver.py
+│   └── transform_proficio_silver.py
+├── logs/
+├── metabase-plugins/
+│   ├── duckdb.metabase-driver.jar
+│   ├── sample-database.db.mv.db
+│   └── sample-database.db.trace.db
 └── README.md
 ```
 
