@@ -57,6 +57,10 @@ def generate_missing_objects():
 def generate_unified_catalog():
     run_script('etl-pipelines/export_gold_unified_catalog.py')
 
+@task(name="Generate Comparison Proficio")
+def generate_comparison_proficio():
+    run_script('etl-pipelines/export_comparison_proficio.py')
+
 @task(name="Normalize Gold Catalog")
 def normalize_catalog():
     run_script('etl-pipelines/export_gold_normalized.py')
@@ -125,6 +129,7 @@ def lakehouse_flow():
     unified_catalog = generate_unified_catalog.submit(wait_for=[proficio_silver, alma_silver])
     normalized_catalog = normalize_catalog.submit(wait_for=[unified_catalog])
     missing_objects = generate_missing_objects.submit(wait_for=[qa_failures, islandora_raw, unified_catalog])
+    comparison_proficio = generate_comparison_proficio.submit(wait_for=[proficio_silver, islandora_raw])
 
     # 5. Export Phase (CSV to Workbench)
     proficio_csv = export_proficio.submit(wait_for=[missing_objects])

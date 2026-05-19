@@ -21,9 +21,9 @@ def create_views():
         else:
             raise e
     
-    # Define our tables/views and their Parquet sources
     views_to_create = {
         'proficio_silver': '/app/data/silver/proficio_silver.parquet',
+        'comparison_proficio': '/app/data/gold/comparison_proficio.parquet',  
         'alma_silver': '/app/data/silver/alma_silver.parquet',
         'islandora_raw': '/app/data/raw/islandora/islandora_lookup.parquet',
         'proficio_missing_objects': '/app/data/gold/missing_objects.parquet',
