@@ -101,11 +101,27 @@ def year_to_decade(year):
 def normalize_creator(val):
     if pd.isna(val) or str(val).strip() == '':
         return pd.NA
-    # Take only the first creator if multiple are pipe-separated
-    first = str(val).split('||')[0].strip()
-    # Remove trailing punctuation common in MARC (period, comma)
-    first = first.rstrip('.,;')
-    return first if first else pd.NA
+        
+    # Some older pipelines used '||', standard is '|'
+    val_str = str(val).replace('||', '|')
+    agents = val_str.split('|')
+    clean_agents = []
+    
+    for agent in agents:
+        agent = agent.strip()
+        # Check for RDF mapping format "relators:role:person:Name"
+        parts = agent.split(':')
+        if len(parts) >= 4 and parts[0] == 'relators' and parts[2] == 'person':
+            name = ':'.join(parts[3:]).strip()
+        else:
+            name = agent
+            
+        # Remove trailing punctuation common in MARC (period, comma)
+        name = name.rstrip('.,;')
+        if name:
+            clean_agents.append(name)
+            
+    return ' | '.join(clean_agents) if clean_agents else pd.NA
 
 
 # ---------------------------------------------------------------------------
