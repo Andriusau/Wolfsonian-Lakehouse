@@ -107,6 +107,13 @@ def normalize_creator(val):
     agents = val_str.split('|')
     clean_agents = []
     
+    # Add mapping dictionary for common name spelling variants
+    CREATOR_ALIASES = {
+        'Josef Grof': 'József Gróf',
+        'Josef Gróf': 'József Gróf',
+        # Add more mappings here as you find them!
+    }
+    
     for agent in agents:
         agent = agent.strip()
         # Check for RDF mapping format "relators:role:person:Name"
@@ -118,6 +125,11 @@ def normalize_creator(val):
             
         # Remove trailing punctuation common in MARC (period, comma)
         name = name.rstrip('.,;')
+        
+        # Apply alias mapping if it exists
+        if name in CREATOR_ALIASES:
+            name = CREATOR_ALIASES[name]
+            
         if name:
             clean_agents.append(name)
             
