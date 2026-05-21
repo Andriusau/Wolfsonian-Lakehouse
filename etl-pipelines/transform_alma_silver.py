@@ -55,8 +55,10 @@ if __name__ == "__main__":
         'new_546_a': 'field_language',
         'new_300_c': 'field_physical_form',
         'new_610_a': 'field_subjects_name',
-        'new_650_a': 'field_subject',       # Added standard library subjects
-        'new_100_a': 'field_linked_agent',   # MARC primary personal name
+        'new_008_ctrl': 'country_code',             
+        'new_006_ctrl': 'field_lvr',                
+        'new_650_z': 'field_geographic_subject',    
+        'new_650_y': 'field_temporal_subject',      
     }
     df = df.rename(columns=alma_rename_map)
 
@@ -74,16 +76,43 @@ if __name__ == "__main__":
         
         df['field_edtf_date_created'] = df.apply(get_date, axis=1)
     
-    # Append additional creators (MARC 700) to field_linked_agent
-    if 'new_700_a' in df.columns and 'field_linked_agent' in df.columns:
-        def merge_creators(row):
-            primary = str(row['field_linked_agent']).strip() if pd.notna(row['field_linked_agent']) else ''
-            additional = str(row['new_700_a']).strip() if pd.notna(row['new_700_a']) else ''
-            if primary and additional:
-                return f"{primary}||{additional}"
-            return primary or additional or None
-        df['field_linked_agent'] = df.apply(merge_creators, axis=1)
-        df['field_linked_agent'] = df['field_linked_agent'].replace('', pd.NA)
+    # Append all creators to field_linked_agent
+    def merge_creators(row):
+        creators = []
+        # Add primary and all alternative author fields mapped in the legacy notebook
+        for field in ['new_260_b', 'new_100_a', 'new_100_q', 'new_110_a', 'new_111_a', 'new_710_a', 'new_700_a', 'new_700_q']:
+            if field in row and pd.notna(row[field]):
+                val = str(row[field]).strip()
+                if val: creators.append(val)
+        return ' | '.join(creators) if creators else pd.NA
+        
+    df['field_linked_agent'] = df.apply(merge_creators, axis=1)
+    
+    # Construct composite subject
+    def merge_subjects(row):
+        subjects = []
+        for field in ['new_650_a', 'new_650_x']:
+            if field in row and pd.notna(row[field]):
+                val = str(row[field]).strip()
+                if val: subjects.append(val)
+        return ' -- '.join(subjects) if subjects else pd.NA
+        
+    df['field_subject'] = df.apply(merge_subjects, axis=1)
+
+    # Construct field_subject_pictured
+    def merge_subjects_pictured(row):
+        subjects = []
+        for field in ['new_965_a', 'new_965_x', 'new_965_z', 'new_965_y']:
+            if field in row and pd.notna(row[field]):
+                val = str(row[field]).strip()
+                if val: subjects.append(val)
+        return ' | '.join(subjects) if subjects else pd.NA
+        
+    df['field_subject_pictured'] = df.apply(merge_subjects_pictured, axis=1)
+
+    # Extract three_letter_code
+    if 'country_code' in df.columns:
+        df['three_letter_code'] = df['country_code'].str[15:18]
     
     # Construct a composite title if the pieces exist
     if 'new_245_a' in df.columns:
@@ -94,8 +123,8 @@ if __name__ == "__main__":
     # Construct physical extent
     if 'new_300_a' in df.columns:
         b_col = df['new_300_b'].fillna('') if 'new_300_b' in df.columns else ''
-        df['field_extent'] = df['new_300_a'].fillna('') + ' ' + b_col
-        df['field_extent'] = df['field_extent'].str.strip()
+        df['field_extent'] = df['new_300_a'].fillna('') + ', ' + b_col
+        df['field_extent'] = df['field_extent'].str.strip(', ').str.strip()
         
     # Add static fields
     df['field_resource_type'] = 'Collection'
