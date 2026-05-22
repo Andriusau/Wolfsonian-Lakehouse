@@ -53,7 +53,6 @@ if __name__ == "__main__":
         'new_561_a': 'field_collection_note',
         'new_260_a': 'field_place_published',
         'new_546_a': 'field_language',
-        'new_300_c': 'field_physical_form',
         'new_610_a': 'field_subjects_name',
         'new_008_ctrl': 'country_code',             
         'new_006_ctrl': 'field_lvr',                
@@ -121,11 +120,15 @@ if __name__ == "__main__":
         df['title'] = df['new_245_a'].fillna('') + ' ' + b_col
         df['title'] = df['title'].str.strip()
         
-    # Construct physical extent
+    # Construct physical extent (300 $a, $b, $c)
     if 'new_300_a' in df.columns:
         b_col = df['new_300_b'].fillna('') if 'new_300_b' in df.columns else ''
-        df['field_extent'] = df['new_300_a'].fillna('') + ', ' + b_col
-        df['field_extent'] = df['field_extent'].str.strip(', ').str.strip()
+        c_col = df['new_300_c'].fillna('') if 'new_300_c' in df.columns else ''
+        
+        # Combine a, b, and c with commas
+        ext_parts = df['new_300_a'].fillna('') + ', ' + b_col + ', ' + c_col
+        # Clean up any weird double commas from empty columns
+        df['field_extent'] = ext_parts.str.replace(r',\s*,', ',', regex=True).str.strip(', ').str.strip()
         
     # Add static fields
     df['field_resource_type'] = 'Collection'
