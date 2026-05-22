@@ -267,17 +267,22 @@ def extract_raw_marc(record):
 
     # --- DYNAMIC EXTRACTION LOOP ---
     for tag, subfields, field_type in fields_to_extract:
-        field_obj = record.get(tag)
+        field_objs = record.get_fields(tag)
         
-        if field_obj:
+        if field_objs:
             if field_type == 'full' or field_type == 'ctrl': 
                 key_name_full = f"new_{tag}_full" if field_type == 'full' else f"new_{tag}_ctrl"
-                data[key_name_full] = field_obj.value()
+                data[key_name_full] = ' | '.join([f.value() for f in field_objs if f.value()])
 
             if subfields: 
                 for sf_code in subfields:
                     key_name_sf = f"new_{tag}_{sf_code.replace('.', 'dot')}" 
-                    data[key_name_sf] = get_s_field(field_obj, sf_code)
+                    sf_values = []
+                    for f in field_objs:
+                        val = get_s_field(f, sf_code)
+                        if val:
+                            sf_values.append(val)
+                    data[key_name_sf] = ' | '.join(sf_values) if sf_values else ''
         else: 
             if field_type == 'full' or field_type == 'ctrl':
                 key_name_full = f"new_{tag}_full" if field_type == 'full' else f"new_{tag}_ctrl"
@@ -286,6 +291,26 @@ def extract_raw_marc(record):
                 for sf_code in subfields:
                     key_name_sf = f"new_{tag}_{sf_code.replace('.', 'dot')}"
                     data[key_name_sf] = ''
+
+    # --- COMPLEX REPEATABLE FIELDS PRE-JOINED ---
+    # Field Subject (650 $a -- 650 $x)
+    subject_concat_parts = []
+    for field_650 in record.get_fields('650'):
+        current_parts = []
+        if 'a' in field_650: current_parts.append(field_650['a'])
+        if 'x' in field_650: current_parts.append(field_650['x'])
+        if current_parts:
+             subject_concat_parts.append(' -- '.join(current_parts))
+    data['raw_field_subject'] = ' | '.join(subject_concat_parts)
+
+    # Field Note (700 subfields)
+    note_parts = []
+    for field_700 in record.get_fields('700'):
+        subfields_for_note = ['n', 'x', 'p', 't', '4', 'k', '5', 'e', 'r', 'c', 'l', 'v', 'o', 'i', 'm', 'j', '6', 'b', '0', 'w', '1', 'd', 's', '3', 'f', 'q']
+        for sf in subfields_for_note:
+            if sf in field_700:
+                note_parts.append(field_700[sf])
+    data['raw_field_note'] = ' | '.join(note_parts)
 
     # --- Specific Stragglers ---
     if '535' not in [f for f in fields_to_extract]: 

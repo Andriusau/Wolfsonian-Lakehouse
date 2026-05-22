@@ -88,29 +88,17 @@ if __name__ == "__main__":
         
     df['field_linked_agent'] = df.apply(merge_creators, axis=1)
     
-    # Construct composite subject
-    def merge_subjects(row):
-        subjects = []
-        for field in ['new_650_a', 'new_650_x']:
-            if field in row and pd.notna(row[field]):
-                val = str(row[field]).strip()
-                if val: subjects.append(val)
-        return ' -- '.join(subjects) if subjects else pd.NA
-        
-    df['field_subject'] = df.apply(merge_subjects, axis=1)
+    # Pass through pre-joined subject from raw layer
+    if 'raw_field_subject' in df.columns:
+        df['field_subject'] = df['raw_field_subject']
+    else:
+        df['field_subject'] = pd.NA
 
-    # Construct field_note (from 700 subfields)
-    def build_field_note(row):
-        note_parts = []
-        subfields = ['n', 'x', 'p', 't', '4', 'k', '5', 'e', 'r', 'c', 'l', 'v', 'o', 'i', 'm', 'j', '6', 'b', '0', 'w', '1', 'd', 's', '3', 'f', 'q']
-        for sf in subfields:
-            field = f"new_700_{sf}"
-            if field in row and pd.notna(row[field]):
-                val = str(row[field]).strip()
-                if val: note_parts.append(val)
-        return ' | '.join(note_parts) if note_parts else pd.NA
-        
-    df['field_note'] = df.apply(build_field_note, axis=1)
+    # Pass through pre-joined note from raw layer
+    if 'raw_field_note' in df.columns:
+        df['field_note'] = df['raw_field_note']
+    else:
+        df['field_note'] = pd.NA
 
     # Construct field_subject_pictured
     def merge_subjects_pictured(row):

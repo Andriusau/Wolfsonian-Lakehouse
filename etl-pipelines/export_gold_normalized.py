@@ -73,8 +73,8 @@ def normalize_subject(val):
     if pd.isna(val) or str(val).strip() == '' or str(val).lower() == 'none':
         return pd.NA
     # If it's a pipe-separated list, clean each item
-    parts = [p.strip().rstrip('.') for p in str(val).split('||')]
-    return ' || '.join([p for p in parts if p]) if parts else pd.NA
+    parts = [p.strip().rstrip('.') for p in str(val).split('|')]
+    return ' | '.join([p for p in parts if p]) if parts else pd.NA
 
 
 # ---------------------------------------------------------------------------
