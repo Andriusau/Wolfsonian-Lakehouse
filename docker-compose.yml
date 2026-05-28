@@ -32,5 +32,14 @@ services:
       - ./data:/app/data
       - ./metabase-plugins:/plugins
 
+  frontend:
+    build: ./frontend-explorer
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data/gold:/app/public/data:ro
+    environment:
+      - NODE_ENV=production
+
 volumes:
   prefect-data: {}
