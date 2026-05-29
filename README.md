@@ -59,7 +59,9 @@ The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transf
 * **Unified Gold Catalog:** The pipeline dynamically bridges the massive schema gap between library systems (Alma) and museum systems (Proficio), automatically aligning and concatenating both into a single unified queryable table with a strict predetermined column hierarchy.
 * **Gold Normalization Layer:** A dedicated post-merge harmonization step (`export_gold_normalized.py`) standardizes vocabulary across both source systems — normalizing genre labels (e.g., `POSTER` → `Poster`), stripping MARC trailing punctuation from titles, cleaning creator names, and deriving `year_created` and `decade_created` columns for time-series analytics. Metabase dashboards use this `gold_normalized_catalog` view.
 * **Digital Gap Analysis:** The `missing_objects.parquet` output identifies which internal catalog records (Proficio museum objects) are absent from the public-facing Islandora digital archive (`digital.wolfsonian.org`), supporting prioritization of digitization and content migration efforts.
-* **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline. The monolithic scripts have been completely decoupled into a 13-node Directed Acyclic Graph (DAG), providing an incredibly granular UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries at the end of every flow.
+* **Parallel Image Ingestion & Conversion:** Ingests raw `.tif`/`.tiff` catalog images from the mounted NFS share, converts them to JPEG, and optimizes them for the frontend. Using a `ThreadPoolExecutor` with 16 parallel workers, it concurrently reads and encodes images on the fly. It utilizes dual-layer in-memory caching (caching both local images and NFS directories at boot) to skip already processed images in O(1) time.
+* **Storage Protection & Web Resizing:** Converts large ~10MB+ TIFFs into highly compressed JPEGs restricted to a maximum of 1200px on the longest side and saved at quality 80. This reduces file size by ~20x-50x (down to ~200KB per image), allowing the full ~50k image catalog to fit in less than 13GB of local disk space while drastically accelerating webpage loading times.
+* **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline. The monolithic scripts have been completely decoupled into a 14-node Directed Acyclic Graph (DAG), providing an incredibly granular UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries at the end of every flow.
 
 ---
 
@@ -74,6 +76,7 @@ wolf-lakehouse/
 │   │   └── workbench_upload.csv
 │   ├── gold/                    # Gold Layer: Clean outputs & QA failures
 │   │   ├── alma_workbench_export.csv
+│   │   ├── images/              # Local storage for web-optimized JPEGs
 │   │   ├── missing_objects.parquet
 │   │   ├── proficio_qa_failures.parquet
 │   │   ├── unified_catalog_normalized.parquet  # Harmonized analytics view
@@ -110,6 +113,7 @@ wolf-lakehouse/
 │   ├── extract_proficio_raw.py
 │   ├── isolate_proficio_qa_failures.py
 │   ├── orchestrate_prefect.py   # Master Prefect Workflow
+│   ├── process_images.py        # Parallel NFS image ingestion & conversion
 │   ├── requirements.txt
 │   ├── transform_alma_raw.py
 │   ├── transform_alma_silver.py
@@ -142,11 +146,18 @@ docker compose up prefect-server -d
 *You can now open your server IP (e.g., `http://<server-ip>:4200`) in your web browser to view the Prefect Dashboard.*
 
 **3. Run the Pipeline**
-Trigger the extraction and transformation workflow:
+Trigger the extraction and transformation workflow (including image ingestion):
 ```bash
 docker compose run --rm lakehouse
 ```
-*Watch your pipeline execute in real-time in the terminal. The flow will conclude by building the DuckDB views and printing a dashboard summarizing the exact rows processed by the Delta Merge logic!*
+*Watch your pipeline execute in real-time in the terminal. The flow will conclude by running the image ingestion, building the DuckDB views, and printing a dashboard summarizing the exact rows processed!*
+
+**3.5. Run Image Ingestion Standalone**
+If you need to trigger or re-run the parallel image ingestion and conversion pipeline separately:
+```bash
+docker compose run --rm lakehouse python etl-pipelines/process_images.py
+```
+*The script will cache the NFS directory and local JPEG structures in memory at startup, and then process and convert net new TIFFs concurrently using 16 threads. Since the output images folder is bind-mounted directly into the Next.js container, newly created images are served immediately to the frontend catalog explorer without requiring a container restart.*
 
 **4. Visualizing with Metabase**
 The pipeline includes a custom-built Metabase container equipped with the DuckDB driver for lightning-fast BI reporting.
