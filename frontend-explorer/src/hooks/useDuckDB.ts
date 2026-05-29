@@ -32,18 +32,30 @@ export function useDuckDB() {
         // 2. Register the parquet file from the public directory
         // Since it's mounted via Docker to /public/data/, the browser can access it at /data/
         try {
-          await newDb.registerFileURL('normalized_catalog.parquet', '/data/unified_catalog_normalized.parquet', duckdb.DuckDBDataProtocol.HTTP, false);
-          // Create a view so we can query it like a normal table
-          await newConn.query(`CREATE VIEW catalog AS SELECT * FROM read_parquet('normalized_catalog.parquet');`);
+          const absoluteUrl = `${window.location.origin}/data/unified_catalog_normalized.parquet`;
+          await newDb.registerFileURL('normalized_catalog.parquet', absoluteUrl, duckdb.DuckDBDataProtocol.HTTP, false);
+          // Create a view so we can query it like a normal table, selecting only the columns of interest
+          await newConn.query(`
+            CREATE VIEW catalog AS 
+            SELECT 
+              id, 
+              title, 
+              field_identifier, 
+              field_collection_type, 
+              field_genre, 
+              field_description_long, 
+              source_system 
+            FROM read_parquet('normalized_catalog.parquet');
+          `);
           console.log("DuckDB initialized and Parquet file mounted!");
+          
+          setDb(newDb);
+          setConn(newConn);
+          setIsReady(true);
         } catch (e: any) {
           console.error("Failed to mount parquet file. It might not exist in the public directory yet.", e);
           setError(`Failed to mount parquet file: ${e?.message || e}`);
         }
-        
-        setDb(newDb);
-        setConn(newConn);
-        setIsReady(true);
       } catch (err: any) {
         console.error("Failed to initialize DuckDB WASM engine:", err);
         setError(`Failed to initialize WASM engine: ${err?.message || err}`);
