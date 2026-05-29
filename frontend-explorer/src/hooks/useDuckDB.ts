@@ -24,7 +24,7 @@ export function useDuckDB() {
       // 2. Register the parquet file from the public directory
       // Since it's mounted via Docker to /public/data/, the browser can access it at /data/
       try {
-        await newDb.registerFileURL('normalized_catalog.parquet', '/data/gold_normalized_catalog.parquet', duckdb.DuckDBDataProtocol.HTTP, false);
+        await newDb.registerFileURL('normalized_catalog.parquet', '/data/unified_catalog_normalized.parquet', duckdb.DuckDBDataProtocol.HTTP, false);
         // Create a view so we can query it like a normal table
         await newConn.query(`CREATE VIEW catalog AS SELECT * FROM read_parquet('normalized_catalog.parquet');`);
         console.log("DuckDB initialized and Parquet file mounted!");
