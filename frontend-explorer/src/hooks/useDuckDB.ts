@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import * as duckdb from '@duckdb/duckdb-wasm';
-import { Table } from 'apache-arrow';
 
 export function useDuckDB() {
   const [db, setDb] = useState<duckdb.AsyncDuckDB | null>(null);
@@ -13,15 +12,15 @@ export function useDuckDB() {
       // This completely avoids any Next.js Webpack worker configuration issues!
       const JSDELIVR_BUNDLES = duckdb.getJsDelivrBundles();
       const bundle = await duckdb.selectBundle(JSDELIVR_BUNDLES);
-      
+
       const worker = new Worker(bundle.mainWorker!);
       const logger = new duckdb.ConsoleLogger();
       const newDb = new duckdb.AsyncDuckDB(logger, worker);
-      
+
       await newDb.instantiate(bundle.mainModule, bundle.pthreadWorker);
-      
+
       const newConn = await newDb.connect();
-      
+
       // 2. Register the parquet file from the public directory
       // Since it's mounted via Docker to /public/data/, the browser can access it at /data/
       try {
@@ -32,12 +31,12 @@ export function useDuckDB() {
       } catch (e) {
         console.error("Failed to mount parquet file. It might not exist in the public directory yet.", e);
       }
-      
+
       setDb(newDb);
       setConn(newConn);
       setIsReady(true);
     }
-    
+
     init();
 
     return () => {
@@ -50,7 +49,7 @@ export function useDuckDB() {
   const runQuery = async (query: string) => {
     if (!conn) return null;
     try {
-      const arrowResult: Table<any> = await conn.query(query);
+      const arrowResult: any = await conn.query(query);
       // Convert Arrow table to standard JSON array
       return arrowResult.toArray().map((row) => row.toJSON());
     } catch (e) {
