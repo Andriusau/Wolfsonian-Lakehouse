@@ -232,15 +232,20 @@ export default function Home() {
                   
                   {/* Image Area - Stark Fit Layout */}
                   <div className="h-60 bg-mca-black relative flex items-center justify-center p-2 border border-white/10">
-                    <img 
-                      src={`https://digital.wolfsonian.org/sites/default/files/images/${item.field_identifier}.jpg`}
-                      alt={item.title}
-                      className="object-contain max-w-full max-h-full opacity-90 group-hover:opacity-100 transition-all duration-300"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
+                    {(() => {
+                      const imageId = (item.field_identifier || "").split(';')[0].trim();
+                      return (
+                        <img 
+                          src={`/images/${imageId}.jpg`}
+                          alt={item.title}
+                          className="object-contain max-w-full max-h-full opacity-90 group-hover:opacity-100 transition-all duration-300"
+                          onError={(e: any) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      );
+                    })()}
                     {/* Placeholder */}
                     <div className="absolute hidden inset-0 flex flex-col items-center justify-center bg-mca-dark/95 text-slate-600 text-[10px] uppercase font-bold tracking-widest space-y-2">
                       <span>[ NO IMAGE ]</span>

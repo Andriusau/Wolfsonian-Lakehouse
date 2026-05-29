@@ -81,6 +81,13 @@ def build_duckdb():
     run_script('etl-pipelines/build_duckdb_views.py')
 
 # ==========================================
+# 4.5. IMAGES LAYER (NFS Ingestion)
+# ==========================================
+@task(name="Ingest and Convert NFS Images")
+def process_images_task():
+    run_script('etl-pipelines/process_images.py')
+
+# ==========================================
 # 5. MONITORING
 # ==========================================
 @task(name="Report Pipeline Metrics")
@@ -138,8 +145,11 @@ def lakehouse_flow():
     # 6. Serving Layer Phase (DuckDB)
     duckdb_fut = build_duckdb.submit(wait_for=[proficio_csv, alma_csv, normalized_catalog])
     
+    # 6.5. Process NFS Images (Net New Only)
+    images_fut = process_images_task.submit(wait_for=[normalized_catalog])
+    
     # 7. Metrics Dashboard Phase
-    metrics_fut = report_metrics.submit(wait_for=[duckdb_fut])
+    metrics_fut = report_metrics.submit(wait_for=[duckdb_fut, images_fut])
 
     # Explicitly wait for terminal tasks to complete
     metrics_fut.wait()
