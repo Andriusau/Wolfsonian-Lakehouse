@@ -47,7 +47,8 @@ export default function Home() {
         query += ` AND field_genre = '${selectedGenre}'`;
       }
       
-      query += ` LIMIT 48`;
+      // Sort: items with an identifier (i.e. likely have an image) come first, then alphabetically
+      query += ` ORDER BY (field_identifier IS NOT NULL AND field_identifier != '') DESC, title ASC LIMIT 48`;
       
       setActiveQuery(query);
 
