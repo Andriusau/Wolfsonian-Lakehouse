@@ -79,7 +79,7 @@ export default function Home() {
       <div className="grid grid-cols-1 md:grid-cols-3 border-b-2 border-white text-xs uppercase font-bold tracking-wider divide-y-2 md:divide-y-0 md:divide-x-2 divide-white bg-mca-black">
         <div className="p-4 flex items-center justify-between">
           <span>ARCHIVE INDEX</span>
-          <span className="text-mca-cyan">FIU COLLECTION</span>
+          <span className="text-mca-cyan">WOLFSONIAN-FIU</span>
         </div>
         <div className="p-4 flex items-center justify-between">
           <span>ENGINE STATUS</span>
@@ -103,7 +103,7 @@ export default function Home() {
         {/* Giant MCA-Style Typography Header */}
         <header className="space-y-6">
           <div className="text-[11px] uppercase tracking-widest text-mca-cyan font-bold font-mono">
-            COLLECTION DATALAKE / OPEN ARCHIVES
+            COLLECTION DATA LAKEHOUSE / OPEN ARCHIVES
           </div>
           
           <h1 className="text-[12vw] md:text-[8vw] font-black font-display uppercase tracking-tighter leading-[0.85] text-white select-none">
@@ -314,6 +314,14 @@ export default function Home() {
         )}
 
       </div>
+      {/* Footer */}
+      <footer className="border-t border-white/10 mt-auto">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-slate-600">
+          <span>Wolfsonian-FIU Collection Data Lakehouse</span>
+          <span>Built by <span className="text-slate-400">Andrius Aukstuolis</span></span>
+        </div>
+      </footer>
+
     </div>
   );
 }
