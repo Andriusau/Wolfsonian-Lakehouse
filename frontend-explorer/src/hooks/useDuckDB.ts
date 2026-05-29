@@ -51,7 +51,7 @@ export function useDuckDB() {
     try {
       const arrowResult: any = await conn.query(query);
       // Convert Arrow table to standard JSON array
-      return arrowResult.toArray().map((row) => row.toJSON());
+      return arrowResult.toArray().map((row: any) => row.toJSON());
     } catch (e) {
       console.error("Query Failed:", e);
       return [];
