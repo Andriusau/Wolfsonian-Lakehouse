@@ -35,12 +35,13 @@
 The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transform) pipeline designed to unify disparate data sources into a single, high-performance analytics layer. It extracts data from APIs, legacy SQL Server databases, and binary MARC files, staging them as raw Parquet files before transforming them into a clean, "Gold" standard layer for downstream systems like Workbench and Metabase.
 
 ## 🏗️ Architecture & Tech Stack
-* **Orchestration:** Prefect 3 (13-Node DAG) & Docker Compose
+* **Orchestration:** Prefect 3 (15-Node DAG) & Docker Compose
 * **Data Extraction:** Python 3.10 (Pandas, PyArrow, requests, pymarc)
 * **Database Connectivity:** SQLAlchemy, pyodbc (ODBC Driver 18 for SQL Server)
 * **Authentication:** Automated Kerberos (`kinit`) integration inside containers
 * **Storage Format:** Apache Parquet (High-speed, columnar, immutable storage)
 * **Serving Layer:** DuckDB
+* **Frontend Explorer:** Next.js, React, TailwindCSS, TypeScript
 * **Data Pattern:** Medallion Architecture with Incremental Delta Merges (Upserts) and QA Quarantine.
 
 ---
@@ -68,7 +69,7 @@ The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transf
 * **Digital Gap Analysis:** The `missing_objects.parquet` output identifies which internal catalog records (Proficio museum objects) are absent from the public-facing Islandora digital archive (`digital.wolfsonian.org`), supporting prioritization of digitization and content migration efforts.
 * **Parallel Image Ingestion & Conversion:** Ingests raw `.tif`/`.tiff` catalog images from the mounted NFS share, converts them to JPEG, and optimizes them for the frontend. Using a `ThreadPoolExecutor` with 16 parallel workers, it concurrently reads and encodes images on the fly. It utilizes dual-layer in-memory caching (caching both local images and NFS directories at boot) to skip already processed images in O(1) time.
 * **Storage Protection & Web Resizing:** Converts large ~10MB+ TIFFs into highly compressed JPEGs restricted to a maximum of 1200px on the longest side and saved at quality 80. This reduces file size by ~20x-50x (down to ~200KB per image), allowing the full ~50k image catalog to fit in less than 13GB of local disk space while drastically accelerating webpage loading times.
-* **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline. The monolithic scripts have been completely decoupled into a 14-node Directed Acyclic Graph (DAG), providing an incredibly granular UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries at the end of every flow.
+* **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline. The monolithic scripts have been completely decoupled into a 15-node Directed Acyclic Graph (DAG), providing an incredibly granular UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries at the end of every flow.
 
 ---
 
@@ -109,8 +110,10 @@ wolf-lakehouse/
 ├── Dockerfile.metabase          # Custom Ubuntu image for Metabase DuckDB support
 ├── frontend-explorer/           # Next.js web application for data exploration
 ├── etl-pipelines/               # Core Extraction & Transformation Microservices
+│   ├── add_has_image_col.py
 │   ├── build_duckdb_views.py
 │   ├── export_alma_to_workbench.py
+│   ├── export_comparison_proficio.py
 │   ├── export_gold_missing_objects.py
 │   ├── export_gold_normalized_draft.py
 │   ├── export_gold_normalized.py    # Cross-system harmonization
