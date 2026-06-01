@@ -242,6 +242,27 @@ if __name__ == '__main__':
         df['year_created'] = df['field_edtf_date_created_year']
         df['decade_created'] = df['field_edtf_date_created_decade']
 
+    # --- Images: Check local directory for completeness flag ---
+    OUTPUT_DIR = Path('/app/data/gold/images')
+    if OUTPUT_DIR.exists():
+        existing_dest_images = set(f.name for f in OUTPUT_DIR.glob('*.jpg'))
+        
+        def check_has_image(identifier):
+            if pd.isna(identifier) or not identifier:
+                return False
+            identifier_str = str(identifier).strip()
+            id_parts = [p.strip() for p in identifier_str.split(';') if p.strip()]
+            primary_id = id_parts[0] if id_parts else identifier_str
+            if len(primary_id) > 200:
+                return False
+            return f"{primary_id}.jpg" in existing_dest_images
+
+        if 'field_identifier' in df.columns:
+            df['has_image'] = df['field_identifier'].apply(check_has_image)
+            logging.info('✅ Normalized has_image completeness flag.')
+    else:
+        df['has_image'] = False
+
     # --- Drop fully empty columns ---
     before = len(df.columns)
     df = df.dropna(axis=1, how='all')
