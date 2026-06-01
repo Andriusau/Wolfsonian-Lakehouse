@@ -114,7 +114,7 @@ export default function Home() {
       const offset = (targetPage - 1) * limit;
 
       const dataQuery = `
-        SELECT title, field_identifier, field_collection_type, field_genre, field_description_long, source_system, has_image
+        SELECT title, field_identifier, field_collection_type, field_genre, field_description_long, source_system, has_image, field_linked_agent, field_place_published
         FROM catalog 
         ${whereClause}
         ORDER BY has_image DESC, title ASC LIMIT ${limit} OFFSET ${offset}
@@ -488,6 +488,21 @@ export default function Home() {
                       <p className="text-slate-400 text-xs leading-relaxed font-sans font-light line-clamp-4">
                         {item.field_description_long || 'No historical description logged.'}
                       </p>
+                      
+                      <div className="flex flex-col space-y-1 pt-3 text-[10px] uppercase font-bold tracking-widest text-slate-500">
+                        {item.field_linked_agent && (
+                          <div className="flex space-x-2">
+                            <span className="text-slate-600 w-16 shrink-0">CREATOR</span>
+                            <span className="text-slate-300 truncate">{item.field_linked_agent}</span>
+                          </div>
+                        )}
+                        {item.field_place_published && (
+                          <div className="flex space-x-2">
+                            <span className="text-slate-600 w-16 shrink-0">PLACE</span>
+                            <span className="text-slate-300 truncate">{item.field_place_published}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="pt-4 border-t border-white/10 flex items-center justify-between text-[10px] font-bold">
