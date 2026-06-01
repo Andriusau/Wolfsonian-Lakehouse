@@ -8,8 +8,16 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSystem, setSelectedSystem] = useState("ALL");
   const [selectedGenre, setSelectedGenre] = useState("ALL");
-  const [selectedDecade, setSelectedDecade] = useState("ALL");
   const [hasImageOnly, setHasImageOnly] = useState(false);
+  const [selectedCreator, setSelectedCreator] = useState("ALL");
+  const [selectedSubject, setSelectedSubject] = useState("ALL");
+  const [selectedPlace, setSelectedPlace] = useState("ALL");
+  const [minYear, setMinYear] = useState<string>("");
+  const [maxYear, setMaxYear] = useState<string>("");
+  
+  const [topCreators, setTopCreators] = useState<string[]>([]);
+  const [topSubjects, setTopSubjects] = useState<string[]>([]);
+  const [topPlaces, setTopPlaces] = useState<string[]>([]);
   
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -20,8 +28,25 @@ export default function Home() {
   useEffect(() => {
     if (isReady) {
       handleSearch();
+      fetchFacets();
     }
-  }, [isReady, selectedSystem, selectedGenre, selectedDecade, hasImageOnly]);
+  }, [isReady, selectedSystem, selectedGenre, hasImageOnly, selectedCreator, selectedSubject, selectedPlace, minYear, maxYear]);
+
+  const fetchFacets = async () => {
+    if (!isReady || topCreators.length > 0) return; // Only fetch once
+    try {
+      const creators = await runQuery(`SELECT field_linked_agent as facet FROM catalog WHERE field_linked_agent IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 50`);
+      if (creators) setTopCreators(creators.map((r: any) => r.facet));
+
+      const subjects = await runQuery(`SELECT field_subject as facet FROM catalog WHERE field_subject IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 50`);
+      if (subjects) setTopSubjects(subjects.map((r: any) => r.facet));
+
+      const places = await runQuery(`SELECT field_place_published as facet FROM catalog WHERE field_place_published IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 50`);
+      if (places) setTopPlaces(places.map((r: any) => r.facet));
+    } catch (e) {
+      console.error("Failed to fetch facets", e);
+    }
+  };
 
   const handleSearch = async () => {
     if (!isReady) return;
@@ -48,12 +73,25 @@ export default function Home() {
         query += ` AND field_genre = '${selectedGenre}'`;
       }
 
-      if (selectedDecade !== "ALL") {
-        query += ` AND decade_created = ${selectedDecade}`;
-      }
-
       if (hasImageOnly) {
         query += ` AND has_image = true`;
+      }
+
+      if (selectedCreator !== "ALL") {
+        query += ` AND field_linked_agent = '${selectedCreator.replace(/'/g, "''")}'`;
+      }
+      if (selectedSubject !== "ALL") {
+        query += ` AND field_subject = '${selectedSubject.replace(/'/g, "''")}'`;
+      }
+      if (selectedPlace !== "ALL") {
+        query += ` AND field_place_published = '${selectedPlace.replace(/'/g, "''")}'`;
+      }
+
+      if (minYear && !isNaN(parseInt(minYear))) {
+        query += ` AND year_created >= ${parseInt(minYear)}`;
+      }
+      if (maxYear && !isNaN(parseInt(maxYear))) {
+        query += ` AND year_created <= ${parseInt(maxYear)}`;
       }
       
       // Sort: items with an identifier (i.e. likely have an image) come first, then alphabetically
@@ -214,31 +252,44 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Filter 3: Decade Created */}
-            <div className="space-y-3 border-t border-white/20 pt-6">
+            {/* Filter 3: Date Range */}
+            <div className="space-y-4 border-t border-white/20 pt-6">
               <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
-                // DECADE CREATED
+                // DATE RANGE
               </span>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { key: "ALL", label: "ALL DECADES" },
-                  { key: "1880", label: "1880s" },
-                  { key: "1890", label: "1890s" },
-                  { key: "1900", label: "1900s" },
-                  { key: "1910", label: "1910s" },
-                  { key: "1920", label: "1920s" },
-                  { key: "1930", label: "1930s" },
-                  { key: "1940", label: "1940s" },
-                  { key: "1950", label: "1950s" }
-                ].map((opt) => (
-                  <button
-                    key={opt.key}
-                    onClick={() => setSelectedDecade(opt.key)}
-                    className={`px-3 py-2 border text-[11px] font-bold uppercase transition-all duration-150 cursor-pointer ${selectedDecade === opt.key ? 'bg-mca-cyan border-mca-cyan text-mca-black font-extrabold' : 'border-white/10 text-slate-400 hover:border-white/40 hover:text-white'}`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+              
+              <div className="flex flex-col space-y-6 bg-mca-dark/50 p-4 border border-white/10">
+                <div className="flex items-center justify-between text-mca-cyan font-bold font-mono">
+                  <span>{minYear || "1800"}</span>
+                  <span className="text-white">-</span>
+                  <span className="text-mca-yellow">{maxYear || "2026"}</span>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Start Year</label>
+                    <input 
+                      type="range" 
+                      min="1800" 
+                      max="2026" 
+                      value={minYear || "1800"}
+                      onChange={(e) => setMinYear(Math.min(Number(e.target.value), Number(maxYear || 2026)).toString())}
+                      className="w-full h-1 bg-white/20 appearance-none outline-none accent-mca-cyan cursor-pointer"
+                    />
+                  </div>
+                  
+                  <div className="flex flex-col space-y-2">
+                    <label className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">End Year</label>
+                    <input 
+                      type="range" 
+                      min="1800" 
+                      max="2026" 
+                      value={maxYear || "2026"}
+                      onChange={(e) => setMaxYear(Math.max(Number(e.target.value), Number(minYear || 1800)).toString())}
+                      className="w-full h-1 bg-white/20 appearance-none outline-none accent-mca-yellow cursor-pointer"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -255,6 +306,50 @@ export default function Home() {
                   <span className={`h-2 w-2 rounded-full ${hasImageOnly ? 'bg-mca-cyan' : 'bg-slate-600'}`}></span>
                   <span>ONLY SHOW RECORDS WITH IMAGES</span>
                 </button>
+              </div>
+            </div>
+
+            {/* Filter 5: Advanced Indexes */}
+            <div className="space-y-4 border-t border-white/20 pt-6">
+              <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
+                // ADVANCED INDEXES
+              </span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex flex-col space-y-2">
+                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">CREATOR</label>
+                  <select 
+                    value={selectedCreator}
+                    onChange={(e) => setSelectedCreator(e.target.value)}
+                    className="bg-mca-black border border-white/20 text-white text-xs px-3 py-2 uppercase outline-none focus:border-mca-cyan truncate"
+                  >
+                    <option value="ALL">ALL CREATORS</option>
+                    {topCreators.map((c, i) => <option key={i} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                
+                <div className="flex flex-col space-y-2">
+                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">SUBJECT</label>
+                  <select 
+                    value={selectedSubject}
+                    onChange={(e) => setSelectedSubject(e.target.value)}
+                    className="bg-mca-black border border-white/20 text-white text-xs px-3 py-2 uppercase outline-none focus:border-mca-cyan truncate"
+                  >
+                    <option value="ALL">ALL SUBJECTS</option>
+                    {topSubjects.map((s, i) => <option key={i} value={s}>{s}</option>)}
+                  </select>
+                </div>
+
+                <div className="flex flex-col space-y-2">
+                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">PLACE PUBLISHED</label>
+                  <select 
+                    value={selectedPlace}
+                    onChange={(e) => setSelectedPlace(e.target.value)}
+                    className="bg-mca-black border border-white/20 text-white text-xs px-3 py-2 uppercase outline-none focus:border-mca-cyan truncate"
+                  >
+                    <option value="ALL">ALL PLACES</option>
+                    {topPlaces.map((p, i) => <option key={i} value={p}>{p}</option>)}
+                  </select>
+                </div>
               </div>
             </div>
 

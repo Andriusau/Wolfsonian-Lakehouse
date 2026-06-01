@@ -44,6 +44,11 @@ export function useDuckDB() {
               field_collection_type, 
               field_genre, 
               field_description_long, 
+              field_linked_agent,
+              field_subject,
+              field_place_published,
+              decade_created,
+              year_created,
               source_system,
               has_image
             FROM read_parquet('normalized_catalog.parquet');
