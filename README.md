@@ -35,7 +35,7 @@
 The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transform) pipeline designed to unify disparate data sources into a single, high-performance analytics layer. It extracts data from APIs, legacy SQL Server databases, and binary MARC files, staging them as raw Parquet files before transforming them into a clean, "Gold" standard layer for downstream systems like Workbench and Metabase.
 
 ## 🏗️ Architecture & Tech Stack
-* **Orchestration:** Prefect 3 (15-Node DAG) & Docker Compose
+* **Orchestration:** Prefect 3 (16-Node DAG) & Docker Compose
 * **Data Extraction:** Python 3.10 (Pandas, PyArrow, requests, pymarc)
 * **Database Connectivity:** SQLAlchemy, pyodbc (ODBC Driver 18 for SQL Server)
 * **Authentication:** Automated Kerberos (`kinit`) integration inside containers
@@ -69,7 +69,7 @@ The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transf
 * **Digital Gap Analysis:** The `missing_objects.parquet` output identifies which internal catalog records (Proficio museum objects) are absent from the public-facing Islandora digital archive (`digital.wolfsonian.org`), supporting prioritization of digitization and content migration efforts.
 * **Parallel Image Ingestion & Conversion:** Ingests raw `.tif`/`.tiff` catalog images from the mounted NFS share, converts them to JPEG, and optimizes them for the frontend. Using a `ThreadPoolExecutor` with 16 parallel workers, it concurrently reads and encodes images on the fly. It utilizes dual-layer in-memory caching (caching both local images and NFS directories at boot) to skip already processed images in O(1) time.
 * **Storage Protection & Web Resizing:** Converts large ~10MB+ TIFFs into highly compressed JPEGs restricted to a maximum of 1200px on the longest side and saved at quality 80. This reduces file size by ~20x-50x (down to ~200KB per image), allowing the full ~50k image catalog to fit in less than 13GB of local disk space while drastically accelerating webpage loading times.
-* **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline. The monolithic scripts have been completely decoupled into a 15-node Directed Acyclic Graph (DAG), providing an incredibly granular UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries at the end of every flow.
+* **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline. The monolithic scripts have been completely decoupled into a 16-node Directed Acyclic Graph (DAG), providing an incredibly granular UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries at the end of every flow.
 
 ---
 
@@ -87,6 +87,7 @@ wolf-lakehouse/
 │   │   ├── images/              # Local storage for web-optimized JPEGs
 │   │   ├── missing_objects.parquet
 │   │   ├── proficio_qa_failures.parquet
+│   │   ├── snapshots/           # Historical time-series dashboard metrics
 │   │   ├── unified_catalog_normalized.parquet  # Harmonized analytics view
 │   │   └── unified_catalog.parquet
 │   ├── metrics.json             # Execution metrics for Prefect dashboard
@@ -94,7 +95,9 @@ wolf-lakehouse/
 │   │   ├── alma/
 │   │   │   ├── alma_raw_dump.parquet
 │   │   │   ├── BIBLIOGRAPHIC_16308238980006571_16308238960006571_1.mrc
-│   │   │   └── BIBLIOGRAPHIC_16429188970006571_16429188950006571_1.mrc
+│   │   │   ├── BIBLIOGRAPHIC_16429188970006571_16429188950006571_1.mrc
+│   │   │   ├── BIBLIOGRAPHIC_16464220520006571_16429186080006571_1.mrc
+│   │   │   └── BIBLIOGRAPHIC_16501241860006571_16429186080006571_1.mrc
 │   │   ├── islandora/
 │   │   │   └── islandora_lookup.parquet
 │   │   └── proficio/
@@ -126,6 +129,7 @@ wolf-lakehouse/
 │   ├── orchestrate_prefect.py   # Master Prefect Workflow
 │   ├── process_images.py        # Parallel NFS image ingestion & conversion
 │   ├── requirements.txt
+│   ├── snapshot_dashboard_metrics.py # Automated time-series tracking
 │   ├── transform_alma_raw.py
 │   ├── transform_alma_silver.py
 │   └── transform_proficio_silver.py
