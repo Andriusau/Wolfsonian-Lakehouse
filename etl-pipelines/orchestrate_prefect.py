@@ -65,6 +65,10 @@ def generate_comparison_proficio():
 def normalize_catalog():
     run_script('etl-pipelines/export_gold_normalized.py')
 
+@task(name="Snapshot Dashboard Metrics")
+def snapshot_dashboard_metrics():
+    run_script('etl-pipelines/snapshot_dashboard_metrics.py')
+
 @task(name="Export Proficio to Workbench")
 def export_proficio():
     run_script('etl-pipelines/export_proficio_to_workbench.py')
@@ -137,13 +141,14 @@ def lakehouse_flow():
     normalized_catalog = normalize_catalog.submit(wait_for=[unified_catalog])
     missing_objects = generate_missing_objects.submit(wait_for=[qa_failures, islandora_raw, unified_catalog])
     comparison_proficio = generate_comparison_proficio.submit(wait_for=[proficio_silver, islandora_raw])
+    history_metrics = snapshot_dashboard_metrics.submit(wait_for=[alma_silver, islandora_raw, normalized_catalog])
 
     # 5. Export Phase (CSV to Workbench)
     proficio_csv = export_proficio.submit(wait_for=[missing_objects])
     alma_csv = export_alma.submit(wait_for=[alma_silver])
     
     # 6. Serving Layer Phase (DuckDB)
-    duckdb_fut = build_duckdb.submit(wait_for=[proficio_csv, alma_csv, normalized_catalog])
+    duckdb_fut = build_duckdb.submit(wait_for=[proficio_csv, alma_csv, normalized_catalog, history_metrics])
     
     # 6.5. Process NFS Images (Net New Only)
     images_fut = process_images_task.submit(wait_for=[normalized_catalog])

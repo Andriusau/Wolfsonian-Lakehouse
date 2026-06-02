@@ -31,7 +31,11 @@ def create_views():
         'gold_unified_catalog': '/app/data/gold/unified_catalog.parquet',
         'gold_normalized_catalog': '/app/data/gold/unified_catalog_normalized.parquet'
     }
-    
+    snapshot_files = glob.glob('/app/data/gold/snapshots/history_*.parquet')
+    for parquet_path in snapshot_files:
+        view_name = Path(parquet_path).stem
+        views_to_create[view_name] = parquet_path
+        
     for view_name, parquet_path in views_to_create.items():
         if Path(parquet_path).exists():
             logging.info(f"Creating view '{view_name}' pointing to {parquet_path}")
