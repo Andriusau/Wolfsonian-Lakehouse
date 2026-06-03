@@ -50,11 +50,11 @@ The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transf
 
 | Source | System | Records | Method |
 |---|---|---|---|
-| **Alma** | Ex Libris Library Management | 54,996 | Binary MARC (`.mrc`) file parsing via PyMARC |
-| **Proficio** | Museum Collection Database | 60,566 | Kerberos-authenticated SQL Server via ODBC |
+| **Alma** | Ex Libris Library Management | 55,004 | Binary MARC (`.mrc`) file parsing via PyMARC |
+| **Proficio** | Museum Collection Database | 60,684 | Kerberos-authenticated SQL Server via ODBC |
 | **Islandora** | Public Digital Archive | 265,698 | Paginated REST API with concurrent fetching |
-| **Unified Gold Catalog** | Merged output | 115,562 | Alma + Proficio aligned and concatenated |
-| **Normalized Gold Catalog** | Analytics-ready output | 115,562 | Harmonized genres, dates, creators & titles |
+| **Unified Gold Catalog** | Merged output | 115,688 | Alma + Proficio aligned and concatenated |
+| **Normalized Gold Catalog** | Analytics-ready output | 115,688 | Harmonized genres, dates, creators & titles |
 
 ---
 
@@ -70,6 +70,7 @@ The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transf
 * **Parallel Image Ingestion & Conversion:** Ingests raw `.tif`/`.tiff` catalog images from the mounted NFS share, converts them to JPEG, and optimizes them for the frontend. Using a `ThreadPoolExecutor` with 16 parallel workers, it concurrently reads and encodes images on the fly. It utilizes dual-layer in-memory caching (caching both local images and NFS directories at boot) to skip already processed images in O(1) time.
 * **Storage Protection & Web Resizing:** Converts large ~10MB+ TIFFs into highly compressed JPEGs restricted to a maximum of 1200px on the longest side and saved at quality 80. This reduces file size by ~20x-50x (down to ~200KB per image), allowing the full ~50k image catalog to fit in less than 13GB of local disk space while drastically accelerating webpage loading times.
 * **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline. The monolithic scripts have been completely decoupled into a 16-node Directed Acyclic Graph (DAG), providing an incredibly granular UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries at the end of every flow.
+* **Serverless Frontend Discovery:** The Next.js web application leverages DuckDB WebAssembly to provide instant, zero-latency catalog exploration entirely in the browser. Advanced features include an interactive historical timeline, an algorithmic "Surprise Me" engine for serendipitous visual discovery, and dynamically generated Creator Dossiers—all executed without backend server load.
 
 ---
 
