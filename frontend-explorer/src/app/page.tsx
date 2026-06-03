@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import { useDuckDB } from "../hooks/useDuckDB";
 
 export default function Home() {
@@ -18,6 +19,9 @@ export default function Home() {
   const [topCreators, setTopCreators] = useState<string[]>([]);
   const [topSubjects, setTopSubjects] = useState<string[]>([]);
   const [topPlaces, setTopPlaces] = useState<string[]>([]);
+  
+  const [timelineData, setTimelineData] = useState<{decade: number, count: number}[]>([]);
+  const [selectedDecade, setSelectedDecade] = useState<string>("ALL");
   
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,7 +51,7 @@ export default function Home() {
       handleSearch(1);
       fetchFacets();
     }
-  }, [isReady, selectedSystem, selectedGenre, hasImageOnly, selectedCreator, selectedSubject, selectedPlace, minYear, maxYear]);
+  }, [isReady, selectedSystem, selectedGenre, hasImageOnly, selectedCreator, selectedSubject, selectedPlace, minYear, maxYear, selectedDecade]);
 
   useEffect(() => {
     if (page > 1) {
@@ -80,6 +84,9 @@ export default function Home() {
 
       const places = await runQuery(`SELECT field_place_published as facet FROM catalog WHERE field_place_published IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 50`);
       if (places) setTopPlaces(places.map((r: any) => r.facet));
+
+      const timeline = await runQuery(`SELECT decade_created as decade, count(*) as count FROM catalog WHERE decade_created IS NOT NULL GROUP BY 1 ORDER BY 1`);
+      if (timeline) setTimelineData(timeline);
     } catch (e) {
       console.error("Failed to fetch facets", e);
     }
@@ -107,6 +114,7 @@ export default function Home() {
       if (selectedCreator !== "ALL") whereClause += ` AND field_linked_agent = '${selectedCreator.replace(/'/g, "''")}'`;
       if (selectedSubject !== "ALL") whereClause += ` AND field_subject = '${selectedSubject.replace(/'/g, "''")}'`;
       if (selectedPlace !== "ALL") whereClause += ` AND field_place_published = '${selectedPlace.replace(/'/g, "''")}'`;
+      if (selectedDecade !== "ALL") whereClause += ` AND decade_created = ${selectedDecade}`;
       if (minYear && !isNaN(parseInt(minYear))) whereClause += ` AND year_created >= ${parseInt(minYear)}`;
       if (maxYear && !isNaN(parseInt(maxYear))) whereClause += ` AND year_created <= ${parseInt(maxYear)}`;
       
@@ -159,6 +167,40 @@ export default function Home() {
     
     setLoading(false);
     setIsAppending(false);
+  };
+
+  const handleSurpriseMe = async () => {
+    if (!isReady) return;
+    setLoading(true);
+    setSearchTerm("");
+    setSelectedSystem("ALL");
+    setSelectedGenre("ALL");
+    setHasImageOnly(true);
+    setSelectedCreator("ALL");
+    setSelectedSubject("ALL");
+    setSelectedPlace("ALL");
+    setSelectedDecade("ALL");
+    setMinYear("");
+    setMaxYear("");
+    
+    try {
+      const dataQuery = `
+        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, source_system, has_image, field_linked_agent, field_subject, field_place_published, field_edtf_date_created 
+        FROM catalog 
+        WHERE has_image = true 
+        USING SAMPLE 24
+      `;
+      setActiveQuery(dataQuery);
+      const data = await runQuery(dataQuery);
+      if (data) {
+        setResults(data);
+        setFilteredCount(24);
+      }
+    } catch (error: any) {
+      console.error(error);
+      setDebugInfo((prev: string) => prev + `\nSurprise Error: ${error?.message || error}`);
+    }
+    setLoading(false);
   };
 
   const handleRecordClick = async (identifier: string) => {
@@ -257,10 +299,64 @@ export default function Home() {
             >
               SEARCH COLLECTION
             </button>
+            <button 
+              onClick={handleSurpriseMe}
+              disabled={!isReady}
+              className="bg-mca-yellow hover:bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-8 py-4 rounded-none border-2 border-mca-yellow hover:border-mca-cyan transition-all duration-200 cursor-pointer disabled:opacity-30 shrink-0 text-sm active:translate-y-1"
+            >
+              SURPRISE ME
+            </button>
           </div>
 
           {/* Filtering Dashboard - MCA Bold Box Style */}
           <div className="border-2 border-white bg-mca-black p-6 space-y-6">
+            
+            {/* Timeline Histogram */}
+            {timelineData.length > 0 && (
+              <div className="space-y-3 pb-6 border-b border-white/20">
+                <div className="flex justify-between items-end">
+                  <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
+                    // HISTORICAL TIMELINE
+                  </span>
+                  {selectedDecade !== "ALL" && (
+                    <button 
+                      onClick={() => setSelectedDecade("ALL")}
+                      className="text-[10px] text-mca-yellow hover:text-white uppercase font-bold tracking-widest"
+                    >
+                      [ CLEAR SELECTION ]
+                    </button>
+                  )}
+                </div>
+                <div className="flex h-24 space-x-1 border-b border-white/20 pb-1 mt-4">
+                  {timelineData.map((d, i) => {
+                    const maxCount = Math.max(...timelineData.map(t => Number(t.count)));
+                    const heightPercent = (Number(d.count) / maxCount) * 100;
+                    const isSelected = selectedDecade === String(d.decade);
+                    return (
+                      <div 
+                        key={i} 
+                        className="flex-1 flex flex-col justify-end group cursor-pointer relative"
+                        onClick={() => setSelectedDecade(String(d.decade))}
+                      >
+                        {/* Tooltip */}
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-white text-mca-black text-[10px] font-bold px-2 py-1 z-10 pointer-events-none whitespace-nowrap">
+                          {d.decade}s ({Number(d.count).toLocaleString()})
+                        </div>
+                        {/* Bar */}
+                        <div 
+                          style={{ height: `${Math.max(2, heightPercent)}%` }} 
+                          className={`w-full transition-all duration-200 ${isSelected ? 'bg-mca-yellow' : 'bg-slate-700 group-hover:bg-mca-cyan'}`}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex justify-between text-[10px] font-mono text-slate-500 font-bold">
+                  <span>{timelineData[0]?.decade}s</span>
+                  <span>{timelineData[timelineData.length - 1]?.decade}s</span>
+                </div>
+              </div>
+            )}
             
             {/* Filter 1: Catalog Source */}
             <div className="space-y-3">
@@ -493,7 +589,16 @@ export default function Home() {
                         {item.field_linked_agent && (
                           <div className="flex space-x-2">
                             <span className="text-slate-600 w-20 shrink-0">CREATOR</span>
-                            <span className="text-slate-300 truncate">{item.field_linked_agent}</span>
+                            <span className="text-slate-300 truncate">
+                              {item.field_linked_agent.split('|').map((agent: string, i: number) => (
+                                <span key={i}>
+                                  <Link href={`/creator/${encodeURIComponent(agent.trim())}`} className="hover:text-mca-yellow hover:underline" onClick={(e: any) => e.stopPropagation()}>
+                                    {agent.trim()}
+                                  </Link>
+                                  {i < item.field_linked_agent.split('|').length - 1 ? ' | ' : ''}
+                                </span>
+                              ))}
+                            </span>
                           </div>
                         )}
                         {item.field_edtf_date_created && (
@@ -680,7 +785,7 @@ export default function Home() {
                         .map(([key, val], i) => (
                           <div key={i} className="flex flex-col space-y-2 group">
                             <span className="text-[10px] text-mca-cyan font-bold tracking-widest uppercase break-all">
-                              {key}
+                              {key === 'id' ? 'LAKEHOUSE_INDEX' : key}
                             </span>
                             <span className="text-sm md:text-base text-slate-300 font-light leading-relaxed break-words whitespace-pre-wrap">
                               {String(val)}
