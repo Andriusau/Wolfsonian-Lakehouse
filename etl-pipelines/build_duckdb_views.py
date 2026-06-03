@@ -1,5 +1,6 @@
 import duckdb
 import logging
+import glob
 from pathlib import Path
 
 # Logging setup
