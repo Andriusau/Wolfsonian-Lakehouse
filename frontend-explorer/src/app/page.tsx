@@ -114,7 +114,7 @@ export default function Home() {
       const offset = (targetPage - 1) * limit;
 
       const dataQuery = `
-        SELECT title, field_identifier, field_collection_type, field_genre, field_description_long, source_system, has_image, field_linked_agent, field_place_published
+        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, source_system, has_image, field_linked_agent, field_subject, field_place_published, field_edtf_date_created
         FROM catalog 
         ${whereClause}
         ORDER BY has_image DESC, title ASC LIMIT ${limit} OFFSET ${offset}
@@ -489,17 +489,53 @@ export default function Home() {
                         {item.field_description_long || 'No historical description logged.'}
                       </p>
                       
-                      <div className="flex flex-col space-y-1 pt-3 text-[10px] uppercase font-bold tracking-widest text-slate-500">
+                      <div className="flex flex-col space-y-1 pt-3 text-[10px] uppercase font-bold tracking-widest text-slate-500 border-t border-white/10 mt-3">
                         {item.field_linked_agent && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-16 shrink-0">CREATOR</span>
+                            <span className="text-slate-600 w-20 shrink-0">CREATOR</span>
                             <span className="text-slate-300 truncate">{item.field_linked_agent}</span>
+                          </div>
+                        )}
+                        {item.field_edtf_date_created && (
+                          <div className="flex space-x-2">
+                            <span className="text-slate-600 w-20 shrink-0">DATE</span>
+                            <span className="text-slate-300 truncate">{item.field_edtf_date_created}</span>
                           </div>
                         )}
                         {item.field_place_published && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-16 shrink-0">PLACE</span>
+                            <span className="text-slate-600 w-20 shrink-0">PLACE</span>
                             <span className="text-slate-300 truncate">{item.field_place_published}</span>
+                          </div>
+                        )}
+                        {item.field_physical_form && (
+                          <div className="flex space-x-2">
+                            <span className="text-slate-600 w-20 shrink-0">FORM</span>
+                            <span className="text-slate-300 truncate">{item.field_physical_form}</span>
+                          </div>
+                        )}
+                        {item.field_extent && (
+                          <div className="flex space-x-2">
+                            <span className="text-slate-600 w-20 shrink-0">EXTENT</span>
+                            <span className="text-slate-300 truncate">{item.field_extent}</span>
+                          </div>
+                        )}
+                        {item.field_subject && (
+                          <div className="flex space-x-2">
+                            <span className="text-slate-600 w-20 shrink-0">SUBJECT</span>
+                            <span className="text-slate-300 truncate">{item.field_subject}</span>
+                          </div>
+                        )}
+                        {item.field_credit_line && (
+                          <div className="flex space-x-2">
+                            <span className="text-slate-600 w-20 shrink-0">CREDIT</span>
+                            <span className="text-slate-300 truncate">{item.field_credit_line}</span>
+                          </div>
+                        )}
+                        {item.field_collection_note && (
+                          <div className="flex space-x-2">
+                            <span className="text-slate-600 w-20 shrink-0">NOTE</span>
+                            <span className="text-slate-300 truncate">{item.field_collection_note}</span>
                           </div>
                         )}
                       </div>
