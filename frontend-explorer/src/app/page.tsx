@@ -38,6 +38,7 @@ export default function Home() {
 
   // Modal State
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
+  const [relatedRecords, setRelatedRecords] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalLoading, setIsModalLoading] = useState(false);
 
@@ -212,12 +213,36 @@ export default function Home() {
     setIsModalOpen(true);
     setIsModalLoading(true);
     setSelectedRecord(null);
+    setRelatedRecords([]);
     try {
       const query = `SELECT * FROM catalog WHERE field_identifier = '${identifier.replace(/'/g, "''")}' LIMIT 1`;
       setActiveQuery(query);
       const data = await runQuery(query);
       if (data && data.length > 0) {
         setSelectedRecord(data[0]);
+        
+        // Fetch More Like This
+        const escapedSubject = data[0].field_subject?.replace(/'/g, "''") || 'NO_MATCH_XYZ';
+        const escapedGenre = data[0].field_genre?.replace(/'/g, "''") || 'NO_MATCH_XYZ';
+        const escapedAgent = data[0].field_linked_agent?.replace(/'/g, "''") || 'NO_MATCH_XYZ';
+        
+        const relatedQuery = `
+          SELECT title, field_identifier, has_image 
+          FROM catalog 
+          WHERE field_identifier != '${identifier.replace(/'/g, "''")}' 
+          AND has_image = true 
+          AND (
+            field_subject = '${escapedSubject}'
+            OR field_genre = '${escapedGenre}'
+            OR field_linked_agent = '${escapedAgent}'
+          )
+          ORDER BY hash(field_identifier) ASC
+          LIMIT 4
+        `;
+        const relatedData = await runQuery(relatedQuery);
+        if (relatedData) {
+          setRelatedRecords(relatedData);
+        }
       }
     } catch (error: any) {
       console.error("Modal fetch error:", error);
@@ -830,6 +855,36 @@ export default function Home() {
                           </div>
                       ))}
                     </div>
+
+                    {relatedRecords.length > 0 && (
+                      <div className="pt-16 mt-16 border-t-2 border-white/20">
+                        <h3 className="text-xl font-bold tracking-widest uppercase mb-6 text-mca-yellow">
+                          [ EXPLORE MORE LIKE THIS ]
+                        </h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          {relatedRecords.map((rel: any, i: number) => (
+                            <button 
+                              key={i} 
+                              onClick={() => handleRecordClick(rel.field_identifier)}
+                              className="group relative flex flex-col text-left overflow-hidden border-2 border-white/20 hover:border-mca-cyan transition-colors"
+                            >
+                              <div className="w-full aspect-square bg-white/5 relative">
+                                <img 
+                                  src={`/images/${(rel.field_identifier || "").split(';')[0].trim()}.jpg`}
+                                  alt={rel.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                              </div>
+                              <div className="p-3 bg-mca-black border-t-2 border-white/20">
+                                <p className="text-[10px] uppercase font-bold tracking-widest text-slate-300 line-clamp-2">
+                                  {rel.title}
+                                </p>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="text-red-500 font-bold uppercase tracking-widest">
