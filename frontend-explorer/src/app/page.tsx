@@ -130,7 +130,7 @@ export default function Home() {
         SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, source_system, has_image, field_linked_agent, field_subject, field_place_published, field_edtf_date_created
         FROM catalog 
         ${whereClause}
-        ORDER BY has_image DESC, title ASC LIMIT ${limit} OFFSET ${offset}
+        ORDER BY has_image DESC, hash(field_identifier) ASC LIMIT ${limit} OFFSET ${offset}
       `;
       
       setActiveQuery(dataQuery);
