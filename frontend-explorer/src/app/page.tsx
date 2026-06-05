@@ -786,7 +786,7 @@ export default function Home() {
             </div>
 
             {/* Right side - Raw Metadata Ledger */}
-            <div className="w-full md:w-1/2 h-full overflow-y-auto bg-mca-black p-8 md:p-12">
+            <div className="w-full md:w-1/2 h-full overflow-y-auto bg-mca-black p-8 md:p-12 md:pt-28">
               <div className="max-w-2xl mx-auto space-y-12 pb-32">
                 
                 {isModalLoading ? (
