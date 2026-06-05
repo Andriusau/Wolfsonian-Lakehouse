@@ -42,6 +42,9 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalLoading, setIsModalLoading] = useState(false);
 
+  const [sharedCollectionIds, setSharedCollectionIds] = useState<string[]>([]);
+  const [isCopied, setIsCopied] = useState(false);
+
   // Collection State
   const { collection, isLoaded, addItem, removeItem, clearCollection, isInCollection, exportCsv } = useCollection();
   const [isCollectionModalOpen, setIsCollectionModalOpen] = useState(false);
@@ -109,8 +112,22 @@ export default function Home() {
     
     try {
       let whereClause = `WHERE title IS NOT NULL`;
-      
-      if (searchTerm) {
+
+      let sharedIds: string[] = sharedCollectionIds;
+      if (typeof window !== 'undefined' && sharedIds.length === 0 && !window.location.search.includes('collection_cleared')) {
+         const urlParams = new URLSearchParams(window.location.search);
+         const param = urlParams.get('collection');
+         if (param) {
+            sharedIds = param.split(',').filter(id => id.trim() !== '');
+            if (sharedCollectionIds.length === 0) setSharedCollectionIds(sharedIds);
+         }
+      }
+
+      if (sharedIds.length > 0) {
+        const escapedIds = sharedIds.map(id => `'${id.replace(/'/g, "''")}'`).join(',');
+        whereClause = `WHERE field_identifier IN (${escapedIds})`;
+      } else {
+        if (searchTerm) {
         const escapedSearch = searchTerm.replace(/'/g, "''").toLowerCase();
         whereClause += ` AND (lower(title) LIKE '%${escapedSearch}%' OR lower(field_description_long) LIKE '%${escapedSearch}%')`;
       }
@@ -123,6 +140,7 @@ export default function Home() {
       if (selectedDecade !== "ALL") whereClause += ` AND decade_created = ${selectedDecade}`;
       if (minYear && !isNaN(parseInt(minYear))) whereClause += ` AND year_created >= ${parseInt(minYear)}`;
       if (maxYear && !isNaN(parseInt(maxYear))) whereClause += ` AND year_created <= ${parseInt(maxYear)}`;
+      }
       
       const limit = 48;
       const offset = (targetPage - 1) * limit;
@@ -558,6 +576,28 @@ export default function Home() {
 
         {/* Collection Grid */}
         <main>
+          {sharedCollectionIds.length > 0 && (
+            <div className="bg-mca-cyan text-mca-black font-black uppercase tracking-widest p-4 flex flex-col md:flex-row justify-between items-center z-10 border-b-2 border-white mb-6">
+              <div className="mb-2 md:mb-0">
+                VIEWING SHARED COLLECTION ({sharedCollectionIds.length} ITEMS)
+              </div>
+              <button 
+                onClick={() => {
+                  setSharedCollectionIds([]);
+                  if (typeof window !== 'undefined') {
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('collection');
+                    url.searchParams.set('collection_cleared', 'true');
+                    window.history.pushState({}, '', url);
+                  }
+                  executeNewSearch();
+                }}
+                className="border-2 border-mca-black px-4 py-2 hover:bg-mca-black hover:text-mca-cyan transition-colors text-xs"
+              >
+                [X] CLEAR & RETURN TO MAIN CATALOG
+              </button>
+            </div>
+          )}
           <div className="flex justify-between items-end mb-6 border-b border-white/20 pb-4">
             <h2 className="text-white font-bold tracking-widest text-sm uppercase">
               RESULTS GRID
@@ -914,6 +954,21 @@ export default function Home() {
             <div className="flex space-x-4">
               {collection.length > 0 && (
                 <>
+                  <button 
+                    onClick={() => {
+                      if (typeof window !== 'undefined') {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('collection', collection.map(c => c.field_identifier).join(','));
+                        url.searchParams.delete('collection_cleared');
+                        navigator.clipboard.writeText(url.toString());
+                        setIsCopied(true);
+                        setTimeout(() => setIsCopied(false), 2000);
+                      }
+                    }}
+                    className="bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-mca-cyan hover:bg-transparent hover:text-mca-cyan transition-colors text-sm"
+                  >
+                    {isCopied ? '[✓] COPIED!' : '[🔗] SHARE COLLECTION'}
+                  </button>
                   <button 
                     onClick={exportCsv}
                     className="bg-mca-yellow text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-mca-yellow hover:bg-transparent hover:text-mca-yellow transition-colors text-sm"
