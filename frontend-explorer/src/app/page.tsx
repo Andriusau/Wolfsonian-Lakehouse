@@ -756,7 +756,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row w-full h-full">
             
             {/* Left side - Image */}
-            <div className="w-full md:w-1/2 bg-black border-b md:border-b-0 md:border-r border-white/20 relative flex items-center justify-center p-8">
+            <div className="w-full md:w-1/2 bg-black border-b md:border-b-0 md:border-r border-white/20 relative flex items-center justify-center p-8 group">
               {isModalLoading ? (
                 <div className="animate-spin h-16 w-16 border-4 border-white border-t-mca-cyan rounded-none" />
               ) : selectedRecord ? (
@@ -773,6 +773,14 @@ export default function Home() {
                   <div className="absolute hidden inset-0 flex flex-col items-center justify-center bg-mca-black text-slate-600 text-lg uppercase font-bold tracking-widest space-y-4">
                     <span>[ NO IMAGE DATA FOUND ]</span>
                   </div>
+                  <a 
+                    href={`/images/${(selectedRecord.field_identifier || "").split(';')[0].trim()}.jpg`}
+                    download={`${(selectedRecord.field_identifier || "").split(';')[0].trim()}.jpg`}
+                    className="absolute bottom-8 right-8 bg-mca-yellow text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-mca-yellow hover:bg-mca-black hover:text-mca-yellow transition-colors text-xs opacity-0 group-hover:opacity-100 focus:opacity-100 z-20"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    [⬇] DOWNLOAD JPG
+                  </a>
                 </>
               ) : null}
             </div>
