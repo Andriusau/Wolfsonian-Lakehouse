@@ -20,6 +20,8 @@ export default function Home() {
   const [topCreators, setTopCreators] = useState<string[]>([]);
   const [topSubjects, setTopSubjects] = useState<string[]>([]);
   const [topPlaces, setTopPlaces] = useState<string[]>([]);
+  const [topGenres, setTopGenres] = useState<string[]>([]);
+  const [topCollections, setTopCollections] = useState<string[]>([]);
   
   const [timelineData, setTimelineData] = useState<{decade: number, count: number}[]>([]);
   const [selectedDecade, setSelectedDecade] = useState<string>("ALL");
@@ -85,16 +87,22 @@ export default function Home() {
     if (!isReady || topCreators.length > 0) return; // Only fetch once
     try {
       const creators = await runQuery(`SELECT field_linked_agent as facet FROM catalog WHERE field_linked_agent IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 50`);
-      if (creators) setTopCreators(creators.map((r: any) => r.facet));
+      if (creators) setTopCreators(creators.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
 
       const subjects = await runQuery(`SELECT field_subject as facet FROM catalog WHERE field_subject IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 50`);
-      if (subjects) setTopSubjects(subjects.map((r: any) => r.facet));
+      if (subjects) setTopSubjects(subjects.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
 
       const places = await runQuery(`SELECT field_place_published as facet FROM catalog WHERE field_place_published IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 50`);
-      if (places) setTopPlaces(places.map((r: any) => r.facet));
+      if (places) setTopPlaces(places.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
 
       const timeline = await runQuery(`SELECT decade_created as decade, count(*) as count FROM catalog WHERE decade_created IS NOT NULL GROUP BY 1 ORDER BY 1`);
       if (timeline) setTimelineData(timeline);
+
+      const genres = await runQuery(`SELECT field_genre as facet FROM catalog WHERE field_genre IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 50`);
+      if (genres) setTopGenres(genres.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
+
+      const collections = await runQuery(`SELECT field_collection_type as facet FROM catalog WHERE field_collection_type IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 50`);
+      if (collections) setTopCollections(collections.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
     } catch (e) {
       console.error("Failed to fetch facets", e);
     }
@@ -154,7 +162,7 @@ export default function Home() {
         SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, source_system, has_image, field_linked_agent, field_subject, field_place_published, field_edtf_date_created
         FROM catalog 
         ${whereClause}
-        ORDER BY has_image DESC, hash(field_identifier) ASC LIMIT ${limit} OFFSET ${offset}
+        ORDER BY has_image DESC, field_identifier ASC LIMIT ${limit} OFFSET ${offset}
       `;
 
       const countQuery = `SELECT count(*) as total FROM catalog ${whereClause}`;
@@ -261,7 +269,7 @@ export default function Home() {
           WHERE field_identifier != '${identifier.replace(/'/g, "''")}' 
           AND has_image = true 
           ${matchSql}
-          ORDER BY hash(field_identifier) ASC
+          ORDER BY field_identifier ASC
           LIMIT 4
         `;
         
@@ -463,7 +471,7 @@ export default function Home() {
             {/* Filter 2: Genre Categorization */}
             <div className="space-y-3 border-t border-white/20 pt-6">
               <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
-                // GENRE INDEX
+                // OBJECT TYPE
               </span>
               <div className="flex flex-wrap gap-2">
                 {[
@@ -475,7 +483,7 @@ export default function Home() {
                   { key: "POSTER", label: "POSTERS" },
                   { key: "PAMPHLET", label: "PAMPHLETS" },
                   { key: "PRINT", label: "PRINTS" },
-                  { key: "OBJECT", label: "MUSEUM OBJECTS" }
+                  { key: "Museum object", label: "MUSEUM OBJECTS" }
                 ].map((opt) => (
                   <button
                     key={opt.key}
@@ -550,7 +558,29 @@ export default function Home() {
               <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
                 // ADVANCED INDEXES
               </span>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="flex flex-col space-y-2">
+                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">OBJECT NAME</label>
+                  <select 
+                    value={selectedGenre}
+                    onChange={(e) => setSelectedGenre(e.target.value)}
+                    className="bg-mca-black border border-white/20 text-white text-xs px-3 py-2 uppercase outline-none focus:border-mca-cyan truncate"
+                  >
+                    <option value="ALL">ALL TYPES</option>
+                    {topGenres.map((g, i) => <option key={i} value={g}>{g}</option>)}
+                  </select>
+                </div>
+                <div className="flex flex-col space-y-2">
+                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">COLLECTION</label>
+                  <select 
+                    value={selectedGenre}
+                    onChange={(e) => setSelectedGenre(e.target.value)}
+                    className="bg-mca-black border border-white/20 text-white text-xs px-3 py-2 uppercase outline-none focus:border-mca-cyan truncate"
+                  >
+                    <option value="ALL">ALL COLLECTIONS</option>
+                    {topCollections.map((c, i) => <option key={i} value={c}>{c}</option>)}
+                  </select>
+                </div>
                 <div className="flex flex-col space-y-2">
                   <label className="text-[10px] text-slate-400 font-bold tracking-wider">CREATOR</label>
                   <select 
@@ -709,13 +739,13 @@ export default function Home() {
                         )}
                         {item.field_physical_form && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">FORM</span>
+                            <span className="text-slate-600 w-20 shrink-0">MATERIAL</span>
                             <span className="text-slate-300 truncate">{item.field_physical_form}</span>
                           </div>
                         )}
                         {item.field_extent && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">EXTENT</span>
+                            <span className="text-slate-600 w-20 shrink-0">DIMENSIONS</span>
                             <span className="text-slate-300 truncate">{item.field_extent}</span>
                           </div>
                         )}
@@ -924,7 +954,7 @@ export default function Home() {
                           const fieldLabels: Record<string, string> = {
                             field_identifier: "Accession Number",
                             field_collection_type: "Collection",
-                            field_extent: "Format/Dimensions",
+                            field_extent: "Dimensions",
                             field_genre: "Object Name",
                             field_description_long: "Description",
                             field_linked_agent: "Creator",
@@ -933,7 +963,7 @@ export default function Home() {
                             field_edtf_date_created: "Date Created",
                             decade_created: "Decade Created",
                             field_credit_line: "Credit Line",
-                            field_physical_form: "Physical Form",
+                            field_physical_form: "Material",
                             field_collection_note: "Collection Note",
                           };
                           return (
@@ -961,6 +991,39 @@ export default function Home() {
                                           {subject.trim()}
                                         </Link>
                                         {j < String(val).split(';').length - 1 ? '; ' : ''}
+                                      </span>
+                                    ))}
+                                  </span>
+                                ) : key === 'field_genre' ? (
+                                  <span>
+                                    {String(val).split('|').map((genre: string, j: number) => (
+                                      <span key={j}>
+                                        <Link href={`/genre/${encodeURIComponent(genre.trim())}`} className="hover:text-mca-yellow hover:underline" onClick={(e: any) => e.stopPropagation()}>
+                                          {genre.trim()}
+                                        </Link>
+                                        {j < String(val).split('|').length - 1 ? ' | ' : ''}
+                                      </span>
+                                    ))}
+                                  </span>
+                                ) : key === 'field_place_published' ? (
+                                  <span>
+                                    {String(val).split('|').map((place: string, j: number) => (
+                                      <span key={j}>
+                                        <Link href={`/place/${encodeURIComponent(place.trim())}`} className="hover:text-mca-yellow hover:underline" onClick={(e: any) => e.stopPropagation()}>
+                                          {place.trim()}
+                                        </Link>
+                                        {j < String(val).split('|').length - 1 ? ' | ' : ''}
+                                      </span>
+                                    ))}
+                                  </span>
+                                ) : key === 'field_collection_type' ? (
+                                  <span>
+                                    {String(val).split('|').map((col: string, j: number) => (
+                                      <span key={j}>
+                                        <Link href={`/collection/${encodeURIComponent(col.trim())}`} className="hover:text-mca-yellow hover:underline" onClick={(e: any) => e.stopPropagation()}>
+                                          {col.trim()}
+                                        </Link>
+                                        {j < String(val).split('|').length - 1 ? ' | ' : ''}
                                       </span>
                                     ))}
                                   </span>

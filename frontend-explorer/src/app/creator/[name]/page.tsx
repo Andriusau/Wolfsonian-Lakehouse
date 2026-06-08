@@ -227,13 +227,13 @@ export default function CreatorPage({ params }: { params: Promise<{ name: string
                         )}
                         {item.field_physical_form && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">FORM</span>
+                            <span className="text-slate-600 w-20 shrink-0">MATERIAL</span>
                             <span className="text-slate-300 truncate">{item.field_physical_form}</span>
                           </div>
                         )}
                         {item.field_extent && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">EXTENT</span>
+                            <span className="text-slate-600 w-20 shrink-0">DIMENSIONS</span>
                             <span className="text-slate-300 truncate">{item.field_extent}</span>
                           </div>
                         )}
@@ -369,7 +369,7 @@ export default function CreatorPage({ params }: { params: Promise<{ name: string
                           const fieldLabels: Record<string, string> = {
                             field_identifier: "Accession Number",
                             field_collection_type: "Collection",
-                            field_extent: "Format/Dimensions",
+                            field_extent: "Dimensions",
                             field_genre: "Object Name",
                             field_description_long: "Description",
                             field_linked_agent: "Creator",
@@ -378,7 +378,7 @@ export default function CreatorPage({ params }: { params: Promise<{ name: string
                             field_edtf_date_created: "Date Created",
                             decade_created: "Decade Created",
                             field_credit_line: "Credit Line",
-                            field_physical_form: "Physical Form",
+                            field_physical_form: "Material",
                             field_collection_note: "Collection Note",
                           };
                           return (

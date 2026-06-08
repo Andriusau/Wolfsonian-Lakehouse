@@ -4,10 +4,10 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useDuckDB } from "../../../hooks/useDuckDB";
 
-export default function SubjectPage({ params }: { params: Promise<{ name: string }> }) {
+export default function CreatorPage({ params }: { params: Promise<{ name: string }> }) {
   const resolvedParams = use(params);
   const { isReady, runQuery, error } = useDuckDB();
-  const subjectName = decodeURIComponent(resolvedParams.name);
+  const creatorName = decodeURIComponent(resolvedParams.name);
 
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,22 +22,22 @@ export default function SubjectPage({ params }: { params: Promise<{ name: string
     if (isReady) {
       handleSearch();
     }
-  }, [isReady, subjectName]);
+  }, [isReady, creatorName]);
 
   const handleSearch = async () => {
     if (!isReady) return;
     setLoading(true);
     
     try {
-      const escapedSubject = subjectName.replace(/'/g, "''");
+      const escapedCreator = creatorName.replace(/'/g, "''");
       const dataQuery = `
         SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, source_system, has_image, field_linked_agent, field_subject, field_place_published, field_edtf_date_created 
         FROM catalog 
-        WHERE field_subject LIKE '%${escapedSubject}%'
+        WHERE list_contains(string_split(field_genre, '|'), '${escapedCreator}')
         ORDER BY has_image DESC, title ASC 
       `;
       
-      const countQuery = `SELECT count(*) as total FROM catalog WHERE field_subject LIKE '%${escapedSubject}%'`;
+      const countQuery = `SELECT count(*) as total FROM catalog WHERE list_contains(string_split(field_genre, '|'), '${escapedCreator}')`;
 
       const [data, countData] = await Promise.all([
         runQuery(dataQuery),
@@ -108,17 +108,17 @@ export default function SubjectPage({ params }: { params: Promise<{ name: string
         {/* Dossier Header */}
         <header className="space-y-6">
           <div className="text-[11px] uppercase tracking-widest text-mca-cyan font-bold font-mono">
-            SUBJECT DOSSIER INDEX
+            GENRE DOSSIER INDEX
           </div>
           
           <h1 className="text-[10vw] md:text-[6vw] font-black font-display uppercase tracking-tighter leading-[0.85] text-white break-words">
-            {subjectName}
+            {creatorName}
           </h1>
 
           <div className="h-1 bg-white w-full mt-4" />
           
           <p className="text-slate-400 text-sm md:text-base font-sans max-w-2xl font-light leading-relaxed">
-            Displaying all known archival records associated with this subject.
+            Displaying all known archival records associated with this genre.
           </p>
         </header>
 
@@ -275,7 +275,7 @@ export default function SubjectPage({ params }: { params: Promise<{ name: string
               <div className="space-y-2">
                 <h4 className="font-extrabold text-white uppercase text-sm tracking-wider">No Dossier Found</h4>
                 <p className="text-xs text-slate-500 font-sans leading-relaxed">
-                  The query returned zero rows for this subject.
+                  The query returned zero rows for this creator.
                 </p>
               </div>
             </div>
@@ -383,9 +383,9 @@ export default function SubjectPage({ params }: { params: Promise<{ name: string
                           };
                           return (
                             <div key={i} className="flex flex-col space-y-2 group">
-                              <span className="text-[10px] text-mca-cyan font-bold tracking-widest uppercase break-all">
+                              <h2 className="text-[10px] md:text-xs text-mca-cyan font-bold tracking-[0.2em] mb-4">
                                 {fieldLabels[key] || key}
-                              </span>
+                              </h2>
                               <span className="text-sm md:text-base text-slate-300 font-light leading-relaxed break-words whitespace-pre-wrap">
                                 {key === 'field_linked_agent' ? (
                                   <span>
