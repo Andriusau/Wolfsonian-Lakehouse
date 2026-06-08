@@ -4,7 +4,7 @@ import shutil
 from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
-from PIL import Image, ImageFile
+from PIL import Image, ImageFile, ImageOps
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Configure PIL to allow large images and truncated files
@@ -95,24 +95,21 @@ def process_single_row(row):
                         best_file = max(image_files, key=lambda f: f.stat().st_size)
                         
                         try:
-                            if best_file.suffix.lower() in ['.tif', '.tiff']:
-                                # Convert TIFF to JPEG on the fly
-                                with Image.open(best_file) as img:
-                                    rgb_img = img.convert('RGB')
+                            with Image.open(best_file) as img:
+                                # Apply EXIF orientation to fix sideways images
+                                img = ImageOps.exif_transpose(img)
+                                rgb_img = img.convert('RGB')
+                                
+                                # Resize to max 1200px on the longest side to save disk space and bandwidth
+                                max_size = 1200
+                                if max(rgb_img.size) > max_size:
+                                    try:
+                                        resample_method = Image.Resampling.LANCZOS
+                                    except AttributeError:
+                                        resample_method = Image.ANTIALIAS
+                                    rgb_img.thumbnail((max_size, max_size), resample_method)
                                     
-                                    # Resize to max 1200px on the longest side to save disk space and bandwidth
-                                    max_size = 1200
-                                    if max(rgb_img.size) > max_size:
-                                        try:
-                                            resample_method = Image.Resampling.LANCZOS
-                                        except AttributeError:
-                                            resample_method = Image.ANTIALIAS
-                                        rgb_img.thumbnail((max_size, max_size), resample_method)
-                                        
-                                    rgb_img.save(dest_path, 'JPEG', quality=80)
-                            else:
-                                # Copy JPEGs/PNGs directly
-                                shutil.copy2(best_file, dest_path)
+                                rgb_img.save(dest_path, 'JPEG', quality=80)
                             
                             found = True
                             break  # Found image for this candidate, break from subdirs loop

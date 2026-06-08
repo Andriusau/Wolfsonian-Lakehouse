@@ -357,15 +357,20 @@ export default function Home() {
         {/* Search Panel - Swiss Minimalist Style */}
         <section className="space-y-8">
           
-          <div className="flex flex-col md:flex-row gap-4">
-            <input
-              type="text"
-              placeholder="SEARCH CATALOG BY KEYWORD..."
-              className="flex-grow bg-mca-black border-2 border-white rounded-none px-6 py-4 text-base font-bold tracking-wide focus:outline-none focus:bg-mca-dark transition-all placeholder:text-mca-border uppercase text-white"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && executeNewSearch()}
-            />
+          <div className="flex flex-col md:flex-row gap-4 items-start">
+            <div className="flex-grow w-full flex flex-col gap-2">
+              <input
+                type="text"
+                placeholder="SEARCH CATALOG BY KEYWORD..."
+                className="w-full bg-mca-black border-2 border-white rounded-none px-6 py-4 text-base font-bold tracking-wide focus:outline-none focus:bg-mca-dark transition-all placeholder:text-mca-border uppercase text-white"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && executeNewSearch()}
+              />
+              <span className="text-[10px] text-mca-cyan uppercase font-bold tracking-widest pl-2">
+                * Use commas to search for multiple keywords or accession numbers at once
+              </span>
+            </div>
             
             <button 
               onClick={executeNewSearch}
