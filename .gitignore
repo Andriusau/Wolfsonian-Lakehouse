@@ -23,6 +23,3 @@ __pycache__/
 # Ignore Server Logs
 logs/
 *.log
-
-# Ignore private internal documents
-RUNBOOK.md
