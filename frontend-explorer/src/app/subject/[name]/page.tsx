@@ -397,7 +397,7 @@ export default function SubjectPage({ params }: { params: Promise<{ name: string
                             field_identifier: "Accession Number",
                             field_collection_type: "Collection",
                             field_extent: "Dimensions",
-                            field_genre: "Object Name",
+                            field_genre: "Genre",
                             field_description_long: "Description",
                             field_linked_agent: "Creator",
                             field_subject: "Subjects",

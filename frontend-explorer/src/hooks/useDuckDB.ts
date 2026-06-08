@@ -56,7 +56,11 @@ export function useDuckDB() {
               year_created,
               source_system,
               has_image
-            FROM read_parquet('normalized_catalog.parquet');
+            FROM read_parquet('normalized_catalog.parquet')
+            QUALIFY ROW_NUMBER() OVER (
+              PARTITION BY COALESCE(field_identifier, id) 
+              ORDER BY CASE WHEN source_system = 'Proficio' THEN 1 ELSE 2 END
+            ) = 1;
           `);
           console.log("DuckDB initialized and Parquet file mounted!");
           

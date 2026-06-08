@@ -560,7 +560,7 @@ export default function Home() {
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="flex flex-col space-y-2">
-                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">OBJECT NAME</label>
+                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">GENRE</label>
                   <select 
                     value={selectedGenre}
                     onChange={(e) => setSelectedGenre(e.target.value)}
@@ -973,7 +973,7 @@ export default function Home() {
                             field_identifier: "Accession Number",
                             field_collection_type: "Collection",
                             field_extent: "Dimensions",
-                            field_genre: "Object Name",
+                            field_genre: "Genre",
                             field_description_long: "Description",
                             field_linked_agent: "Creator",
                             field_subject: "Subjects",
