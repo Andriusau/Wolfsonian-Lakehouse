@@ -126,9 +126,15 @@ export default function Home() {
         const escapedIds = sharedIds.map(id => `'${id.replace(/'/g, "''")}'`).join(',');
         whereClause = `WHERE field_identifier IN (${escapedIds})`;
       } else {
-        if (searchTerm) {
-        const escapedSearch = searchTerm.replace(/'/g, "''").toLowerCase();
-        whereClause += ` AND (lower(title) LIKE '%${escapedSearch}%' OR lower(field_description_long) LIKE '%${escapedSearch}%' OR lower(field_identifier) LIKE '%${escapedSearch}%')`;
+      if (searchTerm) {
+        const terms = searchTerm.split(',').map(t => t.trim()).filter(t => t.length > 0);
+        if (terms.length > 0) {
+          const termConditions = terms.map(term => {
+            const escapedSearch = term.replace(/'/g, "''").toLowerCase();
+            return `(lower(title) LIKE '%${escapedSearch}%' OR lower(field_description_long) LIKE '%${escapedSearch}%' OR lower(field_identifier) LIKE '%${escapedSearch}%')`;
+          });
+          whereClause += ` AND (${termConditions.join(' OR ')})`;
+        }
       }
       if (selectedSystem !== "ALL") whereClause += ` AND source_system = '${selectedSystem}'`;
       if (selectedGenre !== "ALL") whereClause += ` AND field_genre = '${selectedGenre}'`;
