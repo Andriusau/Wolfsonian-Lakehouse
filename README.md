@@ -34,6 +34,8 @@
 ## 🧐 About the Project
 The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transform) pipeline designed to unify disparate data sources into a single, high-performance analytics layer. It extracts data from APIs, legacy SQL Server databases, and binary MARC files, staging them as raw Parquet files before transforming them into a clean, "Gold" standard layer for downstream systems like Workbench and Metabase.
 
+In addition to the data pipeline, the project features a powerful **Frontend Explorer**—a serverless, zero-latency web application built with Next.js and DuckDB WebAssembly. This custom interface directly queries the compressed Parquet data right inside the user's browser, allowing staff, researchers, and the public to visually search, filter, and curate collections across all 115,000+ unified library and museum records without the need for expensive database hosting or backend architecture.
+
 ## 🏗️ Architecture & Tech Stack
 * **Orchestration:** Prefect 3 (16-Node DAG) & Docker Compose
 * **Data Extraction:** Python 3.10 (Pandas, PyArrow, requests, pymarc)
@@ -51,10 +53,10 @@ The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transf
 | Source | System | Records | Method |
 |---|---|---|---|
 | **Alma** | Ex Libris Library Management | 55,004 | Binary MARC (`.mrc`) file parsing via PyMARC |
-| **Proficio** | Museum Collection Database | 60,684 | Kerberos-authenticated SQL Server via ODBC |
+| **Proficio** | Museum Collection Database | 60,890 | Kerberos-authenticated SQL Server via ODBC |
 | **Islandora** | Public Digital Archive | 265,698 | Paginated REST API with concurrent fetching |
-| **Unified Gold Catalog** | Merged output | 115,688 | Alma + Proficio aligned and concatenated |
-| **Normalized Gold Catalog** | Analytics-ready output | 115,688 | Harmonized genres, dates, creators & titles |
+| **Unified Gold Catalog** | Merged output | 115,894 | Alma + Proficio aligned and concatenated |
+| **Normalized Gold Catalog** | Analytics-ready output | 115,894 | Harmonized genres, dates, creators & titles |
 
 ---
 
@@ -89,7 +91,10 @@ The original purpose of the Lakehouse Frontend Explorer was to solve the institu
 * **"More Like This" Semantic Discovery:** When viewing a record, the engine instantly queries DuckDB for 4 randomized, related records that share the same Subject, Genre, or Creator, encouraging users to dive down the rabbit hole.
 * **Dynamic Creator & Subject Dossiers:** Automatically generates dedicated landing pages that aggregate and display all cataloged works by a specific artist, designer, author, or subject. Clickable hyperlinks are integrated across the search grid and detailed modals for seamless navigation.
 * **Clean Metadata Modals:** Detail views automatically map internal database fields to user-friendly labels (e.g., Accession Number) and hide redundant system data to provide a pristine viewing experience.
-* **Infinite Scroll Grid:** A high-performance, Brutalist-themed masonry grid that can render thousands of images smoothly without crashing the browser.
+* **Infinite Scroll Grid:** A high-performance, Brutalist-themed masonry grid that can render thousands of images smoothly without pagination limits.
+* **Advanced Search Facets:** Easily filter by specific objects (Has Images toggle, Genre categories, etc.) directly from the top interface.
+* **Comprehensive Image Galleries:** Full support for multi-image objects (like multi-page books or varied 3D views) dynamically loaded into the detail view.
+* **Smart Fallback Identifiers:** Seamlessly handles untitled items by safely falling back to their Accession Number, ensuring every record remains identifiable.
 
 **Staff & Researcher Tools**
 * **Browser-Native Staff Collections:** Staff can curate custom lists of catalog records directly within their browser memory (`localStorage`), allowing them to build research sets without ever needing to log in or create an account.
@@ -104,18 +109,22 @@ The original purpose of the Lakehouse Frontend Explorer was to solve the institu
 ```text
 wolf-lakehouse/
 ├── aaukstuo.keytab              # Kerberos auth key (Ignored in Git)
+├── archive_scripts/             # Deprecated or one-off utility scripts
 ├── config.ini                   # Database credentials (Ignored in Git)
 ├── data/                        # The Lakehouse Storage Volume
 │   ├── export/
 │   │   └── workbench_upload.csv
 │   ├── gold/                    # Gold Layer: Clean outputs & QA failures
 │   │   ├── alma_workbench_export.csv
+│   │   ├── comparison_proficio.parquet
 │   │   ├── images/              # Local storage for web-optimized JPEGs
 │   │   ├── missing_objects.parquet
 │   │   ├── proficio_qa_failures.parquet
 │   │   ├── snapshots/           # Historical time-series dashboard metrics
 │   │   ├── unified_catalog_normalized.parquet  # Harmonized analytics view
 │   │   └── unified_catalog.parquet
+│   ├── metabase.db.mv.db        # Metabase persistence DB
+│   ├── metabase.db.trace.db     # Metabase persistence DB trace
 │   ├── metrics.json             # Execution metrics for Prefect dashboard
 │   ├── raw/                     # Bronze Layer: Unaltered source dumps
 │   │   ├── alma/
@@ -124,6 +133,7 @@ wolf-lakehouse/
 │   │   │   ├── BIBLIOGRAPHIC_16429188970006571_16429188950006571_1.mrc
 │   │   │   ├── BIBLIOGRAPHIC_16464220520006571_16429186080006571_1.mrc
 │   │   │   └── BIBLIOGRAPHIC_16501241860006571_16429186080006571_1.mrc
+│   │   ├── digital_images/
 │   │   ├── islandora/
 │   │   │   └── islandora_lookup.parquet
 │   │   └── proficio/
@@ -137,7 +147,6 @@ wolf-lakehouse/
 ├── docker-compose.yml           # The Master Switch for orchestration
 ├── Dockerfile                   # Builds the Python 3.10 environment + ODBC/Kerberos
 ├── Dockerfile.metabase          # Custom Ubuntu image for Metabase DuckDB support
-├── frontend-explorer/           # Next.js web application for data exploration
 ├── etl-pipelines/               # Core Extraction & Transformation Microservices
 │   ├── add_has_image_col.py
 │   ├── build_duckdb_views.py
@@ -159,12 +168,18 @@ wolf-lakehouse/
 │   ├── transform_alma_raw.py
 │   ├── transform_alma_silver.py
 │   └── transform_proficio_silver.py
-├── logs/
-├── metabase-plugins/
+├── frontend-explorer/           # Next.js web application for data exploration
+│   ├── src/                     # Source code (Next.js App router, components, hooks)
+│   ├── public/                  # Static icons and assets
+│   ├── package.json             # NPM dependencies & build scripts
+│   ├── postcss.config.mjs       # PostCSS config
+│   └── next.config.ts           # Next.js build configuration
+├── logs/                        # Server log outputs
+├── metabase-plugins/            # Custom jar files for Metabase compatibility
 │   ├── duckdb.metabase-driver.jar
 │   ├── sample-database.db.mv.db
 │   └── sample-database.db.trace.db
-└── README.md
+└── README.md                    # Project Documentation
 ```
 
 ---
