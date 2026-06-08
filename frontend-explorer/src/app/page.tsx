@@ -29,7 +29,6 @@ export default function Home() {
   const [totalCount, setTotalCount] = useState(0);
   const [filteredCount, setFilteredCount] = useState(0);
   const [debugInfo, setDebugInfo] = useState<string>("");
-  const [activeQuery, setActiveQuery] = useState<string>("");
 
   // Infinite Scroll State
   const [page, setPage] = useState(1);
@@ -151,8 +150,6 @@ export default function Home() {
         ${whereClause}
         ORDER BY has_image DESC, hash(field_identifier) ASC LIMIT ${limit} OFFSET ${offset}
       `;
-      
-      setActiveQuery(dataQuery);
 
       const countQuery = `SELECT count(*) as total FROM catalog ${whereClause}`;
       const globalCountQuery = `SELECT count(*) as total FROM catalog`;
@@ -214,7 +211,6 @@ export default function Home() {
         WHERE has_image = true 
         USING SAMPLE 24
       `;
-      setActiveQuery(dataQuery);
       const data = await runQuery(dataQuery);
       if (data) {
         setResults(data);
@@ -234,7 +230,6 @@ export default function Home() {
     setRelatedRecords([]);
     try {
       const query = `SELECT * FROM catalog WHERE field_identifier = '${identifier.replace(/'/g, "''")}' LIMIT 1`;
-      setActiveQuery(query);
       const data = await runQuery(query);
       if (data && data.length > 0) {
         setSelectedRecord(data[0]);
@@ -584,14 +579,6 @@ export default function Home() {
             </div>
 
           </div>
-
-          {/* Active SQL Statement Display */}
-          {activeQuery && (
-            <div className="border border-white/20 bg-mca-dark/80 px-5 py-4 font-mono text-[10px] text-slate-400 overflow-x-auto flex items-center space-x-3">
-              <span className="text-mca-cyan font-bold select-none">QUERY:</span>
-              <code className="block whitespace-pre select-all text-slate-300">{activeQuery.trim()}</code>
-            </div>
-          )}
         </section>
 
         {/* Collection Grid */}
