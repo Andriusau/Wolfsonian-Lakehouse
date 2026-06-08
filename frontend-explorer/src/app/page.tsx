@@ -483,8 +483,7 @@ export default function Home() {
                   { key: "PHOTOGRAPH", label: "PHOTOGRAPHS" },
                   { key: "POSTER", label: "POSTERS" },
                   { key: "PAMPHLET", label: "PAMPHLETS" },
-                  { key: "PRINT", label: "PRINTS" },
-                  { key: "Museum object", label: "MUSEUM OBJECTS" }
+                  { key: "PRINT", label: "PRINTS" }
                 ].map((opt) => (
                   <button
                     key={opt.key}
