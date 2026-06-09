@@ -53,6 +53,10 @@ def isolate_qa_failures():
 def generate_missing_objects():
     run_script('etl-pipelines/export_gold_missing_objects.py')
 
+@task(name="Generate Duplicates Report")
+def generate_duplicates_report():
+    run_script('etl-pipelines/export_duplicates_report.py')
+
 @task(name="Generate Gold Unified Catalog")
 def generate_unified_catalog():
     run_script('etl-pipelines/export_gold_unified_catalog.py')
@@ -137,6 +141,7 @@ def lakehouse_flow():
     qa_failures = isolate_qa_failures.submit(wait_for=[proficio_silver])
 
     # 4. Gold Generation Phase
+    duplicates_report = generate_duplicates_report.submit(wait_for=[proficio_silver, alma_silver])
     unified_catalog = generate_unified_catalog.submit(wait_for=[proficio_silver, alma_silver])
     normalized_catalog = normalize_catalog.submit(wait_for=[unified_catalog])
     missing_objects = generate_missing_objects.submit(wait_for=[qa_failures, islandora_raw, unified_catalog])

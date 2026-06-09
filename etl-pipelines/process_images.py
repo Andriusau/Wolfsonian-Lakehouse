@@ -155,7 +155,7 @@ if __name__ == "__main__":
     rows = [row for _, row in df.iterrows()]
     
     max_workers = 4
-    print(f"Processing images using {max_workers} threads...")
+    print(f"Processing images using {max_workers} threads (All RAM dedicated to ingestion)...")
     
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(process_single_row, r): r for r in rows}
