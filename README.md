@@ -35,7 +35,7 @@ The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transf
 In addition to the data pipeline, the project features a powerful **Frontend Explorer**—a serverless, zero-latency web application built with Next.js and DuckDB WebAssembly. This custom interface directly queries the compressed Parquet data right inside the user's browser, allowing staff, researchers, and the public to visually search, filter, and curate collections across all 115,000+ unified library and museum records without the need for expensive database hosting or backend architecture.
 
 ## 🏗️ Architecture & Tech Stack
-* **Orchestration:** Prefect 3 (16-Node DAG) & Docker Compose
+* **Orchestration:** Prefect 3 (17-Node DAG) & Docker Compose
 * **Data Extraction:** Python 3.10 (Pandas, PyArrow, requests, pymarc)
 * **Database Connectivity:** SQLAlchemy, pyodbc (ODBC Driver 18 for SQL Server)
 * **Authentication:** Automated Kerberos (`kinit`) integration inside containers
@@ -70,7 +70,7 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 * **Parallel Image Ingestion & Conversion:** Ingests raw `.tif`/`.tiff` catalog images from the mounted NFS share, converts them to JPEG, and optimizes them for the frontend. Using a `ThreadPoolExecutor` with 16 parallel workers, it concurrently reads and encodes images on the fly. It utilizes dual-layer in-memory caching (caching both local images and NFS directories at boot) to skip already processed images in O(1) time.
 * **Storage Protection & Web Resizing:** Converts large ~10MB+ TIFFs into highly compressed JPEGs restricted to a maximum of 1200px on the longest side and saved at quality 80. This reduces file size by ~20x-50x (down to ~200KB per image), allowing the full ~50k image catalog to fit in less than 13GB of local disk space while drastically accelerating webpage loading times.
 * **Cross-System Deduplication:** Dynamically reconciles identifiers between Library (Alma) and Museum (Proficio) catalogs, natively handling Alma's semicolon-separated multi-accession numbers to prioritize Museum records. A reporting script automatically generates exact collision matches for manual staff review on every pipeline run.
-* **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline. The monolithic scripts have been completely decoupled into a 16-node Directed Acyclic Graph (DAG), providing an incredibly granular UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries at the end of every flow.
+* **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline. The monolithic scripts have been completely decoupled into a 17-node Directed Acyclic Graph (DAG), providing an incredibly granular UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries at the end of every flow.
 
 ## 🔍 The Frontend Explorer
 
