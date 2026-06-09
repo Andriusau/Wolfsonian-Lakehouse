@@ -99,7 +99,7 @@ export default function Home() {
       const timeline = await runQuery(`SELECT decade_created as decade, count(*) as count FROM catalog WHERE decade_created IS NOT NULL GROUP BY 1 ORDER BY 1`);
       if (timeline) setTimelineData(timeline);
 
-      const genres = await runQuery(`SELECT field_genre as facet FROM catalog WHERE field_genre IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 50`);
+      const genres = await runQuery(`SELECT field_genre as facet FROM catalog WHERE field_genre IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 1000`);
       if (genres) setTopGenres(genres.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
 
       const collections = await runQuery(`SELECT field_collection_type as facet FROM catalog WHERE field_collection_type IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 50`);
@@ -136,13 +136,40 @@ export default function Home() {
         whereClause = `WHERE field_identifier IN (${escapedIds})`;
       } else {
       if (searchTerm) {
-        const terms = searchTerm.split(',').map(t => t.trim()).filter(t => t.length > 0);
-        if (terms.length > 0) {
-          const termConditions = terms.map(term => {
-            const escapedSearch = term.replace(/'/g, "''").toLowerCase();
-            return `(lower(title) LIKE '%${escapedSearch}%' OR lower(field_description_long) LIKE '%${escapedSearch}%' OR lower(field_identifier) LIKE '%${escapedSearch}%')`;
-          });
-          whereClause += ` AND (${termConditions.join(' OR ')})`;
+        let sqlCondition = "";
+        if (/\\b(AND|OR|NOT)\\b/.test(searchTerm)) {
+          const tokens = searchTerm.match(/(".*?"|\\bAND\\b|\\bOR\\b|\\bNOT\\b|\\S+)/g) || [];
+          let expectOperator = false;
+          for (let i = 0; i < tokens.length; i++) {
+            let token = tokens[i];
+            const upper = token.toUpperCase();
+            if (upper === 'AND' || upper === 'OR') {
+              sqlCondition += ` ${upper} `;
+              expectOperator = false;
+            } else if (upper === 'NOT') {
+              sqlCondition += (expectOperator ? ` AND NOT ` : ` NOT `);
+              expectOperator = false;
+            } else {
+              if (expectOperator) {
+                sqlCondition += ` AND `;
+              }
+              const e = token.replace(/(^"|"$)/g, '').replace(/'/g, "''").toLowerCase();
+              sqlCondition += `(lower(title) LIKE '%${e}%' OR lower(field_description_long) LIKE '%${e}%' OR lower(field_identifier) LIKE '%${e}%')`;
+              expectOperator = true;
+            }
+          }
+        } else {
+          const terms = searchTerm.split(',').map(t => t.trim()).filter(t => t.length > 0);
+          if (terms.length > 0) {
+            const termConditions = terms.map(term => {
+              const escapedSearch = term.replace(/'/g, "''").toLowerCase();
+              return `(lower(title) LIKE '%${escapedSearch}%' OR lower(field_description_long) LIKE '%${escapedSearch}%' OR lower(field_identifier) LIKE '%${escapedSearch}%')`;
+            });
+            sqlCondition = termConditions.join(' OR ');
+          }
+        }
+        if (sqlCondition) {
+          whereClause += ` AND (${sqlCondition})`;
         }
       }
       if (selectedSystem !== "ALL") whereClause += ` AND source_system = '${selectedSystem}'`;
@@ -379,6 +406,9 @@ export default function Home() {
               <span className="text-[10px] text-mca-cyan uppercase font-bold tracking-widest pl-2">
                 * Use commas to search for multiple keywords or accession numbers at once
               </span>
+              <span className="text-[10px] text-mca-yellow uppercase font-bold tracking-widest pl-2">
+                * Advanced: Use AND, OR, NOT for complex queries (e.g., France AND Medal)
+              </span>
             </div>
             
             <button 
@@ -447,27 +477,7 @@ export default function Home() {
               </div>
             )}
             
-            {/* Filter 1: Catalog Source */}
-            <div className="space-y-3">
-              <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
-                // SOURCE CATALOG
-              </span>
-              <div className="flex flex-wrap gap-3">
-                {[
-                  { key: "ALL", label: "ALL COLLECTIONS" },
-                  { key: "Alma", label: "LIBRARY (ALMA)" },
-                  { key: "Proficio", label: "OBJECTS (PROFICIO)" }
-                ].map((opt) => (
-                  <button
-                    key={opt.key}
-                    onClick={() => setSelectedSystem(opt.key)}
-                    className={`px-4 py-2 border text-xs font-bold uppercase transition-all duration-150 cursor-pointer ${selectedSystem === opt.key ? 'bg-mca-cyan border-mca-cyan text-mca-black' : 'border-white/20 text-slate-400 hover:border-white hover:text-white'}`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+
 
             {/* Filter 2: Genre Categorization */}
             <div className="space-y-3 border-t border-white/20 pt-6">
@@ -570,17 +580,7 @@ export default function Home() {
                     {topGenres.map((g, i) => <option key={i} value={g}>{g}</option>)}
                   </select>
                 </div>
-                <div className="flex flex-col space-y-2">
-                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">COLLECTION</label>
-                  <select 
-                    value={selectedGenre}
-                    onChange={(e) => setSelectedGenre(e.target.value)}
-                    className="bg-mca-black border border-white/20 text-white text-xs px-3 py-2 uppercase outline-none focus:border-mca-cyan truncate"
-                  >
-                    <option value="ALL">ALL COLLECTIONS</option>
-                    {topCollections.map((c, i) => <option key={i} value={c}>{c}</option>)}
-                  </select>
-                </div>
+
                 <div className="flex flex-col space-y-2">
                   <label className="text-[10px] text-slate-400 font-bold tracking-wider">CREATOR</label>
                   <select 

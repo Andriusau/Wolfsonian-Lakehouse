@@ -58,7 +58,7 @@ export function useDuckDB() {
               has_image
             FROM read_parquet('normalized_catalog.parquet')
             QUALIFY ROW_NUMBER() OVER (
-              PARTITION BY COALESCE(field_identifier, id) 
+              PARTITION BY COALESCE(field_identifier, CAST(id AS VARCHAR)) 
               ORDER BY CASE WHEN source_system = 'Proficio' THEN 1 ELSE 2 END
             ) = 1;
           `);

@@ -79,7 +79,7 @@ def process_single_row(row):
                     image_files = [f for f in image_files if not f.name.startswith('.')]
                     
                     if image_files:
-                        best_file = max(image_files, key=lambda f: f.stat().st_size)
+                        best_file = sorted(image_files)[0]
                         try:
                             with Image.open(best_file) as img:
                                 img = ImageOps.exif_transpose(img)
