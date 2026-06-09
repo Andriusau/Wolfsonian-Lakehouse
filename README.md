@@ -69,8 +69,8 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 * **Digital Gap Analysis:** The `missing_objects.parquet` output identifies which internal catalog records (Proficio museum objects) are absent from the public-facing Islandora digital archive (`digital.wolfsonian.org`), supporting prioritization of digitization and content migration efforts.
 * **Parallel Image Ingestion & Conversion:** Ingests raw `.tif`/`.tiff` catalog images from the mounted NFS share, converts them to JPEG, and optimizes them for the frontend. Using a `ThreadPoolExecutor` with 16 parallel workers, it concurrently reads and encodes images on the fly. It utilizes dual-layer in-memory caching (caching both local images and NFS directories at boot) to skip already processed images in O(1) time.
 * **Storage Protection & Web Resizing:** Converts large ~10MB+ TIFFs into highly compressed JPEGs restricted to a maximum of 1200px on the longest side and saved at quality 80. This reduces file size by ~20x-50x (down to ~200KB per image), allowing the full ~50k image catalog to fit in less than 13GB of local disk space while drastically accelerating webpage loading times.
+* **Cross-System Deduplication:** Dynamically reconciles identifiers between Library (Alma) and Museum (Proficio) catalogs, natively handling Alma's semicolon-separated multi-accession numbers to prioritize Museum records. A reporting script automatically generates exact collision matches for manual staff review on every pipeline run.
 * **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline. The monolithic scripts have been completely decoupled into a 16-node Directed Acyclic Graph (DAG), providing an incredibly granular UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries at the end of every flow.
----
 
 ## 🔍 The Frontend Explorer
 
@@ -115,6 +115,7 @@ wolf-lakehouse/
 │   ├── gold/                    # Gold Layer: Clean outputs & QA failures
 │   │   ├── alma_workbench_export.csv
 │   │   ├── comparison_proficio.parquet
+│   │   ├── duplicates_report_YYYYMMDD_HHMMSS.csv
 │   │   ├── images/              # Local storage for web-optimized JPEGs
 │   │   ├── missing_objects.parquet
 │   │   ├── proficio_qa_failures.parquet
@@ -150,6 +151,7 @@ wolf-lakehouse/
 │   ├── build_duckdb_views.py
 │   ├── export_alma_to_workbench.py
 │   ├── export_comparison_proficio.py
+│   ├── export_duplicates_report.py  # Generates overlap report between catalogs
 │   ├── export_gold_missing_objects.py
 │   ├── export_gold_normalized_draft.py
 │   ├── export_gold_normalized.py    # Cross-system harmonization

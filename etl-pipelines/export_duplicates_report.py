@@ -2,11 +2,14 @@ import pandas as pd
 import logging
 import sys
 from pathlib import Path
+import datetime
 
 # Paths
 SILVER_ALMA = Path('/app/data/silver/alma_silver.parquet')
 SILVER_PROFICIO = Path('/app/data/silver/proficio_silver.parquet')
-OUTPUT_CSV = Path('/app/data/gold/duplicates_report.csv')
+
+timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+OUTPUT_CSV = Path(f'/app/data/gold/duplicates_report_{timestamp}.csv')
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
