@@ -166,7 +166,7 @@ export default function CreatorPage({ params }: { params: Promise<{ name: string
                       const imageId = (item.field_identifier || "").split(';')[0].trim();
                       return (
                         <img 
-                          src={`/images/${imageId}.jpg`}
+                          src={`/images/${encodeURIComponent(imageId.replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg`}
                           alt={item.title}
                           className="object-contain max-w-full max-h-full opacity-90 group-hover:opacity-100 transition-all duration-300"
                           onError={(e: any) => {
@@ -323,7 +323,7 @@ export default function CreatorPage({ params }: { params: Promise<{ name: string
                   );
 
                   return identifiers.map((id: string, idx: number) => {
-                    const imgSrc = `/images/${id}.jpg`;
+                    const imgSrc = `/images/${encodeURIComponent(id.replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg`;
                     return (
                       <div key={idx} className="relative w-full flex-shrink-0 flex flex-col items-center justify-center mb-16 last:mb-0 group/img min-h-[40vh] md:min-h-[70vh]">
                         <img 

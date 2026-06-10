@@ -54,7 +54,8 @@ def process_single_row(row):
         if len(part) > 200:
             continue
             
-        dest_filename = f"{part}.jpg"
+        import re
+        dest_filename = f"{re.sub(r'[^a-zA-Z0-9.-]', '_', part)}.jpg"
         dest_path = OUTPUT_DIR / dest_filename
         
         if dest_filename in existing_dest_images:

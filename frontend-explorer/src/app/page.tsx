@@ -677,7 +677,7 @@ export default function Home() {
                       const imageId = (item.field_identifier || "").split(';')[0].trim();
                       return (
                         <img 
-                          src={`/images/${imageId}.jpg`}
+                          src={`/images/${encodeURIComponent(imageId.replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg`}
                           alt={item.title}
                           className="object-contain max-w-full max-h-full opacity-90 group-hover:opacity-100 transition-all duration-300"
                           onError={(e: any) => {
@@ -891,7 +891,7 @@ export default function Home() {
                   );
 
                   return identifiers.map((id: string, idx: number) => {
-                    const imgSrc = `/images/${id}.jpg`;
+                    const imgSrc = `/images/${encodeURIComponent(id.replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg`;
                     return (
                       <div key={idx} className="relative w-full flex-shrink-0 flex flex-col items-center justify-center mb-16 last:mb-0 group/img min-h-[40vh] md:min-h-[70vh]">
                         <img 
@@ -1068,7 +1068,7 @@ export default function Home() {
                             >
                               <div className="w-full aspect-square bg-white/5 relative">
                                 <img 
-                                  src={`/images/${(rel.field_identifier || "").split(';')[0].trim()}.jpg`}
+                                  src={`/images/${encodeURIComponent((rel.field_identifier || "").split(';')[0].trim().replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg`}
                                   alt={rel.title}
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                 />
@@ -1168,7 +1168,7 @@ export default function Home() {
                   <article key={idx} className="bg-mca-black border border-white/20 p-4 flex flex-col space-y-4 group">
                     <div className="h-40 bg-mca-dark relative flex items-center justify-center p-2 border border-white/10">
                       <img 
-                        src={`/images/${(item.field_identifier || "").split(';')[0].trim()}.jpg`}
+                        src={`/images/${encodeURIComponent((item.field_identifier || "").split(';')[0].trim().replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg`}
                         alt={item.title}
                         className="object-contain max-w-full max-h-full"
                         onError={(e: any) => {
