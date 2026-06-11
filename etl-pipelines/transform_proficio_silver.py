@@ -280,7 +280,9 @@ if __name__ == "__main__":
         df_master = pd.read_parquet(MASTER_SILVER)
         logging.info(f"Loaded existing Silver Master with {len(df_master)} records.")
         if not df_deltas.empty:
-            df_combined = pd.concat([df_master, df_deltas], ignore_index=True)
+            df_master = df_master.dropna(axis=1, how='all')
+            df_deltas_clean = df_deltas.dropna(axis=1, how='all')
+            df_combined = pd.concat([df_master, df_deltas_clean], ignore_index=True)
             # Deduplicate keeping the latest version.
             # Use field_identifier (renamed from cat_nbr) as the true Proficio primary key.
             # access_nbr is NULL for most records and causes massive data loss with drop_duplicates.

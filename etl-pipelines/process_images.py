@@ -4,12 +4,16 @@ import shutil
 from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
-from PIL import Image, ImageFile, ImageOps
+from PIL import Image, ImageFile, ImageOps, TiffImagePlugin
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Configure PIL to allow large images and truncated files
 Image.MAX_IMAGE_PIXELS = None
 ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+# Overcome the 'More samples per pixel than can be decoded' error
+if hasattr(TiffImagePlugin, 'MAX_SAMPLESPERPIXEL'):
+    TiffImagePlugin.MAX_SAMPLESPERPIXEL = 10
 
 # --- CONFIGURATION ---
 DIGITAL_IMAGES_DIR = Path('/app/data/raw/digital_images')
