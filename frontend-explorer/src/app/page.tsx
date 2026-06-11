@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useDuckDB } from "../hooks/useDuckDB";
 import { useCollection } from "../hooks/useCollection";
-import { parseDelimited } from "../utils/formatters";
+import { parseDelimited, formatEDTFDate } from "../utils/formatters";
 
 export default function Home() {
   const { isReady, runQuery, error } = useDuckDB();
@@ -730,9 +730,9 @@ export default function Home() {
                           </div>
                         )}
                         {item.field_edtf_date_created && (
-                          <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">DATE</span>
-                            <span className="text-slate-300 truncate">{item.field_edtf_date_created}</span>
+                          <div className="flex items-center text-xs text-slate-400 gap-1.5 mt-0.5">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span className="text-slate-300 truncate">{formatEDTFDate(item.field_edtf_date_created)}</span>
                           </div>
                         )}
                         {item.field_place_published && (
@@ -1018,7 +1018,7 @@ export default function Home() {
                                   </span>
                                 ) : key === 'field_genre' ? (
                                   <span>
-                                    {parseDelimited(String(val), '|').map((genre: string, j: number, arr: any[]) => (
+                                    {parseDelimited(val, '|').map((genre: any, j: number, arr: any[]) => (
                                       <span key={j}>
                                         <Link href={`/genre/${encodeURIComponent(genre)}`} className="hover:text-mca-yellow hover:underline" onClick={(e: any) => e.stopPropagation()}>
                                           {genre}
@@ -1027,6 +1027,8 @@ export default function Home() {
                                       </span>
                                     ))}
                                   </span>
+                                ) : key === 'field_edtf_date_created' ? (
+                                  formatEDTFDate(val)
                                 ) : key === 'field_place_published' ? (
                                   <span>
                                     {parseDelimited(String(val), '|').map((place: string, j: number, arr: any[]) => (

@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useDuckDB } from "../../../hooks/useDuckDB";
+import { formatEDTFDate } from "../../../utils/formatters";
 
 export default function SubjectPage({ params }: { params: Promise<{ name: string }> }) {
   const resolvedParams = use(params);
@@ -217,7 +218,7 @@ export default function SubjectPage({ params }: { params: Promise<{ name: string
                         {item.field_edtf_date_created && (
                           <div className="flex space-x-2">
                             <span className="text-slate-600 w-20 shrink-0">DATE</span>
-                            <span className="text-slate-300 truncate">{item.field_edtf_date_created}</span>
+                            <span className="text-slate-300 truncate">{formatEDTFDate(item.field_edtf_date_created)}</span>
                           </div>
                         )}
                         {item.field_place_published && (
@@ -436,6 +437,8 @@ export default function SubjectPage({ params }: { params: Promise<{ name: string
                                       </span>
                                     ))}
                                   </span>
+                                ) : key === 'field_edtf_date_created' ? (
+                                  formatEDTFDate(val)
                                 ) : (
                                   String(val)
                                 )}
