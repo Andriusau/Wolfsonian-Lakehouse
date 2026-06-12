@@ -32,7 +32,7 @@ export function useDuckDB() {
         // 2. Register the parquet file from the public directory
         // Since it's mounted via Docker to /public/data/, the browser can access it at /data/
         try {
-          const absoluteUrl = `${window.location.origin}/data/unified_catalog_normalized.parquet`;
+          const absoluteUrl = `${window.location.origin}/data/unified_catalog_normalized.parquet?v=2`;
           await newDb.registerFileURL('normalized_catalog.parquet', absoluteUrl, duckdb.DuckDBDataProtocol.HTTP, false);
           // Create a view so we can query it like a normal table, selecting only the columns of interest
           await newConn.query(`
