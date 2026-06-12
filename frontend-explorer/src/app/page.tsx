@@ -141,8 +141,8 @@ export default function Home() {
       } else {
       if (searchTerm) {
         let sqlCondition = "";
-        if (/\\b(AND|OR|NOT)\\b/.test(searchTerm)) {
-          const tokens = searchTerm.match(/(".*?"|\\bAND\\b|\\bOR\\b|\\bNOT\\b|\\S+)/g) || [];
+        if (/\b(AND|OR|NOT)\b/i.test(searchTerm)) {
+          const tokens = searchTerm.match(/(".*?"|\bAND\b|\bOR\b|\bNOT\b|\S+)/ig) || [];
           let expectOperator = false;
           for (let i = 0; i < tokens.length; i++) {
             let token = tokens[i];
@@ -158,7 +158,7 @@ export default function Home() {
                 sqlCondition += ` AND `;
               }
               const e = token.replace(/(^"|"$)/g, '').replace(/'/g, "''").toLowerCase();
-              sqlCondition += `(lower(title) LIKE '%${e}%' OR lower(field_description_long) LIKE '%${e}%' OR lower(field_identifier) LIKE '%${e}%')`;
+              sqlCondition += `lower(CONCAT_WS(' ', title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, field_linked_agent, field_subject, field_place_published, field_edtf_date_created, source_system)) LIKE '%${e}%'`;
               expectOperator = true;
             }
           }
@@ -167,7 +167,7 @@ export default function Home() {
           if (terms.length > 0) {
             const termConditions = terms.map((term: string) => {
               const escapedSearch = term.replace(/'/g, "''").toLowerCase();
-              return `(lower(title) LIKE '%${escapedSearch}%' OR lower(field_description_long) LIKE '%${escapedSearch}%' OR lower(field_identifier) LIKE '%${escapedSearch}%')`;
+              return `lower(CONCAT_WS(' ', title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, field_linked_agent, field_subject, field_place_published, field_edtf_date_created, source_system)) LIKE '%${escapedSearch}%'`;
             });
             sqlCondition = termConditions.join(' OR ');
           }
