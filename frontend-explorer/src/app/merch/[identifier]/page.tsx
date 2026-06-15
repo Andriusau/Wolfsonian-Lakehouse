@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useDuckDB } from "../../../hooks/useDuckDB";
+import { toJpeg } from 'html-to-image';
 
 export default function MerchMockupPage({ params }: { params: Promise<{ identifier: string }> }) {
   const resolvedParams = use(params);
@@ -49,6 +50,20 @@ export default function MerchMockupPage({ params }: { params: Promise<{ identifi
     }
   };
 
+  const handleExport = async () => {
+    const node = document.getElementById('mockup-container');
+    if (!node) return;
+    try {
+      const dataUrl = await toJpeg(node, { quality: 0.95 });
+      const link = document.createElement('a');
+      link.download = `t_shirt_${identifier}.jpg`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error("Failed to export image", err);
+    }
+  };
+
   const imgSrc = record ? `/images/${encodeURIComponent((record.field_identifier || "").split(';')[0].trim().replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg` : "";
 
   return (
@@ -88,7 +103,7 @@ export default function MerchMockupPage({ params }: { params: Promise<{ identifi
           ) : !record ? (
             <div className="text-mca-black font-bold uppercase tracking-widest">[ RECORD NOT FOUND ]</div>
           ) : (
-            <div className="relative w-full max-w-2xl mx-auto drop-shadow-2xl transition-transform duration-500">
+            <div id="mockup-container" className="relative w-full max-w-2xl mx-auto drop-shadow-2xl transition-transform duration-500 bg-[#f0f0f0] p-4">
               
               {/* Colored mask for the shirt shape */}
               <div 
@@ -134,8 +149,8 @@ export default function MerchMockupPage({ params }: { params: Promise<{ identifi
           <div className="max-w-md mx-auto space-y-12">
             
             <header className="space-y-4 border-b-2 border-white/20 pb-8">
-              <h1 className="text-3xl font-black font-display uppercase tracking-tight leading-tight text-white">
-                MOCKUP<br/>GENERATOR
+              <h1 className="text-3xl md:text-5xl font-black text-mca-yellow leading-[0.8] mix-blend-difference uppercase">
+                T-SHIRT<br/>GENERATOR
               </h1>
               <p className="text-slate-400 text-xs font-sans leading-relaxed">
                 Visualize how this artifact translates to merchandise. Adjust settings below to test different scales and fabric colors.
@@ -220,11 +235,11 @@ export default function MerchMockupPage({ params }: { params: Promise<{ identifi
                 </div>
                 
                 <div className="pt-8">
-                  <button className="w-full bg-mca-yellow text-mca-black font-black uppercase tracking-widest py-4 hover:bg-mca-cyan transition-colors border-2 border-mca-yellow hover:border-mca-cyan">
-                    [ REQUEST PRODUCTION RUN ]
+                  <button onClick={handleExport} className="w-full bg-mca-yellow text-mca-black font-black uppercase tracking-widest py-4 hover:bg-mca-cyan transition-colors border-2 border-mca-yellow hover:border-mca-cyan">
+                    [ DOWNLOAD JPEG ]
                   </button>
                   <p className="text-[10px] text-center text-slate-500 mt-2 uppercase tracking-widest">
-                    * Not a real button (yet)
+                    * Exports a JPEG of your mockup
                   </p>
                 </div>
               </>
