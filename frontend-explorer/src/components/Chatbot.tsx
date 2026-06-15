@@ -111,7 +111,8 @@ export default function Chatbot() {
 
   const renderMessageContent = (content: string) => {
     const parts = [];
-    const regex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    // Match [Title](Url) allowing for nested brackets in Title and newlines
+    const regex = /\[([\s\S]*?)\]\s*\(([^)]+)\)/g;
     let lastIndex = 0;
     let match;
 
