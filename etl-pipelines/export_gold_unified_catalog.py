@@ -58,6 +58,17 @@ if __name__ == "__main__":
     # Concatenate all available sources
     df_unified = pd.concat(dfs, ignore_index=True)
     
+    logging.info("Applying manual exclusions...")
+    EXCLUDED_IDS = ['2022.37.1']
+    if 'field_identifier' in df_unified.columns:
+        before_excl = len(df_unified)
+        # Check if any excluded ID is in the field_identifier
+        df_unified = df_unified[~df_unified['field_identifier'].astype(str).apply(
+            lambda x: any(excl in [i.strip() for i in x.split(';')] for excl in EXCLUDED_IDS) if x != 'nan' else False
+        )]
+        after_excl = len(df_unified)
+        logging.info(f"Removed {before_excl - after_excl} explicitly excluded records.")
+    
     logging.info("Deduplicating records across sources (Prioritizing Proficio over Alma)...")
     if 'field_identifier' in df_unified.columns:
         # Extract all normalized Proficio identifiers into a fast lookup set
