@@ -42,6 +42,7 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 * **Storage Format:** Apache Parquet (High-speed, columnar, immutable storage)
 * **Serving Layer:** DuckDB
 * **Frontend Explorer:** Next.js, React, TailwindCSS, TypeScript
+* **AI/LLM Integration:** Google Gemini API (`@google/generative-ai`) with DuckDB-driven Hybrid RAG
 * **Data Pattern:** Medallion Architecture with Incremental Delta Merges (Upserts) and QA Quarantine.
 
 ---
@@ -78,6 +79,10 @@ The original purpose of the Lakehouse Frontend Explorer was to solve the institu
 
 ### Explorer Features
 
+**AI & Search Capabilities**
+* **Hybrid RAG AI Assistant:** A persistent, brutalist-styled Chatbot powered by Google's Gemini 2.5 Flash API. It leverages Retrieval-Augmented Generation (RAG) by dynamically querying the local DuckDB instance and injecting accurate catalog metadata directly into the system prompt before responding.
+* **Context-Aware Hyperlinking:** The AI naturally integrates clickable Markdown links pointing straight to standalone, full-screen metadata records (`/record/[id]`), smoothly bridging the gap between natural language discovery and deep collection exploration.
+
 **Architecture & Performance**
 * **Serverless Zero-Latency Engine:** Uses DuckDB WebAssembly to download and query the compressed Parquet data directly inside the user's browser, resulting in instantaneous search results.
 * **Unified Search:** Automatically searches across both museum objects and library materials simultaneously.
@@ -99,6 +104,18 @@ The original purpose of the Lakehouse Frontend Explorer was to solve the institu
 * **Shareable Collection Links:** Users can instantly generate a custom serverless URL containing their curated item IDs, allowing them to share curated galleries with colleagues with zero backend architecture. 
 * **CSV Export Engine:** With a single click, users can instantly export their curated collections (including all 17 available data columns) into a formatted spreadsheet for exhibition planning, sharing, or downstream research.
 * **One-Click Image Downloads:** High-visibility download buttons integrated directly into the record modal, allowing staff to quickly save web-optimized JPEGs for their work.
+
+---
+
+## 🔑 Environment Variables
+
+To enable the AI Assistant feature on the frontend, you must create a `.env` file in the root directory (alongside `docker-compose.yml`) with a valid Google Gemini API key:
+
+```env
+GEMINI_API_KEY="your-gemini-api-key-here"
+```
+
+Docker Compose will automatically inject this key into the Next.js container environment during startup.
 
 ---
 
