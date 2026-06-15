@@ -64,9 +64,10 @@ export default function Chatbot() {
         }
       }
 
-      // Build the message payload
+      // Build the message payload (skip the initial greeting if it's the first message)
+      const chatHistory = messages.filter((m, i) => i !== 0 || m.role !== 'assistant');
       const apiMessages = [
-        ...messages,
+        ...chatHistory,
         { role: 'user', content: userMsgText + dbContext }
       ];
 
@@ -78,7 +79,12 @@ export default function Chatbot() {
       });
 
       if (!response.ok) {
-        throw new Error(`API returned ${response.status}`);
+        let errStr = `API returned ${response.status}`;
+        try {
+          const errData = await response.json();
+          if (errData.error) errStr = errData.error;
+        } catch (e) {}
+        throw new Error(errStr);
       }
 
       // Read the stream
@@ -101,9 +107,9 @@ export default function Chatbot() {
           });
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'ERROR GENERATING RESPONSE. DID YOU CONFIGURE GEMINI_API_KEY?' }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: `ERROR GENERATING RESPONSE: ${err.message || 'Unknown error'}` }]);
     } finally {
       setIsGenerating(false);
     }
