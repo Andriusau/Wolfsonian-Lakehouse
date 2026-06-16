@@ -27,8 +27,36 @@ if __name__ == "__main__":
         sys.exit(0)
         
     logging.info("--- 🔄 GENERATE GOLD MISSING OBJECTS ---")
-    df_master = pd.read_parquet(UNIFIED_CATALOG)
-    df_islandora = pd.read_parquet(RAW_ISLANDORA)
+    
+    try:
+        import pyarrow.parquet as pq
+        master_schema = pq.ParquetFile(UNIFIED_CATALOG).schema.names
+        islandora_schema = pq.ParquetFile(RAW_ISLANDORA).schema.names
+    except ImportError:
+        # Fallback if pyarrow is not directly importable
+        master_schema = pd.read_parquet(UNIFIED_CATALOG, engine='fastparquet').columns.tolist()
+        islandora_schema = pd.read_parquet(RAW_ISLANDORA, engine='fastparquet').columns.tolist()
+
+    final_cols_to_keep = [
+        'id', 'field_resource_type', 'field_model', 'parent_id', 'field_weight',
+        'field_member_of', 'file', 'media_use_tid', 'field_display_hints',
+        'url_alias', 'title', 'field_linked_agent', 'field_identifier', 'access_nbr',
+        'field_genre', 'field_edtf_date_created', 'field_place_published',
+        'field_subject', 'field_description_long', 'field_credit_line',
+        'field_physical_form', 'field_extent', 'field_collection_type',
+        'qa_pass'
+    ]
+    
+    master_cols = [c for c in master_schema if c in final_cols_to_keep]
+    df_master = pd.read_parquet(UNIFIED_CATALOG, columns=master_cols)
+    
+    islandora_id_col = 'field_identifier'
+    if 'accn' in islandora_schema:
+        islandora_id_col = 'accn'
+    elif 'field_identifier_external' in islandora_schema:
+        islandora_id_col = 'field_identifier_external'
+        
+    df_islandora = pd.read_parquet(RAW_ISLANDORA, columns=[islandora_id_col] if islandora_id_col in islandora_schema else None)
     
     # Filter out records that explicitly failed QA. Keep 'True' and empty/NaN (like Alma records)
     if 'qa_pass' in df_master.columns:
@@ -47,7 +75,10 @@ if __name__ == "__main__":
     elif 'field_identifier_external' in df_islandora.columns:
         df_islandora = df_islandora.rename(columns={'field_identifier_external': 'field_identifier'})
         
-    df_islandora['norm_id'] = df_islandora['field_identifier'].apply(normalize_identifier)
+    if 'field_identifier' in df_islandora.columns:
+        df_islandora['norm_id'] = df_islandora['field_identifier'].apply(normalize_identifier)
+    else:
+        df_islandora['norm_id'] = None
 
     df_islandora_norm_keys = df_islandora[['norm_id']].dropna().drop_duplicates()
 
