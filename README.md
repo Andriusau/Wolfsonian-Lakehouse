@@ -153,9 +153,11 @@ wolf-lakehouse/
 │   ├── add_has_image_col.py
 │   ├── build_duckdb_views.py
 │   ├── export_alma_to_workbench.py
+│   ├── export_comparison_alma.py    # Generates Alma vs Islandora report
 │   ├── export_comparison_proficio.py
 │   ├── export_duplicates_report.py  # Generates overlap report between catalogs
 │   ├── export_gold_missing_objects.py
+│   ├── export_image_audit_report.py # Generates image completeness matrix
 │   ├── export_gold_normalized_draft.py
 │   ├── export_gold_normalized.py    # Cross-system harmonization
 │   ├── export_gold_unified_catalog.py

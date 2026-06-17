@@ -65,6 +65,14 @@ def generate_unified_catalog():
 def generate_comparison_proficio():
     run_script('etl-pipelines/export_comparison_proficio.py')
 
+@task(name="Generate Comparison Alma")
+def generate_comparison_alma():
+    run_script('etl-pipelines/export_comparison_alma.py')
+
+@task(name="Generate Image Audit Report")
+def generate_image_audit_report():
+    run_script('etl-pipelines/export_image_audit_report.py')
+
 @task(name="Normalize Gold Catalog")
 def normalize_catalog():
     run_script('etl-pipelines/export_gold_normalized.py')
@@ -146,7 +154,9 @@ def lakehouse_flow():
     normalized_catalog = normalize_catalog.submit(wait_for=[unified_catalog])
     missing_objects = generate_missing_objects.submit(wait_for=[qa_failures, islandora_raw, unified_catalog])
     comparison_proficio = generate_comparison_proficio.submit(wait_for=[proficio_silver, islandora_raw])
+    comparison_alma = generate_comparison_alma.submit(wait_for=[alma_silver, islandora_raw])
     history_metrics = snapshot_dashboard_metrics.submit(wait_for=[alma_silver, islandora_raw, normalized_catalog])
+    image_audit = generate_image_audit_report.submit(wait_for=[normalized_catalog])
 
     # 5. Export Phase (CSV to Workbench)
     proficio_csv = export_proficio.submit(wait_for=[missing_objects])
