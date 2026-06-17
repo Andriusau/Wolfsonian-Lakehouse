@@ -56,6 +56,7 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 | **Islandora** | Public Digital Archive | 266,450 | Paginated REST API with concurrent fetching |
 | **Unified Gold Catalog** | Merged output | 115,800 | Alma + Proficio aligned and concatenated |
 | **Normalized Gold Catalog** | Analytics-ready output | 115,800 | Harmonized genres, dates, creators & titles |
+| **Digital Images** | NFS Mounted Share | 56,341 | Parallel ingestion and JPEG compression |
 
 ---
 
