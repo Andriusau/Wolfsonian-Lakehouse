@@ -108,18 +108,6 @@ The original purpose of the Lakehouse Frontend Explorer was to solve the institu
 
 ---
 
-## 🔑 Environment Variables
-
-To enable the AI Assistant feature on the frontend, you must create a `.env` file in the root directory (alongside `docker-compose.yml`) with a valid Google Gemini API key:
-
-```env
-GEMINI_API_KEY="your-gemini-api-key-here"
-```
-
-Docker Compose will automatically inject this key into the Next.js container environment during startup.
-
----
-
 ## 📂 Project Structure
 
 ```text
