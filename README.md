@@ -124,9 +124,6 @@ Docker Compose will automatically inject this key into the Next.js container env
 
 ```text
 wolf-lakehouse/
-├── aaukstuo.keytab              # Kerberos auth key (Ignored in Git)
-├── archive_scripts/             # Deprecated or one-off utility scripts
-├── config.ini                   # Database credentials (Ignored in Git)
 ├── data/                        # The Lakehouse Storage Volume
 │   ├── export/
 │   │   └── workbench_upload.csv
@@ -194,9 +191,7 @@ wolf-lakehouse/
 │   └── next.config.ts           # Next.js build configuration
 ├── logs/                        # Server log outputs
 ├── metabase-plugins/            # Custom jar files for Metabase compatibility
-│   ├── duckdb.metabase-driver.jar
-│   ├── sample-database.db.mv.db
-│   └── sample-database.db.trace.db
+│   └── duckdb.metabase-driver.jar
 └── README.md                    # Project Documentation
 ```
 
