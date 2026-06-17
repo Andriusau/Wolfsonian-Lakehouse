@@ -30,7 +30,9 @@ def create_views():
         'proficio_missing_objects': '/app/data/gold/missing_objects.parquet',
         'proficio_qa_failures': '/app/data/gold/proficio_qa_failures.parquet',
         'gold_unified_catalog': '/app/data/gold/unified_catalog.parquet',
-        'gold_normalized_catalog': '/app/data/gold/unified_catalog_normalized.parquet'
+        'gold_normalized_catalog': '/app/data/gold/unified_catalog_normalized.parquet',
+        'comparison_alma': '/app/data/gold/comparison_alma.parquet',
+        'image_audit_report': '/app/data/gold/image_audit_report.csv'
     }
     snapshot_files = glob.glob('/app/data/gold/snapshots/history_*.parquet')
     for parquet_path in snapshot_files:
@@ -40,8 +42,10 @@ def create_views():
     for view_name, parquet_path in views_to_create.items():
         if Path(parquet_path).exists():
             logging.info(f"Creating view '{view_name}' pointing to {parquet_path}")
-            # CREATE OR REPLACE VIEW allows Metabase to see it instantly without duplicating data
-            con.execute(f"CREATE OR REPLACE VIEW {view_name} AS SELECT * FROM read_parquet('{parquet_path}')")
+            if parquet_path.endswith('.csv'):
+                con.execute(f"CREATE OR REPLACE VIEW {view_name} AS SELECT * FROM read_csv_auto('{parquet_path}')")
+            else:
+                con.execute(f"CREATE OR REPLACE VIEW {view_name} AS SELECT * FROM read_parquet('{parquet_path}')")
         else:
             logging.warning(f"⚠️ Parquet file not found: {parquet_path}. Skipping view '{view_name}'.")
             
