@@ -225,7 +225,7 @@ SELECT
     SUM(CASE WHEN status = 'Match' THEN 1 ELSE 0 END) AS "Match",
     SUM(CASE WHEN status = 'Mismatch' THEN 1 ELSE 0 END) AS "Mismatch",
     COUNT(*) AS "Total",
-    CAST(ROUND((SUM(CASE WHEN status = 'Match' THEN 1 ELSE 0 END) * 100.0) / COUNT(*), 0) AS INTEGER) || '%' AS "Match %"
+    CAST(ROUND((COUNT(CASE WHEN status = 'Match' THEN 1 END) * 100.0) / NULLIF(COUNT(*), 0), 0) AS INTEGER) AS "Match Pct"
 FROM comparison
 """
 }
@@ -257,26 +257,20 @@ def snapshot_metrics():
         history_file = f"{HISTORY_DIR}/{metric_name}.parquet"
         logging.info(f"Processing snapshot for {metric_name}...")
         
-        try:
-            # If the parquet file exists, load it into a DuckDB table
-            if os.path.exists(history_file):
-                con.execute(f"CREATE TABLE {metric_name} AS SELECT * FROM read_parquet('{history_file}')")
-            else:
-                # If it doesn't exist, execute the query with LIMIT 0 to get the schema, and prepend the snapshot_date
-                con.execute(f"CREATE TABLE {metric_name} AS SELECT strftime(CURRENT_DATE, '%m/%d/%Y') AS snapshot_date, * FROM ({query}) LIMIT 0")
-                
+        if os.path.exists(history_file):
+            con.execute(f"CREATE TABLE {metric_name} AS SELECT * FROM read_parquet('{history_file}')")
             # Prevent double-inserting if the script is run multiple times in a single day
             con.execute(f"DELETE FROM {metric_name} WHERE snapshot_date = strftime(CURRENT_DATE, '%m/%d/%Y')")
-            
             # Insert today's data by executing the query
             con.execute(f"INSERT INTO {metric_name} SELECT strftime(CURRENT_DATE, '%m/%d/%Y') AS snapshot_date, * FROM ({query})")
+        else:
+            # If it doesn't exist, execute the query fully to create the table with the correct schema
+            con.execute(f"CREATE TABLE {metric_name} AS SELECT strftime(CURRENT_DATE, '%m/%d/%Y') AS snapshot_date, * FROM ({query})")
             
-            # Save the updated table back to the parquet file
-            con.execute(f"COPY {metric_name} TO '{history_file}' (FORMAT PARQUET)")
-            logging.info(f"Successfully saved {history_file}")
-            
-        except Exception as e:
-            logging.error(f"Failed to process {metric_name}: {e}")
+        # Save the updated table back to the parquet file
+        con.execute(f"COPY {metric_name} TO '{history_file}' (FORMAT PARQUET)")
+        logging.info(f"Successfully saved {history_file}")
 
 if __name__ == '__main__':
+    logging.info("--- 📊 Starting Dashboard Metrics Snapshot Microservice ---")
     snapshot_metrics()
