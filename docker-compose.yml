@@ -15,7 +15,7 @@ services:
       - .:/app
       - /etc/krb5.keytabs/aaukstuo.keytab:/app/aaukstuo.keytab:ro
       - /mnt/digital_images:/app/data/raw/digital_images:ro
-      - ./data/gold/images:/app/data/gold/images
+      - /mnt/data/gold/images:/app/data/gold/images
     working_dir: /app
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
@@ -42,7 +42,7 @@ services:
       - "3000:3000"
     volumes:
       - ./data/gold:/app/public/data:ro
-      - ./data/gold/images:/app/public/images:ro
+      - /mnt/data/gold/images:/app/public/images:ro
     environment:
       - NODE_ENV=production
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}

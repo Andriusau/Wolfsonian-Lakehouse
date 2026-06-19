@@ -112,43 +112,49 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                 </div>
               );
 
-              return identifiers.map((id: string, idx: number) => {
-                const imgSrc = `/images/${encodeURIComponent(id.replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg`;
-                return (
-                  <div key={idx} className="relative w-full flex-shrink-0 flex flex-col items-center justify-center mb-16 last:mb-0 group/img min-h-[40vh] md:min-h-[70vh]">
-                    <img 
-                      src={imgSrc}
-                      alt={`${selectedRecord.title} - image ${idx + 1}`}
-                      className="object-contain w-full h-full drop-shadow-2xl z-10 cursor-zoom-in transition-transform duration-300 hover:scale-[1.02]"
-                      onClick={(e: any) => {
-                        e.stopPropagation();
-                        setZoomedImage(imgSrc);
-                      }}
-                      onError={(e: any) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
-                    <div className="absolute hidden inset-0 flex flex-col items-center justify-center bg-mca-black text-slate-600 text-[10px] uppercase font-bold tracking-widest">
-                      <span>[ NO IMAGE ${idx + 1} FOUND ]</span>
+              return identifiers.flatMap((id: string, idx: number) => {
+                const imgCount = selectedRecord.image_count || 1;
+                const imagesToRender = [];
+                for(let i=0; i<imgCount; i++) {
+                  const suffix = i === 0 ? '' : `_${i}`;
+                  const imgSrc = `/images/${encodeURIComponent(id.replace(/[^a-zA-Z0-9.-]/g, '_'))}${suffix}.jpg`;
+                  imagesToRender.push(
+                    <div key={`${idx}-${i}`} className="relative w-full flex-shrink-0 flex flex-col items-center justify-center mb-16 last:mb-0 group/img min-h-[40vh] md:min-h-[70vh]">
+                      <img 
+                        src={imgSrc}
+                        alt={`${selectedRecord.title} - image ${i + 1}`}
+                        className="object-contain w-full h-full drop-shadow-2xl z-10 cursor-zoom-in transition-transform duration-300 hover:scale-[1.02]"
+                        onClick={(e: any) => {
+                          e.stopPropagation();
+                          setZoomedImage(imgSrc);
+                        }}
+                        onError={(e: any) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                          (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                      <div className="absolute hidden inset-0 flex flex-col items-center justify-center bg-mca-black text-slate-600 text-[10px] uppercase font-bold tracking-widest">
+                        <span>[ NO IMAGE ${i + 1} FOUND ]</span>
+                      </div>
+                      <a 
+                        href={imgSrc}
+                        download={`${id}${suffix}.jpg`}
+                        className="absolute bottom-0 md:bottom-4 right-0 md:right-4 bg-mca-yellow text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-mca-yellow hover:bg-mca-black hover:text-mca-yellow transition-colors text-[10px] opacity-0 group-hover/img:opacity-100 focus:opacity-100 z-20"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        [⬇] DOWNLOAD JPG {imgCount > 1 ? `(${i + 1}/${imgCount})` : ''}
+                      </a>
+                      <Link 
+                        href={`/merch/${encodeURIComponent(selectedRecord.field_identifier)}`}
+                        className="absolute bottom-0 md:bottom-4 left-0 md:left-4 bg-white text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-white hover:bg-mca-black hover:text-white transition-colors text-[10px] z-20"
+                        onClick={(e: any) => e.stopPropagation()}
+                      >
+                        [👕] VIEW ON MERCH
+                      </Link>
                     </div>
-                    <a 
-                      href={imgSrc}
-                      download={`${id}.jpg`}
-                      className="absolute bottom-0 md:bottom-4 right-0 md:right-4 bg-mca-yellow text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-mca-yellow hover:bg-mca-black hover:text-mca-yellow transition-colors text-[10px] opacity-0 group-hover/img:opacity-100 focus:opacity-100 z-20"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      [⬇] DOWNLOAD JPG {identifiers.length > 1 ? `(${idx + 1}/${identifiers.length})` : ''}
-                    </a>
-                    <Link 
-                      href={`/merch/${encodeURIComponent(selectedRecord.field_identifier)}`}
-                      className="absolute bottom-0 md:bottom-4 left-0 md:left-4 bg-white text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-white hover:bg-mca-black hover:text-white transition-colors text-[10px] z-20"
-                      onClick={(e: any) => e.stopPropagation()}
-                    >
-                      [👕] VIEW ON MERCH
-                    </Link>
-                  </div>
-                );
+                  );
+                }
+                return imagesToRender;
               });
             })()
           ) : null}

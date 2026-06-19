@@ -84,26 +84,38 @@ def process_single_row(row):
                     image_files = [f for f in image_files if not f.name.startswith('.')]
                     
                     if image_files:
-                        best_file = sorted(image_files)[0]
-                        try:
-                            with Image.open(best_file) as img:
-                                img = ImageOps.exif_transpose(img)
-                                rgb_img = img.convert('RGB')
-                                max_size = 1200
-                                if max(rgb_img.size) > max_size:
-                                    try:
-                                        resample_method = Image.Resampling.LANCZOS
-                                    except AttributeError:
-                                        resample_method = Image.ANTIALIAS
-                                    rgb_img.thumbnail((max_size, max_size), resample_method)
+                        for i, best_file in enumerate(sorted(image_files)):
+                            try:
+                                with Image.open(best_file) as img:
+                                    img = ImageOps.exif_transpose(img)
+                                    rgb_img = img.convert('RGB')
+                                    max_size = 1200
+                                    if max(rgb_img.size) > max_size:
+                                        try:
+                                            resample_method = Image.Resampling.LANCZOS
+                                        except AttributeError:
+                                            resample_method = Image.ANTIALIAS
+                                        rgb_img.thumbnail((max_size, max_size), resample_method)
+                                        
+                                    base_name = re.sub(r'[^a-zA-Z0-9.-]', '_', part)
+                                    if i == 0:
+                                        dest_filename = f"{base_name}.jpg"
+                                    else:
+                                        dest_filename = f"{base_name}_{i}.jpg"
+                                        
+                                    dest_path = OUTPUT_DIR / dest_filename
                                     
-                                rgb_img.save(dest_path, 'JPEG', quality=80)
-                            
-                            found = True
-                            newly_copied.append(dest_filename)
-                            break
-                        except Exception as e:
-                            errors.append(f"{best_file.name}: {e}")
+                                    if dest_filename not in existing_dest_images:
+                                        rgb_img.save(dest_path, 'JPEG', quality=80)
+                                        newly_copied.append(dest_filename)
+                                    else:
+                                        already_exists.append(dest_filename)
+                                        
+                            except Exception as e:
+                                errors.append(f"{best_file.name}: {e}")
+                                
+                        found = True
+                        break
                             
     if newly_copied or already_exists:
         return 'success', newly_copied, already_exists
@@ -188,20 +200,26 @@ if __name__ == "__main__":
     print(f"   Errors: {error_count}")
     print(f"   Total JPEGs stored locally: {len(list(OUTPUT_DIR.glob('*.jpg')))}")
 
-    # 3. Update the catalog with has_image flag
-    print("Updating catalog with has_image flag...")
-    def check_has_image(identifier):
+    # 3. Update the catalog with image counts
+    print("Updating catalog with image counts...")
+    def check_image_count(identifier):
         if pd.isna(identifier) or not identifier:
-            return False
+            return 0
         identifier_str = str(identifier).strip()
         id_parts = [p.strip() for p in identifier_str.split(';') if p.strip()]
         for part in id_parts:
-            if len(part) <= 200 and f"{part}.jpg" in existing_dest_images:
-                return True
-        return False
+            if len(part) <= 200:
+                base = f"{re.sub(r'[^a-zA-Z0-9.-]', '_', part)}"
+                if f"{base}.jpg" in existing_dest_images:
+                    count = 1
+                    while f"{base}_{count}.jpg" in existing_dest_images:
+                        count += 1
+                    return count
+        return 0
 
-    df['has_image'] = df['field_identifier'].apply(check_has_image)
+    df['image_count'] = df['field_identifier'].apply(check_image_count)
+    df['has_image'] = df['image_count'] > 0
     
     # Save the updated dataframe back to parquet
     df.to_parquet(PARQUET_FILE, index=False)
-    print("✅ Catalog updated with has_image flag.")
+    print("✅ Catalog updated with image_count and has_image flags.")
