@@ -44,6 +44,7 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 * **Frontend Explorer:** Next.js, React, TailwindCSS, TypeScript
 * **AI/LLM Integration:** Google Gemini API (`@google/generative-ai`) with DuckDB-driven Hybrid RAG
 * **Data Pattern:** Medallion Architecture with Incremental Delta Merges (Upserts) and QA Quarantine.
+* **Monitoring & Alerting:** Uptime Kuma for service health & Custom Python Log Alerter for SMTP error notifications.
 
 ---
 
@@ -73,6 +74,7 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 * **Storage Protection & Web Resizing:** Converts large ~10MB+ TIFFs into highly compressed JPEGs restricted to a maximum of 1200px on the longest side and saved at quality 80. This reduces file size by ~20x-50x (down to ~200KB per image), allowing the full ~56k image catalog to fit in less than 13GB of local disk space while drastically accelerating webpage loading times.
 * **Cross-System Deduplication:** Dynamically reconciles identifiers between Library (Alma) and Museum (Proficio) catalogs, natively handling Alma's semicolon-separated multi-accession numbers to prioritize Museum records. A reporting script automatically generates exact collision matches for manual staff review on every pipeline run.
 * **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline. The monolithic scripts have been completely decoupled into a 17-node Directed Acyclic Graph (DAG), providing an incredibly granular UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries at the end of every flow.
+* **Automated Uptime & Error Alerting:** A dedicated Uptime Kuma container continuously tracks the health of all web and orchestration endpoints. Alongside this, a custom local Python microservice continuously tails the Docker logs, instantly dispatching SMTP email alerts to the team if any container throws a critical error or exception.
 
 ## 🔍 The Frontend Explorer
 
