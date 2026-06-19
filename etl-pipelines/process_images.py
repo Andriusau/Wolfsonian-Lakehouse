@@ -163,7 +163,7 @@ if __name__ == "__main__":
     
     # Cache existing local output images to prevent slow exists() filesystem lookups
     print("Caching local processed images...")
-    existing_dest_images = set(f.name for f in OUTPUT_DIR.glob('*.jpg'))
+    existing_dest_images.update(f.name for f in OUTPUT_DIR.glob('*.jpg'))
     print(f"  Cached {len(existing_dest_images)} processed images.")
     
     # 2. Iterate and locate image files using parallel threads
