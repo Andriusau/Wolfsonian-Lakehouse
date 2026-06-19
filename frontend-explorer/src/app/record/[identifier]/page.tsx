@@ -122,6 +122,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                     <div key={`${idx}-${i}`} className="relative w-full flex-shrink-0 flex flex-col items-center justify-center mb-16 last:mb-0 group/img min-h-[40vh] md:min-h-[70vh]">
                       <img 
                         src={imgSrc}
+                        loading="lazy"
                         alt={`${selectedRecord.title} - image ${i + 1}`}
                         className="object-contain w-full h-full drop-shadow-2xl z-10 cursor-zoom-in transition-transform duration-300 hover:scale-[1.02]"
                         onClick={(e: any) => {
