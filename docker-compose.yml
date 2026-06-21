@@ -42,10 +42,16 @@ services:
       - "3000:3000"
     volumes:
       - ./data/gold:/app/public/data:ro
-      - /mnt/data/gold/images:/app/public/images:ro
     environment:
       - NODE_ENV=production
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+
+  images-server:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - /mnt/data/gold/images:/usr/share/nginx/html:ro
 
   uptime-kuma:
     image: louislam/uptime-kuma:1
