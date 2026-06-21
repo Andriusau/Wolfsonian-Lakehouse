@@ -921,8 +921,18 @@ export default function Home() {
                     </div>
                   );
 
-                  return identifiers.map((id: string, idx: number) => {
-                    const imgSrc = `/images/${encodeURIComponent(id.replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg`;
+                  const images: string[] = [];
+                  if (selectedRecord.image_count && selectedRecord.image_count > 0) {
+                      const firstId = identifiers[0].replace(/[^a-zA-Z0-9.-]/g, '_');
+                      for (let i = 0; i < selectedRecord.image_count; i++) {
+                          images.push(i === 0 ? firstId : `${firstId}_${i}`);
+                      }
+                  } else {
+                      images.push(...identifiers.map((id: string) => id.replace(/[^a-zA-Z0-9.-]/g, '_')));
+                  }
+
+                  return images.map((id: string, idx: number) => {
+                    const imgSrc = `/images/${encodeURIComponent(id)}.jpg`;
                     return (
                       <div key={idx} className="relative w-full flex-shrink-0 flex flex-col items-center justify-center mb-16 last:mb-0 group/img min-h-[40vh] md:min-h-[70vh]">
                         <img 

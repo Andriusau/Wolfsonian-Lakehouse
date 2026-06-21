@@ -112,18 +112,25 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                 </div>
               );
 
-              return identifiers.flatMap((id: string, idx: number) => {
+              const images: string[] = [];
+              if (selectedRecord.image_count && selectedRecord.image_count > 0) {
+                  const firstId = identifiers[0].replace(/[^a-zA-Z0-9.-]/g, '_');
+                  for (let i = 0; i < selectedRecord.image_count; i++) {
+                      images.push(i === 0 ? firstId : `${firstId}_${i}`);
+                  }
+              } else {
+                  images.push(...identifiers.map((id: string) => id.replace(/[^a-zA-Z0-9.-]/g, '_')));
+              }
+
+              return images.map((id: string, idx: number) => {
                 const imgCount = selectedRecord.image_count || 1;
-                const imagesToRender = [];
-                for(let i=0; i<imgCount; i++) {
-                  const suffix = i === 0 ? '' : `_${i}`;
-                  const imgSrc = `/images/${encodeURIComponent(id.replace(/[^a-zA-Z0-9.-]/g, '_'))}${suffix}.jpg`;
-                  imagesToRender.push(
-                    <div key={`${idx}-${i}`} className="relative w-full flex-shrink-0 flex flex-col items-center justify-center mb-16 last:mb-0 group/img min-h-[40vh] md:min-h-[70vh]">
+                const imgSrc = `/images/${encodeURIComponent(id)}.jpg`;
+                return (
+                    <div key={`${idx}`} className="relative w-full flex-shrink-0 flex flex-col items-center justify-center mb-16 last:mb-0 group/img min-h-[40vh] md:min-h-[70vh]">
                       <img 
                         src={imgSrc}
                         loading="lazy"
-                        alt={`${selectedRecord.title} - image ${i + 1}`}
+                        alt={`${selectedRecord.title} - image ${idx + 1}`}
                         className="object-contain w-full h-full drop-shadow-2xl z-10 cursor-zoom-in transition-transform duration-300 hover:scale-[1.02]"
                         onClick={(e: any) => {
                           e.stopPropagation();
@@ -135,15 +142,15 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                         }}
                       />
                       <div className="absolute hidden inset-0 flex flex-col items-center justify-center bg-mca-black text-slate-600 text-[10px] uppercase font-bold tracking-widest">
-                        <span>[ NO IMAGE ${i + 1} FOUND ]</span>
+                        <span>[ NO IMAGE ${idx + 1} FOUND ]</span>
                       </div>
                       <a 
                         href={imgSrc}
-                        download={`${id}${suffix}.jpg`}
+                        download={`${id}.jpg`}
                         className="absolute bottom-0 md:bottom-4 right-0 md:right-4 bg-mca-yellow text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-mca-yellow hover:bg-mca-black hover:text-mca-yellow transition-colors text-[10px] opacity-0 group-hover/img:opacity-100 focus:opacity-100 z-20"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        [⬇] DOWNLOAD JPG {imgCount > 1 ? `(${i + 1}/${imgCount})` : ''}
+                        [⬇] DOWNLOAD JPG {images.length > 1 ? `(${idx + 1}/${images.length})` : ''}
                       </a>
                       <Link 
                         href={`/merch/${encodeURIComponent(selectedRecord.field_identifier)}`}
@@ -153,9 +160,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                         [👕] VIEW ON MERCH
                       </Link>
                     </div>
-                  );
-                }
-                return imagesToRender;
+                );
               });
             })()
           ) : null}
