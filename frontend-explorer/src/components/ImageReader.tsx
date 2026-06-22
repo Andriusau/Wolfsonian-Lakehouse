@@ -6,11 +6,11 @@ import Link from "next/link";
 interface ImageReaderProps {
   images: string[];
   selectedRecord: any;
-  setZoomedImage: (src: string) => void;
 }
 
-export default function ImageReader({ images, selectedRecord, setZoomedImage }: ImageReaderProps) {
+export default function ImageReader({ images, selectedRecord }: ImageReaderProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const handleNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % images.length);
@@ -47,14 +47,26 @@ export default function ImageReader({ images, selectedRecord, setZoomedImage }: 
   const imgSrc = `/images/${encodeURIComponent(activeImageId)}.jpg`;
   
   return (
-    <div className="relative w-full h-[50vh] md:h-full flex flex-col bg-mca-black group/reader overflow-hidden">
+    <div className={
+      isFullScreen 
+        ? "fixed inset-0 z-[100] flex flex-col bg-mca-black group/reader overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        : "relative w-full h-[50vh] md:h-full flex flex-col bg-mca-black group/reader overflow-hidden"
+    }>
       
       {/* Top Bar Indicator */}
-      <div className="absolute top-0 left-0 w-full p-4 md:p-6 flex justify-between items-center z-20 pointer-events-none">
+      <div className="absolute top-0 left-0 w-full p-4 md:p-6 flex justify-between items-start z-20 pointer-events-none">
         {images.length > 1 && (
-          <div className="bg-mca-black text-mca-cyan px-4 py-2 font-black text-xs uppercase tracking-widest border-2 border-mca-cyan shadow-xl">
+          <div className="bg-mca-black text-mca-cyan px-4 py-2 font-black text-xs uppercase tracking-widest border-2 border-mca-cyan shadow-xl pointer-events-auto">
             [ PAGE {currentIndex + 1} / {images.length} ]
           </div>
+        )}
+        {isFullScreen && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); setIsFullScreen(false); }}
+            className="bg-mca-yellow text-mca-black font-black uppercase tracking-widest px-4 py-2 border-2 border-mca-yellow hover:bg-mca-black hover:text-mca-yellow transition-colors text-xs shadow-xl pointer-events-auto ml-auto"
+          >
+            [X] CLOSE ZOOM
+          </button>
         )}
       </div>
 
@@ -75,10 +87,10 @@ export default function ImageReader({ images, selectedRecord, setZoomedImage }: 
           src={imgSrc}
           loading="lazy"
           alt={`${selectedRecord.title || 'Record'} - image ${currentIndex + 1}`}
-          className="object-contain w-full h-full drop-shadow-2xl z-10 cursor-zoom-in transition-transform duration-500 hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-2"
+          className={`object-contain w-full h-full drop-shadow-2xl z-10 transition-transform duration-500 animate-in fade-in slide-in-from-bottom-2 ${isFullScreen ? 'cursor-zoom-out' : 'cursor-zoom-in hover:scale-[1.02]'}`}
           onClick={(e) => {
             e.stopPropagation();
-            setZoomedImage(imgSrc);
+            setIsFullScreen(!isFullScreen);
           }}
           onError={(e: any) => {
             (e.target as HTMLImageElement).style.display = 'none';

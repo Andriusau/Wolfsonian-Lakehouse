@@ -127,7 +127,6 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                 <ImageReader 
                   images={images} 
                   selectedRecord={selectedRecord} 
-                  setZoomedImage={setZoomedImage} 
                 />
               );
             })()
