@@ -136,7 +136,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                     <div className="flex-shrink-0">
                       <AudioReader 
                         identifier={selectedRecord.field_identifier} 
-                        audioCount={selectedRecord.audio_count} 
+                        audioCount={Number(selectedRecord.audio_count || 0)} 
                       />
                     </div>
                   )}
