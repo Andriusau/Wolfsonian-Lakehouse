@@ -35,7 +35,7 @@ The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transf
 In addition to the data pipeline, the project features a powerful **Frontend Explorer**—a serverless, zero-latency web application built with Next.js and DuckDB WebAssembly. This custom interface directly queries the compressed Parquet data right inside the user's browser, allowing staff, researchers, and the public to visually search, filter, and curate collections across all 115,000+ unified library and museum records without the need for expensive database hosting or backend architecture.
 
 ## 🏗️ Architecture & Tech Stack
-* **Orchestration:** Prefect 3 (19-Node DAG) & Docker Compose
+* **Orchestration:** Prefect 3 (20-Node DAG) & Docker Compose
 * **Data Extraction:** Python 3.10 (Pandas, PyArrow, requests, pymarc)
 * **Database Connectivity:** SQLAlchemy, pyodbc (ODBC Driver 18 for SQL Server)
 * **Authentication:** Automated Kerberos (`kinit`) integration inside containers
@@ -57,7 +57,8 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 | **Islandora** | Public Digital Archive | 266,450 | Paginated REST API with concurrent fetching |
 | **Unified Gold Catalog** | Merged output | 115,800 | Alma + Proficio aligned and concatenated |
 | **Normalized Gold Catalog** | Analytics-ready output | 115,800 | Harmonized genres, dates, creators & titles |
-| **Digital Images** | NFS Mounted Share | 56,341 | Parallel ingestion and JPEG compression |
+| **Digital Images** | NFS Mounted Share | 299,208 | Parallel ingestion and JPEG compression |
+| **Digital Audio** | NFS Mounted Share | 26 | MP3 caching and metadata mapping |
 
 ---
 
@@ -71,6 +72,7 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 * **Gold Normalization Layer:** A dedicated post-merge harmonization step (`export_gold_normalized.py`) standardizes vocabulary across both source systems — normalizing genre labels (e.g., `POSTER` → `Poster`), stripping MARC trailing punctuation from titles, cleaning creator names, and deriving `year_created` and `decade_created` columns for time-series analytics. Metabase dashboards use this `gold_normalized_catalog` view.
 * **Digital Gap Analysis:** The `missing_objects.parquet` output identifies which internal catalog records (Proficio museum objects) are absent from the public-facing Islandora digital archive (`digital.wolfsonian.org`), supporting prioritization of digitization and content migration efforts.
 * **Parallel Image Ingestion & Conversion:** Ingests raw `.tif`/`.tiff` catalog images from the mounted NFS share, converts them to JPEG, and optimizes them for the frontend. Using a `ThreadPoolExecutor` with 16 parallel workers, it concurrently reads and encodes images on the fly. It utilizes dual-layer in-memory caching (caching both local images and NFS directories at boot) to skip already processed images in O(1) time.
+* **Automated Audio Ingestion:** Recursively scans the `Islandora_Audio` network drive to ingest, parse, and map `.mp3` and `.wav` audio files directly to unified catalog identifiers using high-performance multi-threading.
 * **Storage Protection & Web Resizing:** Converts large ~10MB+ TIFFs into highly compressed JPEGs restricted to a maximum of 1200px on the longest side and saved at quality 80. This reduces file size by ~20x-50x (down to ~200KB per image), allowing the full ~56k image catalog to fit in less than 13GB of local disk space while drastically accelerating webpage loading times.
 * **Cross-System Deduplication:** Dynamically reconciles identifiers between Library (Alma) and Museum (Proficio) catalogs, natively handling Alma's semicolon-separated multi-accession numbers to prioritize Museum records. A reporting script automatically generates exact collision matches for manual staff review on every pipeline run.
 * **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline. The monolithic scripts have been completely decoupled into a 19-node Directed Acyclic Graph (DAG), providing an incredibly granular UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries at the end of every flow.
@@ -145,9 +147,10 @@ graph TD
         AS --> EA
     end
 
-    subgraph 6. Serving & Image Layer
+    subgraph 6. Serving & Media Layer
         DB[Build DuckDB Metabase Views]
         PI[Process NFS Images]
+        PA[Process NFS Audio]
         
         EP --> DB
         EA --> DB
@@ -157,13 +160,14 @@ graph TD
         IA --> DB
         
         NC --> PI
+        PI --> PA
     end
 
     subgraph 7. Monitoring
         RM[Report Pipeline Metrics]
         
         DB --> RM
-        PI --> RM
+        PA --> RM
     end
 ```
 
@@ -192,6 +196,7 @@ The original purpose of the Lakehouse Frontend Explorer was to solve the institu
 * **Infinite Scroll Grid:** A high-performance, Brutalist-themed masonry grid that can render thousands of images smoothly without pagination limits.
 * **Advanced Search Facets:** Easily filter by specific objects (Has Images toggle, Genre categories, etc.) directly from the top interface.
 * **Interactive Image Reader:** A sleek, brutalist-styled single-image viewer for multi-image records (like multi-page books or varied 3D views). It features keyboard navigation, Next/Prev controls, and a dynamic thumbnail strip that replaces endless scrolling with a focused reading experience. It includes an interactive full-screen lightbox toggle, allowing the entire component—complete with thumbnails and controls—to fluidly expand for an immersive viewing experience.
+* **Integrated Audio Player:** A custom audio player embedded into record pages featuring automatic multi-track discovery and synchronized track selectors for seamless playback of digitized historical recordings.
 * **Smart Fallback Identifiers:** Seamlessly handles untitled items by safely falling back to their Accession Number, ensuring every record remains identifiable.
 
 **Staff & Researcher Tools**
