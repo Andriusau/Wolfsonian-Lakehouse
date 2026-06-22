@@ -90,9 +90,21 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
     <div className="min-h-screen flex items-stretch bg-mca-black overflow-hidden font-mono text-white animate-in fade-in duration-200 relative">
       
       {/* Close Button Area */}
-      <div className="absolute top-0 right-0 p-6 z-50">
+      <div className="absolute top-0 right-0 p-6 z-50 flex gap-4">
         <button 
-          onClick={() => router.back()}
+          onClick={() => router.push('/')}
+          className="bg-mca-black text-white font-black uppercase tracking-widest px-6 py-3 border-2 border-white hover:bg-white hover:text-mca-black transition-colors text-sm hidden md:block"
+        >
+          [⌂] HOME
+        </button>
+        <button 
+          onClick={() => {
+            if (window.history.length > 1) {
+              router.back();
+            } else {
+              router.push('/');
+            }
+          }}
           className="bg-white text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-white hover:bg-mca-cyan transition-colors text-sm"
         >
           [←] GO BACK
