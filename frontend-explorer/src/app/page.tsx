@@ -13,6 +13,7 @@ export default function Home() {
   const [selectedSystem, setSelectedSystem] = useState("ALL");
   const [selectedGenre, setSelectedGenre] = useState("ALL");
   const [hasImageOnly, setHasImageOnly] = useState(false);
+  const [hasAudioOnly, setHasAudioOnly] = useState(false);
   const [selectedCreator, setSelectedCreator] = useState("ALL");
   const [selectedSubject, setSelectedSubject] = useState("ALL");
   const [selectedPlace, setSelectedPlace] = useState("ALL");
@@ -64,7 +65,7 @@ export default function Home() {
       handleSearch(1);
       fetchFacets();
     }
-  }, [isReady, selectedSystem, selectedGenre, hasImageOnly, selectedCreator, selectedSubject, selectedPlace, minYear, maxYear, selectedDecade]);
+  }, [isReady, selectedSystem, selectedGenre, hasImageOnly, hasAudioOnly, selectedCreator, selectedSubject, selectedPlace, minYear, maxYear, selectedDecade]);
 
   useEffect(() => {
     if (page > 1) {
@@ -180,6 +181,7 @@ export default function Home() {
       if (selectedSystem !== "ALL") whereClause += ` AND source_system = '${selectedSystem}'`;
       if (selectedGenre !== "ALL") whereClause += ` AND field_genre LIKE '%${selectedGenre.replace(/'/g, "''")}%'`;
       if (hasImageOnly) whereClause += ` AND has_image = true`;
+      if (hasAudioOnly) whereClause += ` AND has_audio = true`;
       if (selectedCreator !== "ALL") whereClause += ` AND field_linked_agent LIKE '%${selectedCreator.replace(/'/g, "''")}%'`;
       if (selectedSubject !== "ALL") whereClause += ` AND field_subject LIKE '%${selectedSubject.replace(/'/g, "''")}%'`;
       if (selectedPlace !== "ALL") whereClause += ` AND field_place_published LIKE '%${selectedPlace.replace(/'/g, "''")}%'`;
@@ -267,6 +269,7 @@ export default function Home() {
     setSelectedSystem("ALL");
     setSelectedGenre("ALL");
     setHasImageOnly(true);
+    setHasAudioOnly(false);
     setSelectedCreator("ALL");
     setSelectedSubject("ALL");
     setSelectedPlace("ALL");
@@ -535,6 +538,13 @@ export default function Home() {
                 >
                   <span className={`h-2 w-2 rounded-full ${hasImageOnly ? 'bg-mca-cyan' : 'bg-slate-600'}`}></span>
                   <span>ONLY SHOW RECORDS WITH IMAGES</span>
+                </button>
+                <button
+                  onClick={() => setHasAudioOnly(!hasAudioOnly)}
+                  className={`px-4 py-2 border text-[11px] font-bold uppercase transition-all duration-150 cursor-pointer flex items-center space-x-2 ${hasAudioOnly ? 'bg-white border-white text-mca-black font-extrabold' : 'border-white/20 text-slate-400 hover:border-white hover:text-white'}`}
+                >
+                  <span className={`h-2 w-2 rounded-full ${hasAudioOnly ? 'bg-mca-cyan' : 'bg-slate-600'}`}></span>
+                  <span>ONLY SHOW RECORDS WITH AUDIO</span>
                 </button>
               </div>
             </div>

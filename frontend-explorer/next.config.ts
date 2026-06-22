@@ -5,7 +5,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/images/:path*',
-        destination: 'http://images-server:80/:path*'
+        destination: 'http://images-server:80/images/:path*'
+      },
+      {
+        source: '/audio/:path*',
+        destination: 'http://images-server:80/audio/:path*'
       }
     ]
   }

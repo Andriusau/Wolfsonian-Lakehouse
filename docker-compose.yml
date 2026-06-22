@@ -15,7 +15,9 @@ services:
       - .:/app
       - /etc/krb5.keytabs/aaukstuo.keytab:/app/aaukstuo.keytab:ro
       - /mnt/digital_images:/app/data/raw/digital_images:ro
+      - /mnt/digital_images_staging:/app/data/raw/digital_images_staging:ro
       - /mnt/data/gold/images:/app/data/gold/images
+      - /mnt/data/gold/audio:/app/data/gold/audio
     working_dir: /app
     environment:
       - PREFECT_API_URL=http://prefect-server:4200/api
@@ -51,7 +53,9 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - /mnt/data/gold/images:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - /mnt/data/gold/images:/usr/share/nginx/html/images:ro
+      - /mnt/data/gold/audio:/usr/share/nginx/html/audio:ro
 
   uptime-kuma:
     image: louislam/uptime-kuma:1

@@ -7,6 +7,7 @@ import { useDuckDB } from "@/providers/DuckDBProvider";
 import { useCollection } from "../../../hooks/useCollection";
 import { parseDelimited, formatEDTFDate } from "../../../utils/formatters";
 import ImageReader from "../../../components/ImageReader";
+import AudioReader from "../../../components/AudioReader";
 
 export default function RecordPage({ params }: { params: Promise<{ identifier: string }> }) {
   const resolvedParams = use(params);
@@ -126,10 +127,20 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
               }
 
               return (
-                <ImageReader 
-                  images={images} 
-                  selectedRecord={selectedRecord} 
-                />
+                <div className="flex flex-col h-full">
+                  <ImageReader 
+                    images={images} 
+                    selectedRecord={selectedRecord} 
+                  />
+                  {selectedRecord.has_audio && (
+                    <div className="flex-shrink-0">
+                      <AudioReader 
+                        identifier={selectedRecord.field_identifier} 
+                        audioCount={selectedRecord.audio_count} 
+                      />
+                    </div>
+                  )}
+                </div>
               );
             })()
           ) : null}
