@@ -104,6 +104,13 @@ def process_images_task():
     run_script('etl-pipelines/process_images.py')
 
 # ==========================================
+# 4.6. AUDIO LAYER (NFS Ingestion)
+# ==========================================
+@task(name="Ingest and Convert NFS Audio")
+def process_audio_task():
+    run_script('etl-pipelines/process_audio.py')
+
+# ==========================================
 # 5. MONITORING
 # ==========================================
 @task(name="Report Pipeline Metrics")
@@ -168,8 +175,11 @@ def lakehouse_flow():
     # 6.5. Process NFS Images (Net New Only)
     images_fut = process_images_task.submit(wait_for=[normalized_catalog])
     
+    # 6.6. Process NFS Audio
+    audio_fut = process_audio_task.submit(wait_for=[images_fut])
+    
     # 7. Metrics Dashboard Phase
-    metrics_fut = report_metrics.submit(wait_for=[duckdb_fut, images_fut])
+    metrics_fut = report_metrics.submit(wait_for=[duckdb_fut, audio_fut])
 
     # Explicitly wait for terminal tasks to complete
     metrics_fut.wait()
