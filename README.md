@@ -190,7 +190,7 @@ The original purpose of the Lakehouse Frontend Explorer was to solve the institu
 * **Clean Metadata Modals:** Detail views automatically map internal database fields to user-friendly labels (e.g., Accession Number) and hide redundant system data to provide a pristine viewing experience.
 * **Infinite Scroll Grid:** A high-performance, Brutalist-themed masonry grid that can render thousands of images smoothly without pagination limits.
 * **Advanced Search Facets:** Easily filter by specific objects (Has Images toggle, Genre categories, etc.) directly from the top interface.
-* **Comprehensive Image Galleries:** Full support for multi-image objects (like multi-page books or varied 3D views) dynamically loaded into the detail view.
+* **Interactive Image Reader:** A sleek, brutalist-styled single-image viewer for multi-image records (like multi-page books or varied 3D views). It features keyboard navigation, Next/Prev controls, and a dynamic thumbnail strip that replaces endless scrolling with a focused reading experience.
 * **Smart Fallback Identifiers:** Seamlessly handles untitled items by safely falling back to their Accession Number, ensuring every record remains identifiable.
 
 **Staff & Researcher Tools**

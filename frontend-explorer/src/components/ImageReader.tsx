@@ -1,0 +1,154 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+
+interface ImageReaderProps {
+  images: string[];
+  selectedRecord: any;
+  setZoomedImage: (src: string) => void;
+}
+
+export default function ImageReader({ images, selectedRecord, setZoomedImage }: ImageReaderProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const handleNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  }, [images.length]);
+
+  const handlePrev = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  }, [images.length]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is interacting with an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      
+      if (e.key === "ArrowRight") {
+        handleNext();
+      } else if (e.key === "ArrowLeft") {
+        handlePrev();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleNext, handlePrev]);
+
+  if (images.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center text-slate-600 text-lg uppercase font-bold tracking-widest space-y-4 my-auto flex-shrink-0 min-h-[50vh] w-full">
+        <span>[ NO IMAGE DATA FOUND ]</span>
+      </div>
+    );
+  }
+
+  const activeImageId = images[currentIndex];
+  const imgSrc = `/images/${encodeURIComponent(activeImageId)}.jpg`;
+  
+  return (
+    <div className="relative w-full h-[50vh] md:h-full flex flex-col bg-mca-black group/reader overflow-hidden">
+      
+      {/* Top Bar Indicator */}
+      <div className="absolute top-0 left-0 w-full p-4 md:p-6 flex justify-between items-center z-20 pointer-events-none">
+        {images.length > 1 && (
+          <div className="bg-mca-black text-mca-cyan px-4 py-2 font-black text-xs uppercase tracking-widest border-2 border-mca-cyan shadow-xl">
+            [ PAGE {currentIndex + 1} / {images.length} ]
+          </div>
+        )}
+      </div>
+
+      {/* Main Image View */}
+      <div className="flex-grow relative flex items-center justify-center w-full h-full p-4 md:p-12 overflow-hidden">
+        {images.length > 1 && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); handlePrev(); }}
+            className="absolute left-2 md:left-6 z-30 bg-mca-black text-white font-black text-2xl border-2 border-white px-4 py-3 hover:bg-mca-cyan hover:text-mca-black transition-colors opacity-50 hover:opacity-100 shadow-2xl"
+            aria-label="Previous image"
+          >
+            [←]
+          </button>
+        )}
+
+        <img 
+          key={imgSrc} 
+          src={imgSrc}
+          loading="lazy"
+          alt={`${selectedRecord.title || 'Record'} - image ${currentIndex + 1}`}
+          className="object-contain w-full h-full drop-shadow-2xl z-10 cursor-zoom-in transition-transform duration-500 hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-2"
+          onClick={(e) => {
+            e.stopPropagation();
+            setZoomedImage(imgSrc);
+          }}
+          onError={(e: any) => {
+            (e.target as HTMLImageElement).style.display = 'none';
+            (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+          }}
+        />
+        
+        <div className="absolute hidden inset-0 flex flex-col items-center justify-center bg-mca-black text-slate-600 text-[10px] uppercase font-bold tracking-widest z-0">
+          <span>[ NO IMAGE {currentIndex + 1} FOUND ]</span>
+        </div>
+
+        {images.length > 1 && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleNext(); }}
+            className="absolute right-2 md:right-6 z-30 bg-mca-black text-white font-black text-2xl border-2 border-white px-4 py-3 hover:bg-mca-cyan hover:text-mca-black transition-colors opacity-50 hover:opacity-100 shadow-2xl"
+            aria-label="Next image"
+          >
+            [→]
+          </button>
+        )}
+
+        {/* Action Overlays */}
+        <div className="absolute bottom-4 right-4 flex flex-col gap-2 items-end z-20">
+          <a 
+            href={imgSrc}
+            download={`${activeImageId}.jpg`}
+            className="bg-mca-yellow text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-mca-yellow hover:bg-mca-black hover:text-mca-yellow transition-colors text-[10px] md:opacity-0 group-hover/reader:opacity-100 focus:opacity-100 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            [⬇] DOWNLOAD JPG {images.length > 1 ? `(${currentIndex + 1}/${images.length})` : ''}
+          </a>
+        </div>
+        
+        <div className="absolute bottom-4 left-4 z-20">
+          <Link 
+            href={`/merch/${encodeURIComponent(selectedRecord.field_identifier)}`}
+            className="bg-white text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-white hover:bg-mca-black hover:text-white transition-colors text-[10px] shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            [👕] VIEW ON MERCH
+          </Link>
+        </div>
+      </div>
+
+      {/* Thumbnail Strip */}
+      {images.length > 1 && (
+        <div className="h-24 md:h-32 w-full border-t border-white/20 bg-mca-black flex items-center overflow-x-auto overflow-y-hidden custom-scrollbar px-4 space-x-3 py-3 z-20 shrink-0">
+          {images.map((id, idx) => {
+            const thumbSrc = `/images/${encodeURIComponent(id)}.jpg`;
+            const isActive = idx === currentIndex;
+            return (
+              <button
+                key={`${id}-${idx}`}
+                onClick={() => setCurrentIndex(idx)}
+                className={`relative h-full aspect-[3/4] flex-shrink-0 transition-all duration-300 border-2 overflow-hidden bg-white/5 ${isActive ? 'border-mca-cyan scale-105 shadow-[0_0_15px_rgba(0,255,255,0.3)]' : 'border-white/20 opacity-50 hover:opacity-100 hover:border-white'}`}
+                aria-label={`Go to image ${idx + 1}`}
+              >
+                <img 
+                  src={thumbSrc}
+                  alt={`Thumbnail ${idx + 1}`}
+                  className="w-full h-full object-cover"
+                  onError={(e: any) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
