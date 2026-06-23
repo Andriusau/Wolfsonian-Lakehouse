@@ -91,7 +91,8 @@ if __name__ == "__main__":
                 for p in str(val).split(';'):
                     clean_id = p.strip()
                     if clean_id.lower() in proficio_ids:
-                        new_ids.append(clean_id + '_dup')
+                        # Append the index name to make it completely unique for the frontend
+                        new_ids.append(clean_id + f'_dup_{row.name}')
                     else:
                         new_ids.append(clean_id)
                 return '; '.join(new_ids)
