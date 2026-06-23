@@ -42,7 +42,7 @@ export function DuckDBProvider({ children }: { children: ReactNode }) {
         activeConn = newConn;
         
         try {
-          const absoluteUrl = `${window.location.origin}/data/unified_catalog_normalized.parquet?v=2`;
+          const absoluteUrl = `${window.location.origin}/data/unified_catalog_normalized.parquet?v=${Date.now()}`;
           await newDb.registerFileURL('normalized_catalog.parquet', absoluteUrl, duckdb.DuckDBDataProtocol.HTTP, false);
           
           await newConn.query(`
