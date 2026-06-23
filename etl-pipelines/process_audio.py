@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+import subprocess
 from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
@@ -74,11 +75,10 @@ def process_single_row(row):
         if audio_files:
             for i, best_file in enumerate(sorted(audio_files)):
                 try:
-                    ext = best_file.suffix.lower()
                     if i == 0:
-                        dest_filename = f"{base_name}{ext}"
+                        dest_filename = f"{base_name}.mp3"
                     else:
-                        dest_filename = f"{base_name}_{i}{ext}"
+                        dest_filename = f"{base_name}_{i}.mp3"
                         
                     dest_path = OUTPUT_DIR / dest_filename
                     
@@ -86,8 +86,14 @@ def process_single_row(row):
                         already_exists.append(dest_filename)
                         continue
 
-                    # Just physically copy the audio file
-                    shutil.copy2(best_file, dest_path)
+                    # Compress using ffmpeg
+                    cmd = ['ffmpeg', '-y', '-i', str(best_file), '-codec:a', 'libmp3lame', '-b:a', '128k', str(dest_path)]
+                    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    
+                    if result.returncode != 0:
+                        errors.append(f"{best_file.name}: ffmpeg failed: {result.stderr.decode('utf-8')[:100]}")
+                        continue
+
                     newly_copied.append(dest_filename)
                             
                 except Exception as e:
