@@ -81,25 +81,25 @@ if __name__ == "__main__":
                     if clean_id:
                         proficio_ids.add(clean_id)
                         
-        def is_alma_duplicate(row):
-            # Only drop Alma records that overlap with Proficio
+        def append_dup_if_alma_duplicate(row):
+            # Only append _dup to Alma records that overlap with Proficio
             if row['source_system'] != 'Alma':
-                return False
+                return row['field_identifier']
             val = row['field_identifier']
             if pd.notna(val):
-                # If ANY of the semicolon-separated Alma IDs match Proficio, drop the whole Alma record
+                new_ids = []
                 for p in str(val).split(';'):
-                    if p.strip().lower() in proficio_ids:
-                        return True
-            return False
+                    clean_id = p.strip()
+                    if clean_id.lower() in proficio_ids:
+                        new_ids.append(clean_id + '_dup')
+                    else:
+                        new_ids.append(clean_id)
+                return '; '.join(new_ids)
+            return val
             
-        before_count = len(df_unified)
-        df_unified['is_duplicate'] = df_unified.apply(is_alma_duplicate, axis=1)
-        df_unified = df_unified[~df_unified['is_duplicate']]
-        df_unified = df_unified.drop(columns=['is_duplicate'])
-        after_count = len(df_unified)
+        df_unified['field_identifier'] = df_unified.apply(append_dup_if_alma_duplicate, axis=1)
         
-        logging.info(f"Removed {before_count - after_count} Alma records that overlapped with Proficio.")
+        logging.info(f"Appended '_dup' to Alma records that overlapped with Proficio. Maintained {len(df_unified)} total records.")
     
     # Overwrite any existing generic IDs and generate a clean sequence
     df_unified['id'] = range(1, len(df_unified) + 1)
