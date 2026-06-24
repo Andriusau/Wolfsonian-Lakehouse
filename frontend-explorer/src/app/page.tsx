@@ -104,7 +104,8 @@ export default function Home() {
     if (isReady) {
       if (isInitialMount.current) {
         isInitialMount.current = false;
-        if (initialResultsLength.current === 0) {
+        const hasCollectionInUrl = typeof window !== 'undefined' && window.location.search.includes('collection=');
+        if (initialResultsLength.current === 0 || hasCollectionInUrl) {
           setPage(1);
           handleSearch(1);
         }

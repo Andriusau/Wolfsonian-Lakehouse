@@ -7,21 +7,47 @@ export function useCollection() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem("wolfsonian_lakehouse_collection");
-      if (saved) {
-        setCollection(JSON.parse(saved));
+    const loadCollection = () => {
+      try {
+        const saved = window.localStorage.getItem("wolfsonian_lakehouse_collection");
+        if (saved) {
+          setCollection(JSON.parse(saved));
+        }
+      } catch (e) {
+        console.error("Failed to load collection from localStorage", e);
       }
-    } catch (e) {
-      console.error("Failed to load collection from localStorage", e);
-    }
+    };
+
+    loadCollection();
     setIsLoaded(true);
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "wolfsonian_lakehouse_collection" && e.newValue) {
+        setCollection(JSON.parse(e.newValue));
+      }
+    };
+
+    const handleCustomEvent = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        setCollection(customEvent.detail);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("lakehouse_collection_update", handleCustomEvent);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("lakehouse_collection_update", handleCustomEvent);
+    };
   }, []);
 
   const updateCollection = (newCollection: any[]) => {
     setCollection(newCollection);
     try {
       window.localStorage.setItem("wolfsonian_lakehouse_collection", JSON.stringify(newCollection));
+      window.dispatchEvent(new CustomEvent("lakehouse_collection_update", { detail: newCollection }));
     } catch (e) {
       console.error("Failed to save collection to localStorage", e);
     }
