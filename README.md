@@ -53,12 +53,12 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 | Source | System | Records | Method |
 |---|---|---|---|
 | **Alma** | Ex Libris Library Management | 55,010 | Binary MARC (`.mrc`) file parsing via PyMARC |
-| **Proficio** | Museum Collection Database | 60,906 | Kerberos-authenticated SQL Server via ODBC |
+| **Proficio** | Museum Collection Database | 60,938 | Kerberos-authenticated SQL Server via ODBC |
 | **Islandora** | Public Digital Archive | 266,450 | Paginated REST API with concurrent fetching |
-| **Unified Gold Catalog** | Merged output | 115,800 | Alma + Proficio aligned and concatenated |
-| **Normalized Gold Catalog** | Analytics-ready output | 115,800 | Harmonized genres, dates, creators & titles |
-| **Digital Images** | NFS Mounted Share | 299,208 | Parallel ingestion and JPEG compression |
-| **Digital Audio** | NFS Mounted Share | 26 | MP3 caching and metadata mapping |
+| **Unified Gold Catalog** | Merged output | 115,947 | Alma + Proficio aligned and concatenated |
+| **Normalized Gold Catalog** | Analytics-ready output | 115,947 | Harmonized genres, dates, creators & titles |
+| **Digital Images** | NFS Mounted Share | 299,347 | Parallel ingestion and JPEG compression |
+| **Digital Audio** | NFS Mounted Share | 291 | MP3 caching and metadata mapping |
 
 ---
 
@@ -69,10 +69,10 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 * **QA Quarantine (Dead Letter Queue):** Records that fail critical data quality checks (missing identifiers, empty titles) are automatically isolated into a `proficio_qa_failures.parquet` file via a dedicated microservice instead of breaking the pipeline. This allows data stewards to easily identify and fix dirty source data.
 * **Concurrent API Fetching:** The Islandora microservice utilizes a `ThreadPoolExecutor` and auto-discovery logic to fetch paginated API data rapidly, utilizing exponential backoff for network resilience.
 * **Unified Gold Catalog:** The pipeline dynamically bridges the massive schema gap between library systems (Alma) and museum systems (Proficio), automatically aligning and concatenating both into a single unified queryable table with a strict predetermined column hierarchy.
-* **Gold Normalization Layer:** A dedicated post-merge harmonization step (`export_gold_normalized.py`) standardizes vocabulary across both source systems — normalizing genre labels (e.g., `POSTER` → `Poster`), stripping MARC trailing punctuation from titles, cleaning creator names, and deriving `year_created` and `decade_created` columns for time-series analytics. Metabase dashboards use this `gold_normalized_catalog` view.
+* **Gold Normalization Layer:** A dedicated post-merge harmonization step (`export_gold_normalized.py`) standardizes vocabulary across both source systems — normalizing genre labels (e.g., `POSTER` → `Poster`), stripping MARC trailing punctuation from titles, cleaning creator names, and deriving `year_created` and `decade_created` columns for time-series analytics. It also generates a consolidated `search_text` column that aggressively strips diacritics and merges 12+ text fields into a single blob, enabling instantaneous, accent-agnostic global text search on the frontend.
 * **Digital Gap Analysis:** The `missing_objects.parquet` output identifies which internal catalog records (Proficio museum objects) are absent from the public-facing Islandora digital archive (`digital.wolfsonian.org`), supporting prioritization of digitization and content migration efforts.
-* **Parallel Image Ingestion & Conversion:** Ingests raw `.tif`/`.tiff` catalog images from the mounted NFS share, converts them to JPEG, and optimizes them for the frontend. Using a `ThreadPoolExecutor` with 16 parallel workers, it concurrently reads and encodes images on the fly. It utilizes dual-layer in-memory caching (caching both local images and NFS directories at boot) to skip already processed images in O(1) time.
-* **Automated Audio Ingestion:** Recursively scans the `Islandora_Audio` network drive to ingest, parse, and map `.mp3` and `.wav` audio files directly to unified catalog identifiers using high-performance multi-threading.
+* **Parallel Image Ingestion & Conversion:** Ingests raw `.tif`/`.tiff` catalog images from the mounted NFS share, converts them to JPEG, and optimizes them for the frontend. Using a memory-efficient `ThreadPoolExecutor` with 32 parallel workers, it concurrently reads and encodes images on the fly while streaming only required metadata to avoid Out-Of-Memory (OOM) crashes on large datasets. It utilizes dual-layer in-memory caching to skip already processed images in O(1) time.
+* **Automated Audio Ingestion:** Recursively scans the `Islandora_Audio` network drive to ingest, parse, and map `.mp3` and `.wav` audio files directly to unified catalog identifiers using high-performance, memory-optimized multi-threading.
 * **Storage Protection & Web Resizing:** Converts large ~10MB+ TIFFs into highly compressed JPEGs restricted to a maximum of 1200px on the longest side and saved at quality 80. This reduces file size by ~20x-50x (down to ~200KB per image), allowing the full ~56k image catalog to fit in less than 13GB of local disk space while drastically accelerating webpage loading times.
 * **Cross-System Deduplication:** Dynamically reconciles identifiers between Library (Alma) and Museum (Proficio) catalogs, natively handling Alma's semicolon-separated multi-accession numbers to prioritize Museum records. A reporting script automatically generates exact collision matches for manual staff review on every pipeline run.
 * **Robust Workflow Orchestration:** Uses Prefect to manage the ETL pipeline. The monolithic scripts have been completely decoupled into a 19-node Directed Acyclic Graph (DAG), providing an incredibly granular UI dashboard for monitoring, task-level asynchronous execution, and real-time metric summaries at the end of every flow.
@@ -200,10 +200,11 @@ The original purpose of the Lakehouse Frontend Explorer was to solve the institu
 * **Smart Fallback Identifiers:** Seamlessly handles untitled items by safely falling back to their Accession Number, ensuring every record remains identifiable.
 
 **Staff & Researcher Tools**
-* **Browser-Native Staff Collections:** Staff can curate custom lists of catalog records directly within their browser memory (`localStorage`), allowing them to build research sets without ever needing to log in or create an account.
+* **Browser-Native Staff Collections:** Staff can curate custom lists of catalog records directly within their browser memory (`localStorage`), allowing them to build research sets without ever needing to log in or create an account. It features advanced BigInt serialization to safely handle DuckDB WASM's 64-bit integer properties natively within the browser caching system.
 * **Shareable Collection Links:** Users can instantly generate a custom serverless URL containing their curated item IDs, allowing them to share curated galleries with colleagues with zero backend architecture. 
-* **CSV Export Engine:** With a single click, users can instantly export their curated collections (including all 17 available data columns) into a formatted spreadsheet for exhibition planning, sharing, or downstream research.
+* **CSV Export Engine:** With a single click, users can instantly export their curated collections into a formatted spreadsheet. The export natively injects `=IMAGE("url")` formulas to instantly render high-res thumbnail previews directly inside Google Sheets and Excel cells alongside the metadata.
 * **One-Click Image Downloads:** High-visibility download buttons integrated directly into the image reader, allowing staff to quickly save web-optimized JPEGs for their work.
+* **Digitization Requests:** Context-aware action buttons that allow researchers to formally request digitization workflows for archival objects that currently lack photography.
 
 ---
 
