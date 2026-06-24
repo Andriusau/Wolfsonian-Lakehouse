@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export function useCollection() {
+  const pathname = usePathname();
   const [collection, setCollection] = useState<any[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -36,12 +38,16 @@ export function useCollection() {
 
     window.addEventListener("storage", handleStorageChange);
     window.addEventListener("lakehouse_collection_update", handleCustomEvent);
+    window.addEventListener("popstate", loadCollection);
+    window.addEventListener("focus", loadCollection);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("lakehouse_collection_update", handleCustomEvent);
+      window.removeEventListener("popstate", loadCollection);
+      window.removeEventListener("focus", loadCollection);
     };
-  }, []);
+  }, [pathname]);
 
   const updateCollection = (newCollection: any[]) => {
     setCollection(newCollection);
