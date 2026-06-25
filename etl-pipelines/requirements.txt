@@ -1,31 +1,31 @@
 # --- Core Data Science & Lakehouse ---
-pandas
-numpy
-duckdb
-pyarrow           
-fastparquet     
-openpyxl       
+pandas==2.3.3
+numpy==2.2.6
+duckdb==1.5.4
+pyarrow==24.0.0
+fastparquet==2026.5.0
+openpyxl==3.1.5
 
 # --- API, Web & Scrapy ---
-requests
-urllib3
-beautifulsoup4
-lxml          
+requests==2.34.2
+urllib3==2.7.0
+beautifulsoup4==4.15.0
+lxml==6.1.1
 
 # --- Databases & Connectivity ---
-sqlalchemy
-pyodbc       
-psycopg2-binary  
+SQLAlchemy==2.0.51
+pyodbc==5.3.0
+psycopg2-binary==2.9.12
 
 # --- Library Specific (Alma/MARC) ---
-pymarc
+pymarc==5.3.1
 
 # --- Utility & Performance ---
-configparser
-pathlib
-python-dateutil
-tqdm            
+configparser==7.2.0
+pathlib==1.0.1
+python-dateutil==2.9.0.post0
+tqdm==4.68.3
 
 # --- Orchestration ---
-prefect
-Pillow
+prefect==3.7.5
+pillow==12.2.0
