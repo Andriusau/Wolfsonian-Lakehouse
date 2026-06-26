@@ -173,7 +173,6 @@ graph TD
 
 ## 🔍 The Frontend Explorer
 
-The original purpose of the Lakehouse Frontend Explorer was to solve the institution's most critical data silo problem: bridging the gap between the library’s Alma system and the museum’s Proficio system. Instead of forcing researchers and staff to use two separate, slow, and outdated legacy platforms, the Explorer unifies all 115,000+ records into a single, lightning-fast public entry point. By leveraging serverless browser technology (DuckDB WebAssembly), it entirely bypasses the need for expensive third-party vendors and backend servers, delivering instantaneous search and visual discovery at zero ongoing computing cost.
 
 ### Explorer Features
 
@@ -193,6 +192,7 @@ The original purpose of the Lakehouse Frontend Explorer was to solve the institu
 * **Semantic Discovery:** When viewing a record, the engine instantly queries DuckDB for 4 randomized, related records that share the same Subject, Genre, or Creator, encouraging users to discover related content.
 * **Dynamic Creator & Subject Dossiers:** Automatically generates dedicated landing pages that aggregate and display all cataloged works by a specific artist, designer, author, or subject. Clickable hyperlinks are integrated across the search grid and standalone record pages for seamless navigation.
 * **Clean Metadata Records:** Dedicated standalone pages automatically map internal database fields to user-friendly labels (e.g., Accession Number) and hide redundant system data to provide a pristine viewing experience.
+* **Integrated Library Catalog Links:** Automatically transforms accession numbers for library records into dynamic outbound links, seamlessly routing users to the exact full display page in the FIU Primo Catalog (using the hidden Alma MMS ID).
 * **Infinite Scroll Grid:** A high-performance masonry grid that can render thousands of images smoothly without pagination limits.
 * **Advanced Search Facets:** Easily filter by specific objects (Has Images toggle, Genre categories, etc.) directly from the top interface.
 * **Interactive Image Reader:** A sleek, minimalist single-image viewer for multi-image records (like multi-page books or varied 3D views). It features keyboard navigation, Next/Prev controls, and a dynamic thumbnail strip that replaces endless scrolling with a focused reading experience. It includes an interactive full-screen lightbox toggle, allowing the entire component—complete with thumbnails and controls—to fluidly expand for an immersive viewing experience.
