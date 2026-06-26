@@ -87,7 +87,7 @@ export function useCollection() {
       "field_description_long", "field_linked_agent", "field_subject", 
       "field_place_published", "field_edtf_date_created", "decade_created", 
       "year_created", "field_credit_line", "field_physical_form", 
-      "field_extent", "field_collection_note", "source_system", "id", "image_url"
+      "field_extent", "field_collection_note", "source_system", "id", "image_url", "location"
     ];
     
     const csvRows = [];
