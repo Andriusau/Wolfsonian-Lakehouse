@@ -515,7 +515,27 @@ export default function Home() {
               </div>
             )}
             
-
+            {/* Filter 1: Catalog Source */}
+            <div className="space-y-3">
+              <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
+                // SOURCE CATALOG
+              </span>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { key: "ALL", label: "ALL COLLECTIONS" },
+                  { key: "Alma", label: "LIBRARY (ALMA)" },
+                  { key: "Proficio", label: "MUSEUM (PROFICIO)" }
+                ].map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setSelectedSystem(opt.key)}
+                    className={`px-4 py-2 border text-[11px] font-bold uppercase transition-all duration-150 cursor-pointer ${selectedSystem === opt.key ? 'bg-white border-white text-mca-black font-extrabold' : 'border-white/20 text-slate-400 hover:border-white hover:text-white'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             {/* Filter 2: Genre Categorization */}
             <div className="space-y-3 border-t border-white/20 pt-6">
