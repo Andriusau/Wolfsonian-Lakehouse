@@ -70,7 +70,8 @@ export function DuckDBProvider({ children }: { children: ReactNode }) {
               has_audio,
               audio_count,
               search_text,
-              location
+              location,
+              alma_identifier
             FROM read_parquet('normalized_catalog.parquet')
             QUALIFY ROW_NUMBER() OVER (
               PARTITION BY COALESCE(field_identifier, CAST(id AS VARCHAR)) 

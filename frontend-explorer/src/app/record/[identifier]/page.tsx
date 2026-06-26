@@ -199,7 +199,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
 
                 <div className="space-y-8">
                   {Object.entries(selectedRecord)
-                    .filter(([key, val]) => val !== null && val !== "" && !["has_image", "title", "year_created", "source_system", "id", "image_count", "has_audio", "audio_count", "search_text"].includes(key))
+                    .filter(([key, val]) => val !== null && val !== "" && !["has_image", "title", "year_created", "source_system", "id", "image_count", "has_audio", "audio_count", "search_text", "alma_identifier"].includes(key))
                     .sort(([keyA], [keyB]) => {
                       const orderedFields = ["field_identifier", "field_collection_type", "field_extent", "field_genre", "field_description_long", "field_linked_agent", "field_subject", "field_place_published", "field_edtf_date_created", "decade_created", "field_physical_form", "field_collection_note", "field_credit_line"];
                       const idxA = orderedFields.indexOf(keyA);
@@ -232,7 +232,22 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                             {fieldLabels[key] || key}
                           </span>
                           <span className="text-sm md:text-base text-slate-300 font-light leading-relaxed break-words whitespace-pre-wrap">
-                            {key === 'field_linked_agent' ? (
+                            {key === 'field_identifier' ? (
+                              selectedRecord.source_system === 'Alma' && selectedRecord.alma_identifier ? (
+                                <a 
+                                  href={`https://fiu-flvc.primo.exlibrisgroup.com/discovery/fulldisplay?docid=alma${selectedRecord.alma_identifier.split(';')[0].trim()}&context=L&vid=01FALSC_FIU:WOLF&lang=en&search_scope=WOLFSONIAN&adaptor=Local%20Search%20Engine&tab=WOLFSONIAN&query=any,contains,${String(val).split(';')[0].trim()}&offset=0`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-white hover:text-mca-yellow hover:underline transition-colors inline-flex items-center gap-1.5 w-fit"
+                                  title="View in Library Catalog"
+                                >
+                                  {String(val)}
+                                  <svg className="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                </a>
+                              ) : (
+                                String(val)
+                              )
+                            ) : key === 'field_linked_agent' ? (
                               <span>
                                 {parseDelimited(val, '|').map((agent: any, j: number, arr: any[]) => (
                                   <span key={j}>
