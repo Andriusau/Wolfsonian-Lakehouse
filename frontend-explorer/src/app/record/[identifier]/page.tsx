@@ -199,7 +199,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
 
                 <div className="space-y-8">
                   {Object.entries(selectedRecord)
-                    .filter(([key, val]) => val !== null && val !== "" && !["has_image", "title", "year_created", "source_system", "id"].includes(key))
+                    .filter(([key, val]) => val !== null && val !== "" && !["has_image", "title", "year_created", "source_system", "id", "image_count", "has_audio", "audio_count", "search_text"].includes(key))
                     .sort(([keyA], [keyB]) => {
                       const orderedFields = ["field_identifier", "field_collection_type", "field_extent", "field_genre", "field_description_long", "field_linked_agent", "field_subject", "field_place_published", "field_edtf_date_created", "decade_created", "field_physical_form", "field_collection_note", "field_credit_line"];
                       const idxA = orderedFields.indexOf(keyA);
@@ -224,6 +224,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                         field_credit_line: "Credit Line",
                         field_physical_form: "Material",
                         field_collection_note: "Collection Note",
+                        location: "Location",
                       };
                       return (
                         <div key={i} className="flex flex-col space-y-2 group">
