@@ -1,4 +1,4 @@
-.PHONY: start stop run-pipeline logs build
+.PHONY: start stop run-pipeline logs build frontend
 
 # Start the full environment (Prefect, Metabase, NGINX frontend)
 start:
@@ -7,6 +7,10 @@ start:
 # Build images and start the full environment
 build:
 	docker compose up -d --build
+
+# Rebuild and start only the frontend container
+frontend:
+	docker compose up -d --build frontend
 
 # Safely stop and tear down all containers
 stop:
