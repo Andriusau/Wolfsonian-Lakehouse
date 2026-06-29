@@ -7,8 +7,8 @@ from tqdm import tqdm
 from PIL import Image, ImageFile, ImageOps, TiffImagePlugin
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Configure PIL to allow large images and truncated files
-Image.MAX_IMAGE_PIXELS = None
+# Configure PIL to allow large images but prevent infinite memory decompression bombs
+Image.MAX_IMAGE_PIXELS = 250000000
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 # Overcome the 'More samples per pixel than can be decoded' error
@@ -99,6 +99,7 @@ def process_single_row(row_data):
                                     already_exists.append(dest_filename)
                                     continue
 
+                                print(f"DEBUG: Attempting to process {best_file.name}...")
                                 with Image.open(best_file) as img:
                                     img = ImageOps.exif_transpose(img)
                                     rgb_img = img.convert('RGB')
