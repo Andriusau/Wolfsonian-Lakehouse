@@ -23,6 +23,11 @@ ERROR_REPORT_FILE = Path('/app/data/gold/image_corruptions_report.csv')
 
 FATAL_FILES_TO_SKIP = [
     # Add files here that cause libtiff infinite loop hangs
+    'WOLF_library_XB1990.534_038.tif',
+    'WOLF_library_XB1990.1227_052.tif',
+    'WOLF_library_XC2019.02.1.62_226 2.tif',
+    'WOLF_library_XB1990.879_041.tif',
+    'WOLF_library_XB2020.11.1.4_024 (2).tif'
 ]
 
 # Global caches for threads
