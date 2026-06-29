@@ -58,7 +58,7 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 | **Unified Gold Catalog** | Merged output | 115,947 | Alma + Proficio aligned and concatenated |
 | **Normalized Gold Catalog** | Analytics-ready output | 115,947 | Harmonized genres, dates, creators & titles |
 | **Digital Images** | NFS Mounted Share | 299,347 | Parallel ingestion and JPEG compression |
-| **Digital Audio** | NFS Mounted Share | 291 | MP3 caching and metadata mapping |
+| **Digital Audio** | NFS Mounted Share | 8 | MP3 caching and metadata mapping |
 
 ---
 
