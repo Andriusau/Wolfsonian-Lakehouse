@@ -125,7 +125,7 @@ export default function ImageReader({ images, selectedRecord }: ImageReaderProps
           <a 
             href={imgSrc}
             download={`${activeImageId}.jpg`}
-            className="bg-mca-yellow text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-mca-yellow hover:bg-mca-black hover:text-mca-yellow transition-colors text-[10px] md:opacity-0 group-hover/reader:opacity-100 focus:opacity-100 shadow-xl"
+            className="bg-mca-yellow text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-mca-yellow hover:bg-mca-black hover:text-mca-yellow transition-colors text-[10px] shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             [⬇] DOWNLOAD JPG {images.length > 1 ? `(${currentIndex + 1}/${images.length})` : ''}
