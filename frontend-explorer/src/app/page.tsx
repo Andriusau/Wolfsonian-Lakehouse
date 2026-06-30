@@ -518,13 +518,13 @@ export default function Home() {
             {/* Filter 1: Catalog Source */}
             <div className="space-y-3">
               <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
-                // SOURCE CATALOG
+                // SEARCH BY COLLECTION
               </span>
               <div className="flex flex-wrap gap-3">
                 {[
                   { key: "ALL", label: "ALL COLLECTIONS" },
-                  { key: "Alma", label: "LIBRARY (ALMA)" },
-                  { key: "Proficio", label: "OBJECTS (PROFICIO)" }
+                  { key: "Alma", label: "LIBRARY SPECIAL COLLECTION" },
+                  { key: "Proficio", label: "ART AND OBJECTS COLLECTION" }
                 ].map((opt) => (
                   <button
                     key={opt.key}
@@ -540,7 +540,7 @@ export default function Home() {
             {/* Filter 2: Genre Categorization */}
             <div className="space-y-3 border-t border-white/20 pt-6">
               <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
-                // OBJECT TYPE
+                // SEARCH BY OBJECT TYPE
               </span>
               <div className="flex flex-wrap gap-2">
                 {[
@@ -631,7 +631,7 @@ export default function Home() {
             {/* Filter 5: Advanced Indexes */}
             <div className="space-y-4 border-t border-white/20 pt-6">
               <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
-                // ADVANCED INDEXES
+                // FILTER RESULTS BY
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="flex flex-col space-y-2">
