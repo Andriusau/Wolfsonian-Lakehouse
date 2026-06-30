@@ -234,16 +234,21 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                           <span className="text-sm md:text-base text-slate-300 font-light leading-relaxed break-words whitespace-pre-wrap">
                             {key === 'field_identifier' ? (
                               selectedRecord.source_system === 'Alma' && selectedRecord.alma_identifier ? (
-                                <a 
-                                  href={`https://fiu-flvc.primo.exlibrisgroup.com/discovery/fulldisplay?docid=alma${selectedRecord.alma_identifier.split(';')[0].trim()}&context=L&vid=01FALSC_FIU:WOLF&lang=en&search_scope=WOLFSONIAN&adaptor=Local%20Search%20Engine&tab=WOLFSONIAN&query=any,contains,${String(val).split(';')[0].trim()}&offset=0`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-white hover:text-mca-yellow hover:underline transition-colors inline-flex items-center gap-1.5 w-fit"
-                                  title="View in Library Catalog"
-                                >
-                                  {String(val)}
-                                  <svg className="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-                                </a>
+                                <span className="flex flex-col gap-1.5">
+                                  <a 
+                                    href={`https://fiu-flvc.primo.exlibrisgroup.com/discovery/fulldisplay?docid=alma${selectedRecord.alma_identifier.split(';')[0].trim()}&context=L&vid=01FALSC_FIU:WOLF&search_scope=WOLFSONIAN&adaptor=Local%20Search%20Engine&tab=WOLFSONIAN&query=any,contains,${String(val).split(';')[0].trim()}&offset=0`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-white hover:text-mca-yellow hover:underline transition-colors inline-flex items-center gap-1.5 w-fit"
+                                    title="View in Library Catalog"
+                                  >
+                                    {String(val)}
+                                    <svg className="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                  </a>
+                                  <span className="text-[10px] text-mca-yellow/70 font-bold tracking-widest uppercase">
+                                    ↗ View full record in FIU Library Catalog
+                                  </span>
+                                </span>
                               ) : (
                                 String(val)
                               )
