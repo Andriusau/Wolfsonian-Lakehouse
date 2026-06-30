@@ -87,7 +87,7 @@ export function useCollection() {
       "field_description_long", "field_linked_agent", "field_subject", 
       "field_place_published", "field_edtf_date_created", "decade_created", 
       "year_created", "field_credit_line", "field_physical_form", 
-      "field_extent", "field_collection_note", "source_system", "id", "image_url", "location"
+      "field_extent", "field_collection_note", "source_system", "id", "image_url", "location", "Storage_Location"
     ];
     
     const csvRows = [];
@@ -110,6 +110,8 @@ export function useCollection() {
           val = imageUrl ? `=IMAGE("${imageUrl}")` : "";
         } else if (header === "location") {
           val = row["location"] || row["sortable4"];
+        } else if (header === "Storage_Location") {
+          val = row["Storage_Location"] || row["storage_location"];
         } else {
           val = row[header];
         }
