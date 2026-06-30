@@ -54,9 +54,9 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 |---|---|---|---|
 | **Alma** | Ex Libris Library Management | 55,010 | Binary MARC (`.mrc`) file parsing via PyMARC |
 | **Proficio** | Museum Collection Database | 60,938 | Kerberos-authenticated SQL Server via ODBC |
-| **Islandora** | Public Digital Archive | 266,450 | Paginated REST API with concurrent fetching |
-| **Unified Gold Catalog** | Merged output | 115,947 | Alma + Proficio aligned and concatenated |
-| **Normalized Gold Catalog** | Analytics-ready output | 115,947 | Harmonized genres, dates, creators & titles |
+| **Islandora** | Public Digital Archive | 266,701 | Paginated REST API with concurrent fetching |
+| **Unified Gold Catalog** | Merged output | 116,000 | Alma + Proficio aligned and concatenated |
+| **Normalized Gold Catalog** | Analytics-ready output | 116,000 | Harmonized genres, dates, creators & titles |
 | **Digital Images** | NFS Mounted Share | 299,347 | Parallel ingestion and JPEG compression |
 | **Digital Audio** | NFS Mounted Share | 8 | MP3 caching and metadata mapping |
 
