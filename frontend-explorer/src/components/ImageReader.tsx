@@ -124,7 +124,7 @@ export default function ImageReader({ images, selectedRecord }: ImageReaderProps
         <div className="absolute bottom-4 right-4 flex flex-col gap-2 items-end z-20">
           <a 
             href={imgSrc}
-            download={`${activeImageId}.jpg`}
+            download={`Wolfsonian_${activeImageId}_${(selectedRecord.title || "Untitled").replace(/[^a-z0-9]/gi, '_')}.jpg`}
             className="bg-mca-yellow text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-mca-yellow hover:bg-mca-black hover:text-mca-yellow transition-colors text-[10px] shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >

@@ -127,7 +127,11 @@ export function useCollection() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `lakehouse_collection_export_${new Date().toISOString().split('T')[0]}.csv`);
+    const now = new Date();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const yyyy = now.getFullYear();
+    link.setAttribute("download", `Wolfsonian_MyList_${mm}${dd}${yyyy}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
