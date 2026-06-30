@@ -468,54 +468,7 @@ export default function Home() {
           {/* Filtering Dashboard - MCA Bold Box Style */}
           <div className="border-2 border-white bg-mca-black p-6 space-y-6">
             
-            {/* Timeline Histogram */}
-            {timelineData.length > 0 && (
-              <div className="space-y-3 pb-6 border-b border-white/20">
-                <div className="flex justify-between items-end">
-                  <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
-                    // HISTORICAL TIMELINE
-                  </span>
-                  {selectedDecade !== "ALL" && (
-                    <button 
-                      onClick={() => setSelectedDecade("ALL")}
-                      className="text-[10px] text-mca-yellow hover:text-white uppercase font-bold tracking-widest"
-                    >
-                      [ CLEAR SELECTION ]
-                    </button>
-                  )}
-                </div>
-                <div className="flex h-24 space-x-1 border-b border-white/20 pb-1 mt-4">
-                  {timelineData.map((d, i) => {
-                    const maxCount = Math.max(...timelineData.map(t => Number(t.count)));
-                    const heightPercent = (Number(d.count) / maxCount) * 100;
-                    const isSelected = selectedDecade === String(d.decade);
-                    return (
-                      <div 
-                        key={i} 
-                        className="flex-1 flex flex-col justify-end group cursor-pointer relative"
-                        onClick={() => setSelectedDecade(String(d.decade))}
-                      >
-                        {/* Tooltip */}
-                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-white text-mca-black text-[10px] font-bold px-2 py-1 z-10 pointer-events-none whitespace-nowrap">
-                          {d.decade}s ({Number(d.count).toLocaleString()})
-                        </div>
-                        {/* Bar */}
-                        <div 
-                          style={{ height: `${Math.max(2, heightPercent)}%` }} 
-                          className={`w-full transition-all duration-200 ${isSelected ? 'bg-mca-yellow' : 'bg-slate-700 group-hover:bg-mca-cyan'}`}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="flex justify-between text-[10px] font-mono text-slate-500 font-bold">
-                  <span>{timelineData[0]?.decade}s</span>
-                  <span>{timelineData[timelineData.length - 1]?.decade}s</span>
-                </div>
-              </div>
-            )}
-            
-            {/* Filter 1: Catalog Source */}
+            {/* 1: Catalog Source */}
             <div className="space-y-3">
               <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
                 // SEARCH BY COLLECTION
@@ -537,7 +490,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Filter 2: Genre Categorization */}
+            {/* 2: Genre Categorization */}
             <div className="space-y-3 border-t border-white/20 pt-6">
               <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
                 // SEARCH BY OBJECT TYPE
@@ -564,78 +517,14 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Filter 3: Date Range */}
-            <div className="space-y-4 border-t border-white/20 pt-6">
-              <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
-                // DATE RANGE
-              </span>
-              
-              <div className="flex flex-col space-y-6 bg-mca-dark/50 p-4 border border-white/10">
-                <div className="flex items-center justify-between text-mca-cyan font-bold font-mono">
-                  <span>{minYear || "1800"}</span>
-                  <span className="text-white">-</span>
-                  <span className="text-mca-yellow">{maxYear || "2026"}</span>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex flex-col space-y-2">
-                    <label className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Start Year</label>
-                    <input 
-                      type="range" 
-                      min="1800" 
-                      max="2026" 
-                      value={minYear || "1800"}
-                      onChange={(e) => setMinYear(Math.min(Number(e.target.value), Number(maxYear || 2026)).toString())}
-                      className="w-full h-1 bg-white/20 appearance-none outline-none accent-mca-cyan cursor-pointer"
-                    />
-                  </div>
-                  
-                  <div className="flex flex-col space-y-2">
-                    <label className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">End Year</label>
-                    <input 
-                      type="range" 
-                      min="1800" 
-                      max="2026" 
-                      value={maxYear || "2026"}
-                      onChange={(e) => setMaxYear(Math.max(Number(e.target.value), Number(minYear || 1800)).toString())}
-                      className="w-full h-1 bg-white/20 appearance-none outline-none accent-mca-yellow cursor-pointer"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Filter 4: Media Settings */}
-            <div className="space-y-3 border-t border-white/20 pt-6">
-              <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
-                // MEDIA SETTINGS
-              </span>
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => setHasImageOnly(!hasImageOnly)}
-                  className={`px-4 py-2 border text-[11px] font-bold uppercase transition-all duration-150 cursor-pointer flex items-center space-x-2 ${hasImageOnly ? 'bg-white border-white text-mca-black font-extrabold' : 'border-white/20 text-slate-400 hover:border-white hover:text-white'}`}
-                >
-                  <span className={`h-2 w-2 rounded-full ${hasImageOnly ? 'bg-mca-cyan' : 'bg-slate-600'}`}></span>
-                  <span>ONLY SHOW RECORDS WITH IMAGES</span>
-                </button>
-                <button
-                  onClick={() => setHasAudioOnly(!hasAudioOnly)}
-                  className={`px-4 py-2 border text-[11px] font-bold uppercase transition-all duration-150 cursor-pointer flex items-center space-x-2 ${hasAudioOnly ? 'bg-white border-white text-mca-black font-extrabold' : 'border-white/20 text-slate-400 hover:border-white hover:text-white'}`}
-                >
-                  <span className={`h-2 w-2 rounded-full ${hasAudioOnly ? 'bg-mca-cyan' : 'bg-slate-600'}`}></span>
-                  <span>ONLY SHOW RECORDS WITH AUDIO</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Filter 5: Advanced Indexes */}
+            {/* 3: Advanced Indexes (Now "Filter Results By") */}
             <div className="space-y-4 border-t border-white/20 pt-6">
               <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
                 // FILTER RESULTS BY
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="flex flex-col space-y-2">
-                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">GENRE</label>
+                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">OBJECT NAME</label>
                   <select 
                     value={selectedGenre}
                     onChange={(e) => setSelectedGenre(e.target.value)}
@@ -681,6 +570,134 @@ export default function Home() {
                     {topPlaces.map((p, i) => <option key={i} value={p}>{p}</option>)}
                   </select>
                 </div>
+              </div>
+            </div>
+
+            {/* 4: Timeline and Date Range Side by Side */}
+            <div className="border-t border-white/20 pt-6">
+               <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch">
+                 {/* Left: Timeline */}
+                 <div className="flex-1 space-y-3 flex flex-col">
+                    <div className="flex justify-between items-end">
+                      <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
+                        // FILTER RESULTS BY DECADE
+                      </span>
+                      {selectedDecade !== "ALL" && (
+                        <button 
+                          onClick={() => setSelectedDecade("ALL")}
+                          className="text-[10px] text-mca-yellow hover:text-white uppercase font-bold tracking-widest"
+                        >
+                          [ CLEAR SELECTION ]
+                        </button>
+                      )}
+                    </div>
+                    {timelineData.length > 0 ? (
+                      <div className="flex-1 flex flex-col justify-end min-h-[96px]">
+                        <div className="flex h-24 space-x-1 border-b border-white/20 pb-1 mt-4">
+                          {timelineData.map((d, i) => {
+                            const maxCount = Math.max(...timelineData.map(t => Number(t.count)));
+                            const heightPercent = (Number(d.count) / maxCount) * 100;
+                            const isSelected = selectedDecade === String(d.decade);
+                            return (
+                              <div 
+                                key={i} 
+                                className="flex-1 flex flex-col justify-end group cursor-pointer relative"
+                                onClick={() => setSelectedDecade(String(d.decade))}
+                              >
+                                {/* Tooltip */}
+                                <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-white text-mca-black text-[10px] font-bold px-2 py-1 z-10 pointer-events-none whitespace-nowrap">
+                                  {d.decade}s ({Number(d.count).toLocaleString()})
+                                </div>
+                                {/* Bar */}
+                                <div 
+                                  style={{ height: `${Math.max(2, heightPercent)}%` }} 
+                                  className={`w-full transition-all duration-200 ${isSelected ? 'bg-mca-yellow' : 'bg-slate-700 group-hover:bg-mca-cyan'}`}
+                                />
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="flex justify-between text-[10px] font-mono text-slate-500 font-bold mt-1">
+                          <span>{timelineData[0]?.decade}s</span>
+                          <span>{timelineData[timelineData.length - 1]?.decade}s</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-1 flex items-center justify-center h-24 border-b border-white/20 text-xs text-slate-500 font-mono">
+                        NO TIMELINE DATA
+                      </div>
+                    )}
+                 </div>
+                 
+                 {/* Middle: OR Separator */}
+                 <div className="hidden lg:flex flex-col items-center justify-center opacity-50 relative top-3">
+                    <div className="h-full w-px bg-white/20 absolute"></div>
+                    <span className="text-white font-bold text-[10px] uppercase tracking-widest bg-mca-black border border-white/20 px-2 py-1 rounded-full z-10">OR</span>
+                 </div>
+
+                 {/* Right: Date Range */}
+                 <div className="flex-1 space-y-4 flex flex-col">
+                    <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
+                      // SELECT DATE RANGE
+                    </span>
+                    
+                    <div className="flex flex-col flex-1 justify-center space-y-6 bg-mca-dark/50 p-4 border border-white/10 min-h-[96px]">
+                      <div className="flex items-center justify-between text-mca-cyan font-bold font-mono">
+                        <span>{minYear || "1800"}</span>
+                        <span className="text-white">-</span>
+                        <span className="text-mca-yellow">{maxYear || "2026"}</span>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <div className="flex flex-col space-y-2">
+                          <label className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">Start Year</label>
+                          <input 
+                            type="range" 
+                            min="1800" 
+                            max="2026" 
+                            value={minYear || "1800"}
+                            onChange={(e) => setMinYear(Math.min(Number(e.target.value), Number(maxYear || 2026)).toString())}
+                            className="w-full h-1 bg-white/20 appearance-none outline-none accent-mca-cyan cursor-pointer"
+                          />
+                        </div>
+                        
+                        <div className="flex flex-col space-y-2">
+                          <label className="text-[10px] text-slate-400 font-bold tracking-widest uppercase">End Year</label>
+                          <input 
+                            type="range" 
+                            min="1800" 
+                            max="2026" 
+                            value={maxYear || "2026"}
+                            onChange={(e) => setMaxYear(Math.max(Number(e.target.value), Number(minYear || 1800)).toString())}
+                            className="w-full h-1 bg-white/20 appearance-none outline-none accent-mca-yellow cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                 </div>
+               </div>
+            </div>
+
+            {/* 5: Media Settings */}
+            <div className="space-y-3 border-t border-white/20 pt-6">
+              <span className="block text-xs uppercase tracking-wider font-extrabold text-mca-cyan">
+                // MEDIA SETTINGS
+              </span>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => setHasImageOnly(!hasImageOnly)}
+                  className={`px-4 py-2 border text-[11px] font-bold uppercase transition-all duration-150 cursor-pointer flex items-center space-x-2 ${hasImageOnly ? 'bg-white border-white text-mca-black font-extrabold' : 'border-white/20 text-slate-400 hover:border-white hover:text-white'}`}
+                >
+                  <span className={`h-2 w-2 rounded-full ${hasImageOnly ? 'bg-mca-cyan' : 'bg-slate-600'}`}></span>
+                  <span>ONLY SHOW RECORDS WITH IMAGES</span>
+                </button>
+                <button
+                  onClick={() => setHasAudioOnly(!hasAudioOnly)}
+                  className={`px-4 py-2 border text-[11px] font-bold uppercase transition-all duration-150 cursor-pointer flex items-center space-x-2 ${hasAudioOnly ? 'bg-white border-white text-mca-black font-extrabold' : 'border-white/20 text-slate-400 hover:border-white hover:text-white'}`}
+                >
+                  <span className={`h-2 w-2 rounded-full ${hasAudioOnly ? 'bg-mca-cyan' : 'bg-slate-600'}`}></span>
+                  <span>ONLY SHOW RECORDS WITH AUDIO</span>
+                </button>
               </div>
             </div>
 
