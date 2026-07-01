@@ -86,8 +86,7 @@ export function useCollection() {
       "field_identifier", "spreadsheet_thumbnail", "title", "field_collection_type", "field_genre",
       "field_description_long", "field_linked_agent", "field_subject", 
       "field_place_published", "field_edtf_date_created", "decade_created", 
-      "year_created", "field_credit_line", "field_physical_form", 
-      "field_extent", "field_collection_note", "source_system", "id", "image_url", "location", "Storage_Location"
+      "field_extent", "field_collection_note", "source_system", "id", "image_url", "location", "storage_location"
     ];
     
     const csvRows = [];
