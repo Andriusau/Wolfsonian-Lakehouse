@@ -83,7 +83,7 @@ def main():
                     if pd.isna(loc):
                         return pd.NA
                     l = str(loc).strip()
-                    if l in ['Reference (REF)', 'Reference Oversized (REFO)', 'Reference Double Oversized (REFDO)']:
+                    if l in ['REF', 'REFO', 'REFDO', 'Reference (REF)', 'Reference Oversized (REFO)', 'Reference Double Oversized (REFDO)']:
                         return 'Reference'
                     return l
                 df['location'] = df['Permanent Physical Location'].apply(map_location)

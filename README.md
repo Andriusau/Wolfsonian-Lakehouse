@@ -52,13 +52,13 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 
 | Source | System | Records | Method |
 |---|---|---|---|
-| **Alma** | Ex Libris Library Management | 55,015 | Binary MARC (`.mrc`) parsing via PyMARC & Physical Item (`.csv`) mapping |
-| **Proficio** | Museum Collection Database | 60,938 | Kerberos-authenticated SQL Server via ODBC |
+| **Alma** | Ex Libris Library Management | 54,987 | Binary MARC (`.mrc`) parsing via PyMARC & Physical Item (`.csv`) mapping |
+| **Proficio** | Museum Collection Database | 61,010 | Kerberos-authenticated SQL Server via ODBC |
 | **Islandora** | Public Digital Archive | 266,701 | Paginated REST API with concurrent fetching |
-| **Unified Gold Catalog** | Merged output | 116,000 | Alma + Proficio aligned and concatenated |
-| **Normalized Gold Catalog** | Analytics-ready output | 116,000 | Harmonized genres, dates, creators & titles |
-| **Digital Images** | NFS Mounted Share | 299,773 | Parallel ingestion and JPEG compression |
-| **Digital Audio** | NFS Mounted Share | 8 | MP3 caching and metadata mapping |
+| **Unified Gold Catalog** | Merged output | 115,997 | Alma + Proficio aligned and concatenated |
+| **Normalized Gold Catalog** | Analytics-ready output | 115,997 | Harmonized genres, dates, creators & titles |
+| **Digital Images** | NFS Mounted Share | 299,867 | Parallel ingestion and JPEG compression |
+| **Digital Audio** | NFS Mounted Share | 26 | MP3 caching and metadata mapping |
 
 ---
 
@@ -232,10 +232,13 @@ wolf-lakehouse/
 │   ├── raw/                     # Bronze Layer: Unaltered source dumps
 │   │   ├── alma/
 │   │   │   ├── alma_raw_dump.parquet
-│   │   │   ├── BIBLIOGRAPHIC_16308238980006571_16308238960006571_1.mrc
-│   │   │   ├── BIBLIOGRAPHIC_16429188970006571_16429188950006571_1.mrc
-│   │   │   ├── BIBLIOGRAPHIC_16464220520006571_16429186080006571_1.mrc
-│   │   │   └── BIBLIOGRAPHIC_16501241860006571_16429186080006571_1.mrc
+│   │   │   ├── alma_physical_dump.parquet
+│   │   │   ├── bibliographic/   # Raw binary MARC files
+│   │   │   │   ├── BIBLIOGRAPHIC_16308238980006571_1.mrc
+│   │   │   │   └── ...
+│   │   │   └── physical/        # Raw physical item CSV files
+│   │   │       ├── PHYSICAL_ITEM_16644779640006571_1.csv
+│   │   │       └── ...
 │   │   ├── digital_images/
 │   │   ├── islandora/
 │   │   │   └── islandora_lookup.parquet
