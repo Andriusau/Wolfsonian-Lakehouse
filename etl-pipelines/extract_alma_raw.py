@@ -341,7 +341,7 @@ def extract_physical_items():
     dfs = []
     for f in csv_files:
         try:
-            dfs.append(pd.read_csv(f, dtype=str))
+            dfs.append(pd.read_csv(f, dtype=str, on_bad_lines='skip'))
         except Exception as e:
             logging.error(f"Failed to read {f}: {e}")
             

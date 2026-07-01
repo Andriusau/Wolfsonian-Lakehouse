@@ -163,7 +163,13 @@ def main():
     # Add static fields
     df['field_resource_type'] = 'Collection'
     df['field_model'] = 'Paged Content'
-    df['field_collection_type'] = 'Library'
+    # Set Collection Type dynamically based on location
+    if 'location' in df.columns:
+        df['field_collection_type'] = df['location'].apply(
+            lambda x: 'Research/Reference Books' if pd.notna(x) and x == 'Reference' else 'Library'
+        )
+    else:
+        df['field_collection_type'] = 'Library'
     
     # Apply text transformations (from MASTER notebook)
     if 'field_identifier' in df.columns:

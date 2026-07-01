@@ -237,7 +237,15 @@ export default function Home() {
           whereClause += ` AND (${sqlCondition})`;
         }
       }
-      if (selectedSystem !== "ALL") whereClause += ` AND source_system = '${selectedSystem}'`;
+      if (selectedSystem !== "ALL") {
+        if (selectedSystem === "Reference") {
+          whereClause += ` AND field_collection_type = 'Research/Reference Books'`;
+        } else if (selectedSystem === "Alma") {
+          whereClause += ` AND source_system = 'Alma' AND field_collection_type = 'Library'`;
+        } else {
+          whereClause += ` AND source_system = '${selectedSystem}'`;
+        }
+      }
       if (selectedGenre !== "ALL") whereClause += ` AND field_genre LIKE '%${selectedGenre.replace(/'/g, "''")}%'`;
       if (hasImageOnly) whereClause += ` AND has_image = true`;
       if (hasAudioOnly) whereClause += ` AND has_audio = true`;
@@ -477,6 +485,7 @@ export default function Home() {
                 {[
                   { key: "ALL", label: "ALL COLLECTIONS" },
                   { key: "Alma", label: "LIBRARY SPECIAL COLLECTION" },
+                  { key: "Reference", label: "RESEARCH/REFERENCE BOOKS" },
                   { key: "Proficio", label: "ART AND OBJECTS COLLECTION" }
                 ].map((opt) => (
                   <button
