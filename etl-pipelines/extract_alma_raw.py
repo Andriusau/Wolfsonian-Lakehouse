@@ -6,8 +6,10 @@ import sys
 
 # --- 1. Setup Paths ---
 raw_alma_dir = Path("/app/data/raw/alma") 
+raw_alma_bib_dir = raw_alma_dir / "bibliographic"
+raw_alma_phys_dir = raw_alma_dir / "physical"
 output_parquet = raw_alma_dir / "alma_raw_dump.parquet"
-
+output_phys_parquet = raw_alma_dir / "alma_physical_dump.parquet"
 def get_latest_marc_file(directory):
     """Dynamically finds the BIBLIOGRAPHIC .mrc file."""
     found_mrc_files = list(directory.glob("BIBLIOGRAPHIC*.mrc"))
@@ -251,7 +253,6 @@ def extract_raw_marc(record):
         ('938', ['i', 'n', 'a', 'd', 's', 'c', 'b'], 'full'),
         ('948', ['h'], 'full'),
         ('950', ['9', 'a'], 'full'),
-        ('952', ['9', 'a'], 'full'), 
         ('954', ['9', 'a'], 'full'),
         ('955', ['9', 'a'], 'full'),
         ('958', ['9', 'a'], 'full'),
@@ -329,10 +330,34 @@ def extract_raw_marc(record):
 
     return data
 
+def extract_physical_items():
+    """Extracts all physical item CSVs and combines them into one parquet."""
+    csv_files = list(raw_alma_phys_dir.glob("PHYSICAL_ITEM*.csv"))
+    if not csv_files:
+        logging.info(f" ⚠️ No PHYSICAL_ITEM*.csv files found in {raw_alma_phys_dir}")
+        return
+        
+    logging.info(f" 🚀 Parsing {len(csv_files)} physical item CSV(s)...")
+    dfs = []
+    for f in csv_files:
+        try:
+            dfs.append(pd.read_csv(f, dtype=str))
+        except Exception as e:
+            logging.error(f"Failed to read {f}: {e}")
+            
+    if dfs:
+        combined = pd.concat(dfs, ignore_index=True)
+        if 'MMS Record ID' in combined.columns:
+            combined['MMS Record ID'] = combined['MMS Record ID'].str.replace("'", "")
+        combined.to_parquet(output_phys_parquet, index=False, engine='pyarrow')
+        logging.info(f" ✅ Successfully dumped {len(combined)} physical records to staging.")
+    else:
+        logging.info(" ❌ No physical item data extracted.")
+
 def main():
     logging.info("--- 📥 Starting Alma MARC Raw Extractor ---")
     
-    marc_file_path = get_latest_marc_file(raw_alma_dir)
+    marc_file_path = get_latest_marc_file(raw_alma_bib_dir)
     all_marc_data = []
 
     logging.info(" 🚀 Parsing binary MARC records (this might take a moment)...")
@@ -360,6 +385,8 @@ def main():
     else:
         logging.info(" ❌ No data extracted. Parquet file was not created.")
 
+    logging.info("--- 📥 Starting Alma Physical Items Extractor ---")
+    extract_physical_items()
 
 if __name__ == "__main__":
     main()

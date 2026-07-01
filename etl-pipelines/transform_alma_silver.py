@@ -61,6 +61,36 @@ def main():
     }
     df = df.rename(columns=alma_rename_map)
 
+    # --- MERGE PHYSICAL ITEMS ---
+    RAW_ALMA_PHYS = Path('/app/data/raw/alma/alma_physical_dump.parquet')
+    if RAW_ALMA_PHYS.exists():
+        logging.info(f"📥 Loading raw Alma Physical data from {RAW_ALMA_PHYS}")
+        try:
+            df_phys = pd.read_parquet(RAW_ALMA_PHYS)
+            logging.info(f"Loaded {len(df_phys)} physical records.")
+            
+            # Deduplicate physical items to avoid multiplying bib records (take the first item's location)
+            df_phys = df_phys.drop_duplicates(subset=['MMS Record ID'])
+            
+            # Merge
+            df['alma_identifier'] = df['alma_identifier'].astype(str)
+            df_phys['MMS Record ID'] = df_phys['MMS Record ID'].astype(str)
+            df = df.merge(df_phys, how='left', left_on='alma_identifier', right_on='MMS Record ID')
+            
+            # Map location
+            if 'Permanent Physical Location' in df.columns:
+                def map_location(loc):
+                    if pd.isna(loc):
+                        return pd.NA
+                    l = str(loc).strip()
+                    if l in ['Reference (REF)', 'Reference Oversized (REFO)', 'Reference Double Oversized (REFDO)']:
+                        return 'Reference'
+                    return l
+                df['location'] = df['Permanent Physical Location'].apply(map_location)
+                logging.info("✅ Mapped physical location to 'location' column.")
+        except Exception as e:
+            logging.error(f"Failed to read/merge physical parquet: {e}")
+
     # Construct EDTF Date (field_edtf_date_created)
     # Prefer 264$c (modern production date) over 260$c (legacy imprint date)
     if 'new_264_c' in df.columns or 'new_260_c' in df.columns:
