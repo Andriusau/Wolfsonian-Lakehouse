@@ -91,31 +91,44 @@ export default function ImageReader({ images, selectedRecord }: ImageReaderProps
           </button>
         )}
 
-        <TransformWrapper
-          disabled={!isFullScreen}
-          wheel={{ step: 0.1 }}
-          doubleClick={{ disabled: true }}
-          minScale={1}
-          maxScale={8}
-        >
-          <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <img 
-              key={imgSrc} 
-              src={imgSrc}
-              loading="lazy"
-              alt={`${selectedRecord.title || 'Record'} - image ${currentIndex + 1}`}
-              className={`object-contain max-w-full max-h-full drop-shadow-2xl z-10 transition-transform duration-500 animate-in fade-in slide-in-from-bottom-2 ${!isFullScreen ? 'cursor-zoom-in hover:scale-[1.02]' : 'cursor-grab active:cursor-grabbing'}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isFullScreen) setIsFullScreen(true);
-              }}
-              onError={(e: any) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-                (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-              }}
-            />
-          </TransformComponent>
-        </TransformWrapper>
+        {isFullScreen ? (
+          <TransformWrapper
+            wheel={{ step: 0.1 }}
+            doubleClick={{ disabled: true }}
+            minScale={1}
+            maxScale={8}
+          >
+            <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }} contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <img 
+                key={imgSrc} 
+                src={imgSrc}
+                loading="lazy"
+                alt={`${selectedRecord.title || 'Record'} - image ${currentIndex + 1}`}
+                className="object-contain max-w-full max-h-full drop-shadow-2xl z-10 transition-transform duration-500 animate-in fade-in cursor-grab active:cursor-grabbing"
+                onError={(e: any) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                  (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            </TransformComponent>
+          </TransformWrapper>
+        ) : (
+          <img 
+            key={imgSrc} 
+            src={imgSrc}
+            loading="lazy"
+            alt={`${selectedRecord.title || 'Record'} - image ${currentIndex + 1}`}
+            className="object-contain max-w-full max-h-full drop-shadow-2xl z-10 transition-transform duration-500 animate-in fade-in slide-in-from-bottom-2 cursor-zoom-in hover:scale-[1.02]"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsFullScreen(true);
+            }}
+            onError={(e: any) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+              (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+            }}
+          />
+        )}
         
         <div className="absolute hidden inset-0 flex flex-col items-center justify-center bg-mca-black text-slate-600 text-[10px] uppercase font-bold tracking-widest z-0">
           <span>[ NO IMAGE {currentIndex + 1} FOUND ]</span>

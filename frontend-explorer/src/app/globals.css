@@ -70,3 +70,9 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #ffffff;
 }
+
+/* Fix for react-zoom-pan-pinch collapsing */
+.zoom-wrapper-custom, .zoom-content-custom {
+  width: 100% !important;
+  height: 100% !important;
+}
