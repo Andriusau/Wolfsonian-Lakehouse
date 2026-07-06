@@ -107,8 +107,8 @@ def raw_data_dump(table_name, incremental_dir):
             if pd.notnull(max_add): dates.append(max_add)
             
             if dates:
-                # Format keeping full microsecond precision to avoid truncation loops
-                new_watermark = max(dates).strftime('%Y-%m-%d %H:%M:%S.%f')
+                # Format exactly as SQL Server datetime
+                new_watermark = max(dates).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
                 if not last_watermark or new_watermark > last_watermark:
                     watermark_data[table_name] = new_watermark
                     with open(watermark_path, 'w') as f:
