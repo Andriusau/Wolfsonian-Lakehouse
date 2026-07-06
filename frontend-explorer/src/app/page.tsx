@@ -974,7 +974,22 @@ export default function Home() {
                         const url = new URL(window.location.href);
                         url.searchParams.set('collection', collection.map(c => c.field_identifier).join(','));
                         url.searchParams.delete('collection_cleared');
-                        navigator.clipboard.writeText(url.toString());
+                        const textToCopy = url.toString();
+                        
+                        if (navigator.clipboard && window.isSecureContext) {
+                          navigator.clipboard.writeText(textToCopy);
+                        } else {
+                          const textArea = document.createElement("textarea");
+                          textArea.value = textToCopy;
+                          textArea.style.position = "fixed";
+                          textArea.style.left = "-999999px";
+                          document.body.appendChild(textArea);
+                          textArea.focus();
+                          textArea.select();
+                          try { document.execCommand('copy'); } catch (err) {}
+                          document.body.removeChild(textArea);
+                        }
+                        
                         setIsCopied(true);
                         setTimeout(() => setIsCopied(false), 2000);
                       }

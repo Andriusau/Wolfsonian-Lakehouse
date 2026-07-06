@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 interface ImageReaderProps {
   images: string[];
@@ -90,21 +91,31 @@ export default function ImageReader({ images, selectedRecord }: ImageReaderProps
           </button>
         )}
 
-        <img 
-          key={imgSrc} 
-          src={imgSrc}
-          loading="lazy"
-          alt={`${selectedRecord.title || 'Record'} - image ${currentIndex + 1}`}
-          className={`object-contain w-full h-full drop-shadow-2xl z-10 transition-transform duration-500 animate-in fade-in slide-in-from-bottom-2 ${isFullScreen ? 'cursor-zoom-out' : 'cursor-zoom-in hover:scale-[1.02]'}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsFullScreen(!isFullScreen);
-          }}
-          onError={(e: any) => {
-            (e.target as HTMLImageElement).style.display = 'none';
-            (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-          }}
-        />
+        <TransformWrapper
+          disabled={!isFullScreen}
+          wheel={{ step: 0.1 }}
+          doubleClick={{ disabled: true }}
+          minScale={1}
+          maxScale={8}
+        >
+          <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
+            <img 
+              key={imgSrc} 
+              src={imgSrc}
+              loading="lazy"
+              alt={`${selectedRecord.title || 'Record'} - image ${currentIndex + 1}`}
+              className={`object-contain max-w-full max-h-full drop-shadow-2xl z-10 transition-transform duration-500 animate-in fade-in slide-in-from-bottom-2 ${!isFullScreen ? 'cursor-zoom-in hover:scale-[1.02]' : 'cursor-grab active:cursor-grabbing'}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isFullScreen) setIsFullScreen(true);
+              }}
+              onError={(e: any) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+          </TransformComponent>
+        </TransformWrapper>
         
         <div className="absolute hidden inset-0 flex flex-col items-center justify-center bg-mca-black text-slate-600 text-[10px] uppercase font-bold tracking-widest z-0">
           <span>[ NO IMAGE {currentIndex + 1} FOUND ]</span>
