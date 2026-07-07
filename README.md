@@ -54,10 +54,10 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 |---|---|---|---|
 | **Alma** | Ex Libris Library Management | 54,987 | Binary MARC (`.mrc`) parsing via PyMARC & Physical Item (`.csv`) mapping |
 | **Proficio** | Museum Collection Database | 61,010 | Kerberos-authenticated SQL Server via ODBC |
-| **Islandora** | Public Digital Archive | 266,701 | Paginated REST API with concurrent fetching |
+| **Islandora** | Public Digital Archive | 266,814 | Paginated REST API with concurrent fetching |
 | **Unified Gold Catalog** | Merged output | 115,997 | Alma + Proficio aligned and concatenated |
 | **Normalized Gold Catalog** | Analytics-ready output | 115,997 | Harmonized genres, dates, creators & titles |
-| **Digital Images** | NFS Mounted Share | 299,867 | Parallel ingestion and JPEG compression |
+| **Digital Images** | NFS Mounted Share | 332,817 | Parallel ingestion and JPEG compression |
 | **Digital Audio** | NFS Mounted Share | 26 | MP3 caching and metadata mapping |
 
 ---
@@ -213,6 +213,7 @@ graph TD
 
 ```text
 wolf-lakehouse/
+├── archive_scripts/             # Historical or one-off duplicate reports and scripts
 ├── data/                        # The Lakehouse Storage Volume
 │   ├── export/
 │   │   └── workbench_upload.csv
@@ -254,6 +255,7 @@ wolf-lakehouse/
 ├── Dockerfile                   # Builds the Python 3.10 environment + ODBC/Kerberos
 ├── Dockerfile.metabase          # Custom Ubuntu image for Metabase DuckDB support
 ├── Makefile                     # Standardized execution entrypoint commands
+├── nginx.conf                   # Nginx config for optimized media serving
 ├── etl-pipelines/               # Core Extraction & Transformation Microservices
 │   ├── add_has_image_col.py
 │   ├── build_duckdb_views.py
@@ -278,6 +280,7 @@ wolf-lakehouse/
 │   ├── transform_alma_raw.py
 │   ├── transform_alma_silver.py
 │   └── transform_proficio_silver.py
+├── log-alerter/                 # Custom Python microservice for SMTP error notifications
 ├── frontend-explorer/           # Next.js web application for data exploration
 │   ├── src/                     # Source code (Next.js App router, components, hooks)
 │   ├── public/                  # Static icons and assets
