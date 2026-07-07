@@ -43,3 +43,7 @@ logs-frontend:
 # Manually trigger the pipeline to run immediately
 run-pipeline:
 	docker compose run --rm lakehouse
+
+# Run the cleanup script to remove old reports
+cleanup-reports:
+	docker compose run --rm lakehouse python etl-pipelines/cleanup_reports.py
