@@ -64,6 +64,42 @@ export default function Home() {
   const [sharedCollectionIds, setSharedCollectionIds] = useState<string[]>([]);
   const [isCopied, setIsCopied] = useState(false);
 
+  const [uploadedIdentifiers, setUploadedIdentifiers] = useState<string[]>(() => getInitialState('mca_uploaded_ids', []));
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target?.result as string;
+      if (text) {
+        const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        if (lines.length === 0) return;
+        
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        let idIndex = headers.indexOf('field_identifier');
+        let startIndex = 1;
+        
+        if (idIndex === -1) {
+          idIndex = 0;
+          startIndex = headers[0].toLowerCase() === 'id' || headers[0].toLowerCase().includes('identifier') ? 1 : 0;
+        }
+        
+        const extractedIds: string[] = [];
+        for (let i = startIndex; i < lines.length; i++) {
+          const columns = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+          if (columns.length > idIndex && columns[idIndex]) {
+            extractedIds.push(columns[idIndex]);
+          }
+        }
+        setUploadedIdentifiers(extractedIds);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
+
   // Collection State
   const { collection, isLoaded, addItem, removeItem, clearCollection, isInCollection, exportCsv } = useCollection();
   const [isCollectionModalOpen, setIsCollectionModalOpen] = useState(false);
@@ -94,11 +130,21 @@ export default function Home() {
         window.sessionStorage.setItem('mca_search_results', JSON.stringify(results));
         window.sessionStorage.setItem('mca_search_totalCount', JSON.stringify(totalCount));
         window.sessionStorage.setItem('mca_search_filteredCount', JSON.stringify(filteredCount));
+        window.sessionStorage.setItem('mca_uploaded_ids', JSON.stringify(uploadedIdentifiers));
       } catch (e) {
         console.error("Error saving to sessionStorage", e);
       }
     }
-  }, [searchTerm, selectedSystem, selectedGenre, hasImageOnly, hasAudioOnly, selectedCreator, selectedSubject, selectedPlace, minYear, maxYear, selectedDecade, page, results, totalCount, filteredCount]);
+  }, [searchTerm, selectedSystem, selectedGenre, hasImageOnly, hasAudioOnly, selectedCreator, selectedSubject, selectedPlace, minYear, maxYear, selectedDecade, page, results, totalCount, filteredCount, uploadedIdentifiers]);
+
+  const isInitialUploadMount = useRef(true);
+  useEffect(() => {
+    if (isInitialUploadMount.current) {
+      isInitialUploadMount.current = false;
+      return;
+    }
+    executeNewSearch();
+  }, [uploadedIdentifiers]);
 
   useEffect(() => {
     if (isReady) {
@@ -198,6 +244,10 @@ export default function Home() {
         const escapedIds = sharedIds.map(id => `'${id.replace(/'/g, "''")}'`).join(',');
         whereClause = `WHERE field_identifier IN (${escapedIds})`;
       } else {
+      if (uploadedIdentifiers.length > 0) {
+        const escapedIds = uploadedIdentifiers.map(id => `'${id.replace(/'/g, "''")}'`).join(',');
+        whereClause += ` AND field_identifier IN (${escapedIds})`;
+      }
       if (searchTerm) {
         let sqlCondition = "";
         if (/\b(AND|OR|NOT)\b/i.test(searchTerm)) {
@@ -455,6 +505,34 @@ export default function Home() {
               <span className="text-[10px] text-slate-300 uppercase font-bold tracking-widest pl-2">
                 * Exact accession numbers or field identifiers will be prioritized at the top of results
               </span>
+              <div className="pl-2 mt-4 flex flex-col items-start gap-2 border-t border-white/20 pt-4">
+                <div className="flex flex-row items-center gap-4">
+                  <input type="file" accept=".csv" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-[10px] font-bold tracking-widest uppercase bg-mca-black border border-white hover:bg-white hover:text-black transition-colors px-4 py-2 flex items-center gap-2"
+                  >
+                    <span>[UPLOAD CSV TO FILTER]</span>
+                  </button>
+                  
+                  {uploadedIdentifiers.length > 0 && (
+                    <div className="flex items-center gap-3 bg-mca-cyan/10 border border-mca-cyan px-3 py-1">
+                      <span className="text-[10px] text-mca-cyan font-bold tracking-widest uppercase">
+                        ACTIVE: {uploadedIdentifiers.length} RECORDS
+                      </span>
+                      <button 
+                        onClick={() => setUploadedIdentifiers([])}
+                        className="text-[10px] text-mca-yellow hover:text-white uppercase font-bold tracking-widest border-l border-mca-cyan/30 pl-3"
+                      >
+                        [ CLEAR ]
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest max-w-3xl leading-relaxed mt-1">
+                  * BULK FILTER: UPLOAD ANY CSV FILE CONTAINING A "FIELD_IDENTIFIER" COLUMN TO INSTANTLY FILTER THE CATALOG DOWN TO YOUR SPECIFIC LIST OF ITEMS.
+                </span>
+              </div>
             </div>
             
             <button 
