@@ -79,6 +79,14 @@ export function useCollection() {
     return collection.some((i) => i.field_identifier === identifier);
   };
 
+  const addItems = (items: any[]) => {
+    const existingIds = new Set(collection.map((i) => i.field_identifier));
+    const newItems = items.filter(item => !existingIds.has(item.field_identifier));
+    if (newItems.length > 0) {
+      updateCollection([...collection, ...newItems]);
+    }
+  };
+
   const exportCsv = () => {
     if (collection.length === 0) return;
     
@@ -143,6 +151,7 @@ export function useCollection() {
     removeItem,
     clearCollection,
     isInCollection,
+    addItems,
     exportCsv
   };
 }

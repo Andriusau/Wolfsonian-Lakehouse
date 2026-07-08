@@ -101,12 +101,40 @@ export default function Home() {
   };
 
   // Collection State
-  const { collection, isLoaded, addItem, removeItem, clearCollection, isInCollection, exportCsv } = useCollection();
+  const { collection, isLoaded, addItem, removeItem, clearCollection, isInCollection, addItems, exportCsv } = useCollection();
   const [isCollectionModalOpen, setIsCollectionModalOpen] = useState(false);
+
+  const [activeWhereClause, setActiveWhereClause] = useState<string>("WHERE 1=1");
+  const [isSavingAll, setIsSavingAll] = useState(false);
 
   const executeNewSearch = () => {
     setPage(1);
     handleSearch(1);
+  };
+
+  const handleSaveAllResults = async () => {
+    if (filteredCount > 1000) {
+      alert(`Cannot save ${filteredCount.toLocaleString()} items at once. Please filter your results down to 1,000 items or fewer before saving all.`);
+      return;
+    }
+    
+    setIsSavingAll(true);
+    try {
+      const dataQuery = `
+        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, field_subject, field_place_published, field_edtf_date_created
+        FROM catalog 
+        ${activeWhereClause}
+      `;
+      const allData = await runQuery(dataQuery);
+      if (allData && allData.length > 0) {
+        addItems(allData);
+      }
+    } catch (e) {
+      console.error("Failed to save all results", e);
+      alert("Failed to save all results. See console for details.");
+    } finally {
+      setIsSavingAll(false);
+    }
   };
 
   const isInitialMount = useRef(true);
@@ -306,6 +334,8 @@ export default function Home() {
       if (minYear && !isNaN(parseInt(minYear))) whereClause += ` AND year_created >= ${parseInt(minYear)}`;
       if (maxYear && !isNaN(parseInt(maxYear))) whereClause += ` AND year_created <= ${parseInt(maxYear)}`;
       }
+      
+      setActiveWhereClause(whereClause);
       
       const limit = 48;
       const offset = (targetPage - 1) * limit;
@@ -819,9 +849,20 @@ export default function Home() {
             <h2 className="text-white font-bold tracking-widest text-sm uppercase">
               RESULTS GRID
             </h2>
-            <div className="text-mca-cyan font-mono text-xs uppercase tracking-widest bg-mca-cyan/10 px-3 py-1.5 border border-mca-cyan/20">
-              <span className="font-bold text-white mr-2">{isReady ? filteredCount.toLocaleString() : '---'}</span> 
-              MATCHES FOUND
+            <div className="flex items-center gap-4">
+              {results.length > 0 && (
+                <button 
+                  onClick={handleSaveAllResults}
+                  disabled={isSavingAll || filteredCount === 0}
+                  className="text-[10px] font-bold tracking-widest uppercase border border-mca-yellow text-mca-yellow hover:bg-mca-yellow hover:text-mca-black transition-colors px-3 py-1.5 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-mca-yellow whitespace-nowrap"
+                >
+                  {isSavingAll ? "[ SAVING... ]" : "[ SAVE ALL RESULTS TO COLLECTION ]"}
+                </button>
+              )}
+              <div className="text-mca-cyan font-mono text-xs uppercase tracking-widest bg-mca-cyan/10 px-3 py-1.5 border border-mca-cyan/20">
+                <span className="font-bold text-white mr-2">{isReady ? filteredCount.toLocaleString() : '---'}</span> 
+                MATCHES FOUND
+              </div>
             </div>
           </div>
           {loading ? (
