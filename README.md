@@ -77,6 +77,8 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 * **Cross-System Deduplication:** Dynamically reconciles identifiers between Library (Alma) and Museum (Proficio) catalogs, natively handling Alma's semicolon-separated multi-accession numbers to prioritize Museum records. A reporting script automatically generates exact collision matches for manual staff review on every pipeline run.
 * **Native Workflow Orchestration:** The pipeline execution is managed natively by Prefect. The core logic operates as a 20-node Directed Acyclic Graph (DAG) using direct function imports. This ensures stateful execution, robust exception handling, and highly granular task-level monitoring via the Prefect dashboard without relying on fragile sub-shells.
 * **Automated Uptime & Error Alerting:** A dedicated Uptime Kuma container continuously tracks the health of all web and orchestration endpoints. Alongside this, a custom local Python microservice continuously tails the Docker logs, instantly dispatching SMTP email alerts to the team if any container throws a critical error or exception.
+* **Bulk CSV Filtering:** The frontend explorer natively supports bulk CSV uploads. Staff can upload an arbitrary list of accession numbers or field identifiers, which the browser instantly parses and translates into a dynamic DuckDB `IN` clause, enabling hyper-specific batch filtering.
+* **Batch Collection Curation:** Users can execute complex search queries (or bulk CSV filters) and instantly save up to 1,000 matching results to their personal "Saved Collection" with a single click, completely eliminating manual curation bottlenecks.
 
 ---
 
@@ -200,6 +202,8 @@ graph TD
 * **Smart Fallback Identifiers:** Seamlessly handles untitled items by safely falling back to their Accession Number, ensuring every record remains identifiable.
 
 **Staff & Researcher Tools**
+* **Bulk CSV Filtering:** The frontend explorer natively supports bulk CSV uploads. Staff and researchers can upload an arbitrary list of accession numbers or field identifiers, which the browser instantly parses and translates into a dynamic DuckDB `IN` clause, enabling hyper-specific batch filtering.
+* **Batch Collection Curation:** Staff and researchers can execute complex search queries (or bulk CSV filters) and instantly save up to 1,000 matching results to their personal "Saved Collection" with a single click, completely eliminating manual curation bottlenecks.
 * **Browser-Native Staff Collections:** Staff can curate custom lists of catalog records directly within their browser memory (`localStorage`), allowing them to build research sets without ever needing to log in or create an account. It features advanced BigInt serialization to safely handle DuckDB WASM's 64-bit integer properties natively within the browser caching system.
 * **Shareable Collection Links:** Users can instantly generate a custom serverless URL containing their curated item IDs, allowing them to share curated galleries with colleagues with zero backend architecture. 
 * **CSV Export Engine:** With a single click, users can instantly export their curated collections into a formatted spreadsheet. The export natively injects `=IMAGE("url")` formulas to instantly render high-res thumbnail previews directly inside Google Sheets and Excel cells alongside the metadata.
