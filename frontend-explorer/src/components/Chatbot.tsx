@@ -148,14 +148,14 @@ export default function Chatbot() {
       {/* Toggle Button */}
       <button 
         onClick={handleOpen}
-        className={`fixed bottom-6 right-6 z-50 bg-mca-cyan text-mca-black font-black tracking-widest px-6 py-4 border-2 border-mca-cyan hover:bg-mca-black hover:text-mca-cyan transition-colors text-sm uppercase shadow-lg ${isOpen ? 'hidden' : 'block'}`}
+        className={`fixed bottom-6 right-6 z-50 bg-mca-cyan text-mca-black font-black tracking-widest px-6 py-4 border-2 border-mca-cyan hover:bg-mca-black hover:text-mca-cyan transition-colors text-sm uppercase shadow-lg print:hidden ${isOpen ? 'hidden' : 'block'}`}
       >
         CHAT WITH LAKEHOUSE ASSISTANT
       </button>
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-[22rem] sm:w-96 h-[32rem] bg-mca-dark border-2 border-white z-50 flex flex-col shadow-[8px_8px_0_0_#00FFFF]">
+        <div className="fixed bottom-6 right-6 w-[22rem] sm:w-96 h-[32rem] bg-mca-dark border-2 border-white z-50 flex flex-col shadow-[8px_8px_0_0_#00FFFF] print:hidden">
           {/* Header */}
           <div className="flex justify-between items-center p-4 border-b-2 border-white bg-mca-black">
             <h2 className="font-black tracking-widest text-white uppercase">LAKEHOUSE ASSISTANT (DB)</h2>
