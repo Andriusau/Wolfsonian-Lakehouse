@@ -74,21 +74,69 @@ export default function Home() {
     reader.onload = (event) => {
       const text = event.target?.result as string;
       if (text) {
-        const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-        if (lines.length === 0) return;
+        let lines: string[] = [];
+        let currentLine = "";
+        let inQuotes = false;
         
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          }
+          if ((char === '\n' || char === '\r') && !inQuotes) {
+            if (char === '\r' && text[i+1] === '\n') {
+              i++;
+            }
+            if (currentLine.trim().length > 0) {
+              lines.push(currentLine.trim());
+            }
+            currentLine = "";
+          } else {
+            currentLine += char;
+          }
+        }
+        if (currentLine.trim().length > 0) {
+          lines.push(currentLine.trim());
+        }
+
+        if (lines.length === 0) return;
+
+        const parseCSVLine = (line: string) => {
+          const result = [];
+          let current = '';
+          let inQ = false;
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+              if (inQ && line[i + 1] === '"') {
+                current += '"';
+                i++;
+              } else {
+                inQ = !inQ;
+              }
+            } else if (char === ',' && !inQ) {
+              result.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          result.push(current.trim());
+          return result;
+        };
+        
+        const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
         let idIndex = headers.indexOf('field_identifier');
         let startIndex = 1;
         
         if (idIndex === -1) {
           idIndex = 0;
-          startIndex = headers[0].toLowerCase() === 'id' || headers[0].toLowerCase().includes('identifier') ? 1 : 0;
+          startIndex = headers[0] === 'id' || headers[0].includes('identifier') ? 1 : 0;
         }
         
         const extractedIds: string[] = [];
         for (let i = startIndex; i < lines.length; i++) {
-          const columns = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+          const columns = parseCSVLine(lines[i]);
           if (columns.length > idIndex && columns[idIndex]) {
             extractedIds.push(columns[idIndex]);
           }
@@ -273,8 +321,8 @@ export default function Home() {
         whereClause = `WHERE field_identifier IN (${escapedIds})`;
       } else {
       if (uploadedIdentifiers.length > 0) {
-        const escapedIds = uploadedIdentifiers.map(id => `'${id.replace(/'/g, "''")}'`).join(',');
-        whereClause += ` AND field_identifier IN (${escapedIds})`;
+        const escapedIds = uploadedIdentifiers.map(id => `'${id.replace(/'/g, "''").toLowerCase()}'`).join(',');
+        whereClause += ` AND lower(field_identifier) IN (${escapedIds})`;
       }
       if (searchTerm) {
         let sqlCondition = "";
