@@ -144,6 +144,12 @@ export function useCollection() {
     document.body.removeChild(link);
   };
 
+  const exportPdf = () => {
+    if (collection.length === 0) return;
+    // Open the new /exhibit-catalog route which handles the print formatting
+    window.open('/exhibit-catalog', '_blank');
+  };
+
   return {
     collection,
     isLoaded,
@@ -152,6 +158,7 @@ export function useCollection() {
     clearCollection,
     isInCollection,
     addItems,
-    exportCsv
+    exportCsv,
+    exportPdf
   };
 }

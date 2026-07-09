@@ -149,7 +149,7 @@ export default function Home() {
   };
 
   // Collection State
-  const { collection, isLoaded, addItem, removeItem, clearCollection, isInCollection, addItems, exportCsv } = useCollection();
+  const { collection, isLoaded, addItem, removeItem, clearCollection, isInCollection, addItems, exportCsv, exportPdf } = useCollection();
   const [isCollectionModalOpen, setIsCollectionModalOpen] = useState(false);
 
   const [activeWhereClause, setActiveWhereClause] = useState<string>("WHERE 1=1");
@@ -1174,6 +1174,12 @@ export default function Home() {
                     className="bg-mca-yellow text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-mca-yellow hover:bg-transparent hover:text-mca-yellow transition-colors text-sm"
                   >
                     [⬇] EXPORT CSV
+                  </button>
+                  <button 
+                    onClick={exportPdf}
+                    className="bg-white text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-white hover:bg-transparent hover:text-white transition-colors text-sm"
+                  >
+                    [📄] PDF CURATED LIST
                   </button>
                   <button 
                     onClick={clearCollection}
