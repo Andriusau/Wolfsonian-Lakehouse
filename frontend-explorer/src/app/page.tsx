@@ -1113,7 +1113,7 @@ export default function Home() {
       </div>
       {/* Footer */}
       <footer className="border-t border-white/10 mt-auto">
-        <div className="w-full px-6 md:px-12 2xl:px-24 py-6 flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-slate-600">
+        <div className="w-full px-6 md:px-12 2xl:px-24 py-6 flex flex-col md:flex-row items-center md:justify-start gap-4 md:gap-12 text-[10px] font-mono uppercase tracking-widest text-slate-600">
           <span>Wolfsonian-FIU Collection Data Lakehouse</span>
           <span>Built by <span className="text-slate-400">Andrius Aukstuolis</span></span>
         </div>
