@@ -35,7 +35,7 @@ The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transf
 In addition to the data pipeline, the project features a powerful **Frontend Explorer**—a serverless, zero-latency web application built with Next.js and DuckDB WebAssembly. This custom interface directly queries the compressed Parquet data right inside the user's browser, allowing staff, researchers, and the public to visually search, filter, and curate collections across all 116,000+ unified library and museum records without the need for expensive database hosting or backend architecture.
 
 ## 🏗️ Architecture & Tech Stack
-* **Orchestration:** Prefect 3 (Native 20-Node DAG), Docker Compose, and Make
+* **Orchestration:** Prefect 3 (Native 21-Node DAG), Docker Compose, and Make
 * **Data Extraction:** Python 3.10 (Pandas, PyArrow, requests, pymarc) with strictly pinned dependencies for deterministic builds.
 * **Database Connectivity:** SQLAlchemy, pyodbc (ODBC Driver 18 for SQL Server)
 * **Authentication:** Automated Kerberos (`kinit`) integration inside containers
@@ -44,7 +44,7 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 * **Frontend Explorer:** Next.js, React, TailwindCSS, TypeScript
 * **AI/LLM Integration:** Google Gemini API (`@google/generative-ai`) with DuckDB-driven Hybrid RAG
 * **Data Pattern:** Medallion Architecture with Incremental Delta Merges (Upserts) and QA Quarantine.
-* **Monitoring & Alerting:** Uptime Kuma for service health, custom Python Log Alerter for SMTP error notifications, and structured logging.
+* **Monitoring & Alerting:** Uptime Kuma for service health, custom Python Log Alerter for SMTP error notifications, structured logging, and automated Google Analytics ingestion for frontend traffic monitoring.
 
 ---
 
@@ -59,6 +59,7 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 | **Normalized Gold Catalog** | Analytics-ready output | 116,050 | Harmonized genres, dates, creators & titles |
 | **Digital Images** | NFS Mounted Share | 335,070 | Parallel ingestion and JPEG compression |
 | **Digital Audio** | NFS Mounted Share | 26 | MP3 caching and metadata mapping |
+| **Google Analytics** | GA4 Data API | Dynamic | Automated extraction of website traffic metrics |
 
 ---
 
@@ -75,8 +76,9 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 * **Automated Audio Ingestion:** Recursively scans the `Islandora_Audio` network drive to ingest, parse, and map `.mp3` and `.wav` audio files directly to unified catalog identifiers using high-performance, memory-optimized multi-threading.
 * **Storage Protection & Web Resizing:** Converts large ~10MB+ TIFFs into highly compressed JPEGs restricted to a maximum of 1200px on the longest side and saved at quality 80. This reduces file size by ~20x-50x (down to ~200KB per image), allowing the full ~56k image catalog to fit in less than 13GB of local disk space while drastically accelerating webpage loading times.
 * **Cross-System Deduplication:** Dynamically reconciles identifiers between Library (Alma) and Museum (Proficio) catalogs, natively handling Alma's semicolon-separated multi-accession numbers to prioritize Museum records. A reporting script automatically generates exact collision matches for manual staff review on every pipeline run.
-* **Native Workflow Orchestration:** The pipeline execution is managed natively by Prefect. The core logic operates as a 20-node Directed Acyclic Graph (DAG) using direct function imports. This ensures stateful execution, robust exception handling, and highly granular task-level monitoring via the Prefect dashboard without relying on fragile sub-shells.
+* **Native Workflow Orchestration:** The pipeline execution is managed natively by Prefect. The core logic operates as a 21-node Directed Acyclic Graph (DAG) using direct function imports, which now seamlessly integrates external API data (like Google Analytics web traffic) alongside internal database extracts. This ensures stateful execution, robust exception handling, and highly granular task-level monitoring via the Prefect dashboard without relying on fragile sub-shells.
 * **Automated Uptime & Error Alerting:** A dedicated Uptime Kuma container continuously tracks the health of all web and orchestration endpoints. Alongside this, a custom local Python microservice continuously tails the Docker logs, instantly dispatching SMTP email alerts to the team if any container throws a critical error or exception.
+* **Automated Website Traffic Analytics:** Connects securely to the Google Analytics 4 Data API to incrementally fetch frontend explorer traffic (users, sessions, page views) and stores it natively inside the Lakehouse for unified BI dashboarding in Metabase.
 * **Bulk CSV Filtering:** The frontend explorer natively supports bulk CSV uploads. Staff can upload an arbitrary list of accession numbers or field identifiers, which the browser instantly parses and translates into a dynamic DuckDB `IN` clause, enabling hyper-specific batch filtering.
 * **Batch Collection Curation:** Users can execute complex search queries (or bulk CSV filters) and instantly save up to 1,000 matching results to their personal "Saved Collection" with a single click, completely eliminating manual curation bottlenecks.
 
@@ -92,6 +94,7 @@ graph TD
         PR[Extract Proficio Raw]
         IR[Extract Islandora Raw]
         AR[Extract Alma Raw]
+        GA[Extract Google Analytics]
     end
 
     subgraph phase2 ["2. Silver Phase"]
@@ -160,6 +163,7 @@ graph TD
         SM --> DB
         CA --> DB
         IA --> DB
+        GA --> DB
         
         NC --> PI
         PI --> PA
@@ -226,6 +230,7 @@ wolf-lakehouse/
 │   │   ├── alma_workbench_export.csv
 │   │   ├── comparison_proficio.parquet
 │   │   ├── duplicates_report_YYYYMMDD_HHMMSS.csv
+│   │   ├── ga4_metrics.parquet  # Extracted Google Analytics traffic data
 │   │   ├── images/              # Local storage for web-optimized JPEGs
 │   │   ├── missing_objects.parquet
 │   │   ├── proficio_qa_failures.parquet
@@ -259,6 +264,7 @@ wolf-lakehouse/
 ├── docker-compose.yml           # The Master Switch for orchestration
 ├── Dockerfile                   # Builds the Python 3.10 environment + ODBC/Kerberos
 ├── Dockerfile.metabase          # Custom Ubuntu image for Metabase DuckDB support
+├── ga4_credentials.json         # Google Analytics Data API Service Account
 ├── Makefile                     # Standardized execution entrypoint commands
 ├── nginx.conf                   # Nginx config for optimized media serving
 ├── etl-pipelines/               # Core Extraction & Transformation Microservices
@@ -275,6 +281,7 @@ wolf-lakehouse/
 │   ├── export_gold_unified_catalog.py
 │   ├── export_proficio_to_workbench.py
 │   ├── extract_alma_raw.py
+│   ├── extract_google_analytics.py
 │   ├── extract_islandora_raw.py
 │   ├── extract_proficio_raw.py
 │   ├── isolate_proficio_qa_failures.py
