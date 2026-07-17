@@ -91,6 +91,16 @@ export default function KreismanCollection() {
             <p className="text-gray-400 text-lg md:text-xl font-light leading-relaxed max-w-2xl mx-auto">
               A curated exhibition featuring {isReady ? totalCount.toLocaleString() : '---'} exquisite archival artifacts and museum objects, meticulously preserved and digitized for public discovery.
             </p>
+
+            <div className="pt-4">
+              <Link 
+                href="/kreisman/memory" 
+                className="inline-flex items-center gap-3 px-8 py-4 bg-mca-cyan text-black font-bold font-mono tracking-widest uppercase hover:bg-white hover:scale-105 transition-all duration-300"
+              >
+                <span>Play Memory Match Game</span>
+                <span>→</span>
+              </Link>
+            </div>
           </div>
         </header>
 
