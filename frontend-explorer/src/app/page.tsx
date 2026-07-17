@@ -549,6 +549,25 @@ export default function Home() {
           <p className="text-slate-400 text-sm md:text-base font-sans max-w-2xl font-light leading-relaxed">
             A serverless web explorer querying clean catalog metadata directly in your browser. Powered by DuckDB WebAssembly to scan local Parquet storage at client runtime.
           </p>
+
+          <Link href="/kreisman" className="block mt-8 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2">
+                <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
+                  Featured Digital Exhibition
+                </div>
+                <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors">
+                  The Kreisman Collection
+                </h2>
+                <p className="text-sm font-sans text-gray-400 font-light max-w-xl">
+                  Explore 789 meticulously preserved archival artifacts and museum objects.
+                </p>
+              </div>
+              <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full border border-mca-cyan/50 text-mca-cyan group-hover:bg-mca-cyan group-hover:text-mca-black transition-all">
+                →
+              </div>
+            </div>
+          </Link>
         </header>
 
         {/* Database Error Banner */}
