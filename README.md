@@ -8,7 +8,7 @@
   [![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED.svg)](#)
   [![DuckDB](https://img.shields.io/badge/DuckDB-OLAP-yellow.svg)](#)
   [![Data](https://img.shields.io/badge/Architecture-Medallion-brightgreen.svg)](#)
-  [![Records](https://img.shields.io/badge/Unified%20Catalog-115k%2B%20Records-orange.svg)](#)
+  [![Records](https://img.shields.io/badge/Unified%20Catalog-116k%2B%20Records-orange.svg)](#)
 </div>
 
 ---
@@ -32,7 +32,7 @@
 ## 🧐 About the Project
 The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transform) pipeline designed to unify disparate data sources into a single, high-performance analytics layer. It extracts data from APIs, legacy SQL Server databases, and binary MARC files, staging them as raw Parquet files before transforming them into a clean, "Gold" standard layer for downstream systems like Workbench and Metabase.
 
-In addition to the data pipeline, the project features a powerful **Frontend Explorer**—a serverless, zero-latency web application built with Next.js and DuckDB WebAssembly. This custom interface directly queries the compressed Parquet data right inside the user's browser, allowing staff, researchers, and the public to visually search, filter, and curate collections across all 115,000+ unified library and museum records without the need for expensive database hosting or backend architecture.
+In addition to the data pipeline, the project features a powerful **Frontend Explorer**—a serverless, zero-latency web application built with Next.js and DuckDB WebAssembly. This custom interface directly queries the compressed Parquet data right inside the user's browser, allowing staff, researchers, and the public to visually search, filter, and curate collections across all 116,000+ unified library and museum records without the need for expensive database hosting or backend architecture.
 
 ## 🏗️ Architecture & Tech Stack
 * **Orchestration:** Prefect 3 (Native 20-Node DAG), Docker Compose, and Make
@@ -52,12 +52,12 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 
 | Source | System | Records | Method |
 |---|---|---|---|
-| **Alma** | Ex Libris Library Management | 54,987 | Binary MARC (`.mrc`) parsing via PyMARC & Physical Item (`.csv`) mapping |
-| **Proficio** | Museum Collection Database | 61,010 | Kerberos-authenticated SQL Server via ODBC |
-| **Islandora** | Public Digital Archive | 266,814 | Paginated REST API with concurrent fetching |
-| **Unified Gold Catalog** | Merged output | 115,997 | Alma + Proficio aligned and concatenated |
-| **Normalized Gold Catalog** | Analytics-ready output | 115,997 | Harmonized genres, dates, creators & titles |
-| **Digital Images** | NFS Mounted Share | 332,817 | Parallel ingestion and JPEG compression |
+| **Alma** | Ex Libris Library Management | 55,035 | Binary MARC (`.mrc`) parsing via PyMARC & Physical Item (`.csv`) mapping |
+| **Proficio** | Museum Collection Database | 61,015 | Kerberos-authenticated SQL Server via ODBC |
+| **Islandora** | Public Digital Archive | 267,007 | Paginated REST API with concurrent fetching |
+| **Unified Gold Catalog** | Merged output | 116,050 | Alma + Proficio aligned and concatenated |
+| **Normalized Gold Catalog** | Analytics-ready output | 116,050 | Harmonized genres, dates, creators & titles |
+| **Digital Images** | NFS Mounted Share | 335,070 | Parallel ingestion and JPEG compression |
 | **Digital Audio** | NFS Mounted Share | 26 | MP3 caching and metadata mapping |
 
 ---
