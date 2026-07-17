@@ -20,6 +20,8 @@ export const metadata: Metadata = {
 import Chatbot from "../components/Chatbot";
 import { DuckDBProvider } from "@/providers/DuckDBProvider";
 
+import { GoogleAnalytics } from "@next/third-parties/google";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,6 +38,7 @@ export default function RootLayout({
           <Chatbot />
         </DuckDBProvider>
       </body>
+      {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
     </html>
   );
 }
