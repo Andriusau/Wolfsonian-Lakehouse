@@ -12,6 +12,8 @@ export default function ArtSwipePage() {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
     const [animating, setAnimating] = useState<"left" | "right" | null>(null);
+    const [likedCards, setLikedCards] = useState<any[]>([]);
+    const [saved, setSaved] = useState(false);
 
     useEffect(() => {
         const fetchCards = async () => {
@@ -36,10 +38,10 @@ export default function ArtSwipePage() {
         
         if (decision === "save") {
             setAnimating("right");
-            addItem({
+            setLikedCards(prev => [...prev, {
                 ...cards[currentIndex],
                 has_image: true
-            });
+            }]);
         } else {
             setAnimating("left");
         }
@@ -58,11 +60,57 @@ export default function ArtSwipePage() {
         return (
             <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white p-6 text-center">
                 <h1 className="text-4xl md:text-6xl font-display font-black mb-4 uppercase tracking-tighter">Deck Complete</h1>
-                <p className="text-gray-400 mb-12 max-w-md font-sans text-lg">You've swiped through 20 artifacts. Check out your saved collection or draw a new deck!</p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <button onClick={() => window.location.reload()} className="px-8 py-4 border border-white/20 hover:border-white hover:bg-white/10 transition-colors font-mono uppercase tracking-widest text-sm">Draw New Deck</button>
-                    <Link href="/" className="px-8 py-4 border border-mca-cyan text-mca-cyan hover:bg-mca-cyan hover:text-black transition-colors font-mono uppercase tracking-widest text-sm font-bold">Back to Home</Link>
-                </div>
+                
+                {likedCards.length > 0 ? (
+                    <>
+                        {saved ? (
+                            <p className="text-mca-cyan mb-8 max-w-md font-sans text-lg">
+                                Successfully saved {likedCards.length} artifacts to your collection!
+                            </p>
+                        ) : (
+                            <p className="text-gray-400 mb-8 max-w-md font-sans text-lg">
+                                You found <span className="text-mca-cyan font-bold">{likedCards.length}</span> artifacts you loved! Would you like to save them to your permanent collection?
+                            </p>
+                        )}
+                        
+                        <div className="flex flex-wrap justify-center gap-3 mb-12 max-w-2xl px-4">
+                            {likedCards.map((card, i) => (
+                                <img 
+                                    key={i}
+                                    src={`https://lakehouse.wolfsonian.org/images/${card.field_identifier.split(';')[0].trim()}.jpg`}
+                                    className="w-16 h-16 md:w-20 md:h-20 object-cover border border-white/20 rounded-xl"
+                                    alt="Liked artifact"
+                                />
+                            ))}
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            {!saved && (
+                                <button 
+                                    onClick={() => {
+                                        likedCards.forEach(c => addItem(c));
+                                        setSaved(true);
+                                    }} 
+                                    className="px-8 py-4 bg-mca-cyan text-black hover:bg-mca-cyan/80 transition-colors font-mono uppercase tracking-widest text-sm font-bold"
+                                >
+                                    Save to Collection
+                                </button>
+                            )}
+                            <button onClick={() => window.location.reload()} className="px-8 py-4 border border-white/20 hover:border-white hover:bg-white/10 transition-colors font-mono uppercase tracking-widest text-sm">Draw New Deck</button>
+                            {saved && (
+                                <Link href="/" className="px-8 py-4 border border-mca-cyan text-mca-cyan hover:bg-mca-cyan hover:text-black transition-colors font-mono uppercase tracking-widest text-sm font-bold">Back to Home</Link>
+                            )}
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <p className="text-gray-400 mb-12 max-w-md font-sans text-lg">You swiped through 20 artifacts but didn't find any favorites this time.</p>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <button onClick={() => window.location.reload()} className="px-8 py-4 border border-white/20 hover:border-white hover:bg-white/10 transition-colors font-mono uppercase tracking-widest text-sm">Draw New Deck</button>
+                            <Link href="/" className="px-8 py-4 border border-mca-cyan text-mca-cyan hover:bg-mca-cyan hover:text-black transition-colors font-mono uppercase tracking-widest text-sm font-bold">Back to Home</Link>
+                        </div>
+                    </>
+                )}
             </div>
         );
     }
