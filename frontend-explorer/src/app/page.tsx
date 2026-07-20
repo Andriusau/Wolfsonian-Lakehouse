@@ -397,17 +397,21 @@ export default function Home() {
           if (termsToScore.length > 0) {
               const exactMatchScore = termsToScore.map((term: string) => {
                   const escapedTerm = term.replace(/(^"|"$)/g, '').replace(/'/g, "''").toLowerCase();
-                  return `(CASE 
-                      WHEN lower(field_identifier) = '${escapedTerm}' THEN 3 
-                      WHEN lower(field_identifier) LIKE '${escapedTerm};%' THEN 2 
-                      WHEN lower(field_identifier) LIKE '%; ${escapedTerm};%' THEN 2 
-                      WHEN lower(field_identifier) LIKE '%; ${escapedTerm}' THEN 2 
-                      WHEN lower(field_identifier) LIKE '%;${escapedTerm};%' THEN 2 
-                      WHEN lower(field_identifier) LIKE '%;${escapedTerm}' THEN 2 
-                      ELSE 0 
-                  END)`;
+                  return `(
+                      (CASE WHEN lower(field_identifier) = '${escapedTerm}' THEN 1000 ELSE 0 END) +
+                      (CASE WHEN lower(field_identifier) LIKE '%${escapedTerm}%' THEN 2 ELSE 0 END) +
+                      (CASE WHEN lower(title) LIKE '%${escapedTerm}%' THEN 5 ELSE 0 END) +
+                      (CASE WHEN lower(field_genre) LIKE '%${escapedTerm}%' THEN 4.5 ELSE 0 END) +
+                      (CASE WHEN lower(field_linked_agent) LIKE '%${escapedTerm}%' THEN 4 ELSE 0 END) +
+                      (CASE WHEN lower(field_subject) LIKE '%${escapedTerm}%' THEN 3 ELSE 0 END) +
+                      (CASE WHEN lower(search_text) LIKE '%${escapedTerm}%' THEN 1 ELSE 0 END) +
+                      (CASE WHEN lower(field_place_published) LIKE '%${escapedTerm}%' THEN 1 ELSE 0 END) +
+                      (CASE WHEN lower(field_physical_form) LIKE '%${escapedTerm}%' THEN 1 ELSE 0 END) +
+                      (CASE WHEN lower(field_credit_line) LIKE '%${escapedTerm}%' THEN 0.5 ELSE 0 END)
+                  )`;
               }).join(' + ');
-              orderByClause = `ORDER BY (${exactMatchScore}) DESC, has_image DESC, field_identifier ASC`;
+              const qualityBoost = `(CASE WHEN has_image THEN 10 ELSE 0 END)`;
+              orderByClause = `ORDER BY (${exactMatchScore} + ${qualityBoost}) DESC, has_image DESC, field_identifier ASC`;
           }
       }
 
