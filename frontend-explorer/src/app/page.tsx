@@ -552,7 +552,7 @@ export default function Home() {
 
           <Link href="/kreisman" className="block mt-8 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1">
                 <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
                   Featured Digital Exhibition
                 </div>
@@ -562,6 +562,15 @@ export default function Home() {
                 <p className="text-sm font-sans text-gray-400 font-light max-w-xl">
                   Explore meticulously preserved archival artifacts and museum objects.
                 </p>
+              </div>
+              <div className="flex-shrink-0 hidden md:block">
+                <img 
+                  src="https://lakehouse.wolfsonian.org/images/2022.7.563.jpg" 
+                  alt="Featured Kreisman Object" 
+                  className="w-24 h-24 md:w-32 md:h-32 object-contain border border-mca-cyan/30 bg-black/50 p-2 transform group-hover:scale-105 transition-all duration-500"
+                  crossOrigin="anonymous"
+                  loading="lazy"
+                />
               </div>
               <div className="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full border border-mca-cyan/50 text-mca-cyan group-hover:bg-mca-cyan group-hover:text-mca-black transition-all">
                 →
