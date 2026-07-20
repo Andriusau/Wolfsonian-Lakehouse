@@ -16,10 +16,11 @@ export default function ArtSwipePage() {
     useEffect(() => {
         const fetchCards = async () => {
             const query = `
-                SELECT title, field_identifier, field_genre, field_linked_agent, field_edtf_date_created, field_description_long
-                FROM catalog 
-                WHERE has_image = true 
-                USING SAMPLE 20 ROWS
+                SELECT * FROM (
+                    SELECT title, field_identifier, field_genre, field_linked_agent, field_edtf_date_created, field_description_long
+                    FROM catalog 
+                    WHERE has_image = true
+                ) USING SAMPLE 20 ROWS
             `;
             const data = await runQuery(query);
             if (data) {
