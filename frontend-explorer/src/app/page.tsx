@@ -203,7 +203,7 @@ export default function Home() {
         window.sessionStorage.setItem('mca_search_maxYear', JSON.stringify(maxYear));
         window.sessionStorage.setItem('mca_search_decade', JSON.stringify(selectedDecade));
         window.sessionStorage.setItem('mca_search_page', JSON.stringify(page));
-        window.sessionStorage.setItem('mca_search_results', JSON.stringify(results));
+        window.sessionStorage.setItem('mca_search_results', JSON.stringify(results, (key, val) => typeof val === 'bigint' ? val.toString() : val));
         window.sessionStorage.setItem('mca_search_totalCount', JSON.stringify(totalCount));
         window.sessionStorage.setItem('mca_search_filteredCount', JSON.stringify(filteredCount));
         window.sessionStorage.setItem('mca_uploaded_ids', JSON.stringify(uploadedIdentifiers));
@@ -580,9 +580,7 @@ export default function Home() {
                 <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors">
                   The Dodge and Kreisman Collection
                 </h2>
-                <p className="text-sm font-sans text-gray-400 font-light max-w-xl">
-                  Explore thousands of industrial design drawings, architectural blueprints, and vintage advertisements from our recently digitized collection.
-                </p>
+
               </div>
               <div className="flex-shrink-0 hidden md:block">
                 <img 
