@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useDuckDB } from '@/providers/DuckDBProvider';
+import { usePathname } from 'next/navigation';
 
 export default function Chatbot() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { isReady, runQuery } = useDuckDB();
   const [messages, setMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([
@@ -142,6 +144,8 @@ export default function Chatbot() {
     }
     return parts.length > 0 ? parts : content;
   };
+
+  if (pathname === '/art-swipe') return null;
 
   return (
     <>
