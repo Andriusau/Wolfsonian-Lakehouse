@@ -498,8 +498,25 @@ export default function Home() {
     const router = useRouter();
 
   const handleRecordClick = (identifier: string) => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('mca_search_scrollY', window.scrollY.toString());
+    }
     router.push(`/record/${encodeURIComponent(identifier)}`);
-  };;
+  };
+
+  // Restore scroll position after results are initially rendered
+  useEffect(() => {
+    if (results.length > 0) {
+      const savedScrollY = sessionStorage.getItem('mca_search_scrollY');
+      if (savedScrollY) {
+        setTimeout(() => {
+          window.scrollTo({ top: parseInt(savedScrollY), behavior: 'instant' });
+          // Only scroll once, don't keep forcing it if they scroll again
+          sessionStorage.removeItem('mca_search_scrollY');
+        }, 50);
+      }
+    }
+  }, [results.length]); // Wait for results to be populated from sessionStorage
 
   return (
     <div className="min-h-screen bg-mca-black text-white flex flex-col selection:bg-mca-yellow selection:text-mca-black antialiased font-mono">

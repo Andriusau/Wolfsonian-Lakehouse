@@ -21,11 +21,37 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const { collection, isInCollection, addItem, removeItem } = useCollection();
 
+  const [prevRecordId, setPrevRecordId] = useState<string | null>(null);
+  const [nextRecordId, setNextRecordId] = useState<string | null>(null);
+
   useEffect(() => {
     if (isReady) {
       loadRecord();
     }
   }, [isReady, identifier]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedResults = sessionStorage.getItem('mca_search_results');
+        if (savedResults) {
+          const results = JSON.parse(savedResults);
+          const currentIndex = results.findIndex((r: any) => r.field_identifier === identifier);
+          
+          if (currentIndex !== -1) {
+            if (currentIndex > 0) {
+              setPrevRecordId(results[currentIndex - 1].field_identifier);
+            }
+            if (currentIndex < results.length - 1) {
+              setNextRecordId(results[currentIndex + 1].field_identifier);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error parsing saved search results for navigation", e);
+      }
+    }
+  }, [identifier]);
 
   const loadRecord = async () => {
     if (!isReady) return;
@@ -91,9 +117,27 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
       
       {/* Close Button Area */}
       <div className="absolute top-0 right-0 p-6 z-50 flex gap-4">
+        {prevRecordId && (
+          <button 
+            onClick={() => router.push(`/record/${encodeURIComponent(prevRecordId)}`)}
+            className="bg-mca-black text-white font-black uppercase tracking-widest px-4 md:px-6 py-3 border-2 border-white hover:bg-white hover:text-mca-black transition-colors text-sm"
+            title="Previous record in search results"
+          >
+            [&lt;] PREV
+          </button>
+        )}
+        {nextRecordId && (
+          <button 
+            onClick={() => router.push(`/record/${encodeURIComponent(nextRecordId)}`)}
+            className="bg-mca-black text-white font-black uppercase tracking-widest px-4 md:px-6 py-3 border-2 border-white hover:bg-white hover:text-mca-black transition-colors text-sm"
+            title="Next record in search results"
+          >
+            NEXT [&gt;]
+          </button>
+        )}
         <button 
           onClick={() => router.push('/')}
-          className="bg-mca-black text-white font-black uppercase tracking-widest px-6 py-3 border-2 border-white hover:bg-white hover:text-mca-black transition-colors text-sm hidden md:block"
+          className="bg-mca-black text-white font-black uppercase tracking-widest px-6 py-3 border-2 border-white hover:bg-white hover:text-mca-black transition-colors text-sm hidden lg:block"
         >
           [⌂] HOME
         </button>

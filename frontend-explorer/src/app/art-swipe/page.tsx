@@ -15,22 +15,29 @@ export default function ArtSwipePage() {
     const [likedCards, setLikedCards] = useState<any[]>([]);
     const [saved, setSaved] = useState(false);
 
+    const drawNewDeck = async () => {
+        setLoading(true);
+        setCurrentIndex(0);
+        setLikedCards([]);
+        setSaved(false);
+        setAnimating(null);
+        
+        const query = `
+            SELECT * FROM (
+                SELECT title, field_identifier, field_genre, field_linked_agent, field_edtf_date_created, field_description_long
+                FROM catalog 
+                WHERE has_image = true
+            ) USING SAMPLE 20 ROWS
+        `;
+        const data = await runQuery(query);
+        if (data) {
+            setCards(data);
+        }
+        setLoading(false);
+    };
+
     useEffect(() => {
-        const fetchCards = async () => {
-            const query = `
-                SELECT * FROM (
-                    SELECT title, field_identifier, field_genre, field_linked_agent, field_edtf_date_created, field_description_long
-                    FROM catalog 
-                    WHERE has_image = true
-                ) USING SAMPLE 20 ROWS
-            `;
-            const data = await runQuery(query);
-            if (data) {
-                setCards(data);
-            }
-            setLoading(false);
-        };
-        fetchCards();
+        drawNewDeck();
     }, [runQuery]);
 
     const handleDecision = (decision: "save" | "skip") => {
@@ -96,7 +103,7 @@ export default function ArtSwipePage() {
                                     Save to Collection
                                 </button>
                             )}
-                            <button onClick={() => window.location.reload()} className="px-8 py-4 border border-white/20 hover:border-white hover:bg-white/10 transition-colors font-mono uppercase tracking-widest text-sm">Draw New Deck</button>
+                            <button onClick={drawNewDeck} className="px-8 py-4 border border-white/20 hover:border-white hover:bg-white/10 transition-colors font-mono uppercase tracking-widest text-sm">Draw New Deck</button>
                             {saved && (
                                 <Link href="/" className="px-8 py-4 border border-mca-cyan text-mca-cyan hover:bg-mca-cyan hover:text-black transition-colors font-mono uppercase tracking-widest text-sm font-bold">Back to Home</Link>
                             )}
@@ -106,7 +113,7 @@ export default function ArtSwipePage() {
                     <>
                         <p className="text-gray-400 mb-12 max-w-md font-sans text-lg">You swiped through 20 artifacts but didn't find any favorites this time.</p>
                         <div className="flex flex-col sm:flex-row gap-4">
-                            <button onClick={() => window.location.reload()} className="px-8 py-4 border border-white/20 hover:border-white hover:bg-white/10 transition-colors font-mono uppercase tracking-widest text-sm">Draw New Deck</button>
+                            <button onClick={drawNewDeck} className="px-8 py-4 border border-white/20 hover:border-white hover:bg-white/10 transition-colors font-mono uppercase tracking-widest text-sm">Draw New Deck</button>
                             <Link href="/" className="px-8 py-4 border border-mca-cyan text-mca-cyan hover:bg-mca-cyan hover:text-black transition-colors font-mono uppercase tracking-widest text-sm font-bold">Back to Home</Link>
                         </div>
                     </>
