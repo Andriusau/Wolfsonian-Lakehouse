@@ -61,6 +61,9 @@ def main():
     }
     df = df.rename(columns=alma_rename_map)
 
+    # Initialize all Alma records as bibliographic base
+    df['alma_source_type'] = '/raw/alma/bibliographic'
+
     # --- MERGE PHYSICAL ITEMS ---
     RAW_ALMA_PHYS = Path('/app/data/raw/alma/alma_physical_dump.parquet')
     if RAW_ALMA_PHYS.exists():
@@ -88,6 +91,15 @@ def main():
                     return l
                 df['location'] = df['Permanent Physical Location'].apply(map_location)
                 logging.info("✅ Mapped physical location to 'location' column.")
+            
+            # Create alma_source_type flag
+            if 'MMS Record ID' in df.columns:
+                df['alma_source_type'] = df['MMS Record ID'].apply(
+                    lambda x: '/raw/alma/physical' if pd.notna(x) else '/raw/alma/bibliographic'
+                )
+            else:
+                df['alma_source_type'] = '/raw/alma/bibliographic'
+            logging.info("✅ Created alma_source_type flag.")
         except Exception as e:
             logging.error(f"Failed to read/merge physical parquet: {e}")
 
