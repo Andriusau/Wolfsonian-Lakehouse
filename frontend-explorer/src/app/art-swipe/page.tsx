@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export default function ArtSwipePage() {
     const { runQuery } = useDuckDB();
-    const { addItem } = useCollection();
+    const { addItem, addItems } = useCollection();
     const [cards, setCards] = useState<any[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -95,7 +95,7 @@ export default function ArtSwipePage() {
                             {!saved && (
                                 <button 
                                     onClick={() => {
-                                        likedCards.forEach(c => addItem(c));
+                                        addItems(likedCards);
                                         setSaved(true);
                                     }} 
                                     className="px-8 py-4 bg-mca-cyan text-black hover:bg-mca-cyan/80 transition-colors font-mono uppercase tracking-widest text-sm font-bold"
