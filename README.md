@@ -40,6 +40,7 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 - 🕵️‍♂️ **Curator's Challenge (Spot the Real Title):** A fast-paced, 10-round multiple-choice game where users must identify the real artifact title from a list of dynamically generated, highly-plausible fake titles pulled from the database.
 - 🎨 **Art Swipe Discovery Mode:** A highly engaging, Tinder-style serendipity engine that utilizes DuckDB's `USING SAMPLE` function to serve a blazing-fast, randomized deck of visual artifacts. Users can casually swipe right and securely batch-save the entire curated deck to their personal collection simultaneously.
 - 🧠 **Memory Match (Kreisman Collection):** A classic concentration card game that dynamically generates matching pairs using high-resolution architectural artifacts from the Kreisman collection, testing users' spatial memory.
+- 🕸️ **Museum Connections:** A highly interactive, physics-based network visualization built with `react-force-graph-2d`. Users can click on artifacts to instantly query DuckDB and spawn dynamic webs of related creators and objects in real-time, mapping the hidden relationships within the archive.
 
 ## 🏗️ Architecture & Tech Stack
 * **Orchestration:** Prefect 3 (Native 21-Node DAG), Docker Compose, and Make
@@ -72,6 +73,7 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 
 ## ⚡ Key Features
 
+* **Standalone FastAPI Microservice:** A dedicated Dockerized REST API (`api-server`) built with FastAPI that natively serves data from the `unified_catalog_normalized.parquet` directly to external systems. It includes full CORS configuration and is reverse-proxied securely through the Next.js frontend, enabling third-party applications to query the Lakehouse with zero latency.
 * **Incremental Delta Merges (Upserts):** To avoid expensive full table scans, the Proficio extractor utilizes a high-watermark tracker to selectively pull only records created or modified since the last run. The Silver layer then seamlessly merges (upserts) these deltas into a persistent master Parquet table, deduplicating on `field_identifier` (the Proficio catalog number) without duplicating data.
 * **Metabase Serving Layer & Analytics (DuckDB):** The pipeline automatically generates a persistent DuckDB database powering an extensive suite of 18 separate SQL charts across 3 distinct dashboards (Lakehouse Analytics, Historical Metrics, and Image Completeness). Metabase easily connects to this DuckDB file for lightning-fast, zero-copy BI visualization, automatically picking up freshly updated Parquet files on every query.
 * **QA Quarantine (Dead Letter Queue):** Records that fail critical data quality checks (missing identifiers, empty titles) are automatically isolated into a `proficio_qa_failures.parquet` file via a dedicated microservice instead of breaking the pipeline. This allows data stewards to easily identify and fix dirty source data.
@@ -303,6 +305,10 @@ wolf-lakehouse/
 │   ├── transform_alma_silver.py
 │   └── transform_proficio_silver.py
 ├── log-alerter/                 # Custom Python microservice for SMTP error notifications
+├── api-server/                  # FastAPI REST API serving Lakehouse Parquet data via REST
+│   ├── main.py                  # API routes and CORS configuration
+│   ├── requirements.txt         # FastAPI, Uvicorn, and DuckDB dependencies
+│   └── Dockerfile               # Container build instructions
 ├── frontend-explorer/           # Next.js web application for data exploration
 │   ├── src/                     # Source code (Next.js App router, components, hooks)
 │   ├── public/                  # Static icons and assets
