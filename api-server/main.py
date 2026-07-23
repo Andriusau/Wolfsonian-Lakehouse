@@ -35,9 +35,16 @@ def get_records(
             ORDER BY id
             LIMIT {limit} OFFSET {offset}
         """
-        results = conn.execute(query).fetchdf()
-        # fillna to avoid JSON serialization errors with NaN
-        records = results.fillna("").to_dict(orient="records")
+        result = conn.execute(query)
+        columns = [desc[0] for desc in result.description]
+        records = [dict(zip(columns, row)) for row in result.fetchall()]
+        
+        # Replace None with empty string for backward compatibility
+        for r in records:
+            for k, v in r.items():
+                if v is None:
+                    r[k] = ""
+                    
         return {"data": records, "limit": limit, "offset": offset}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -57,12 +64,19 @@ def get_record(identifier: str):
             WHERE field_identifier = ? OR CAST(id AS VARCHAR) = ?
             LIMIT 1
         """
-        results = conn.execute(query, [identifier, identifier]).fetchdf()
+        result = conn.execute(query, [identifier, identifier])
+        columns = [desc[0] for desc in result.description]
+        rows = result.fetchall()
         
-        if results.empty:
+        if not rows:
             raise HTTPException(status_code=404, detail="Record not found")
             
-        record = results.fillna("").to_dict(orient="records")[0]
+        record = dict(zip(columns, rows[0]))
+        # Replace None with empty string
+        for k, v in record.items():
+            if v is None:
+                record[k] = ""
+                
         return record
     except HTTPException:
         raise
@@ -91,8 +105,16 @@ def search_records(
             ORDER BY has_image DESC, title ASC
             LIMIT {limit} OFFSET {offset}
         """
-        results = conn.execute(query, [search_term, search_term, search_term]).fetchdf()
-        records = results.fillna("").to_dict(orient="records")
+        result = conn.execute(query, [search_term, search_term, search_term])
+        columns = [desc[0] for desc in result.description]
+        records = [dict(zip(columns, row)) for row in result.fetchall()]
+        
+        # Replace None with empty string
+        for r in records:
+            for k, v in r.items():
+                if v is None:
+                    r[k] = ""
+                    
         return {"data": records, "query": q, "limit": limit, "offset": offset}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
