@@ -571,7 +571,28 @@ export default function Home() {
             A serverless web explorer querying clean catalog metadata directly in your browser. Powered by DuckDB WebAssembly to scan local Parquet storage at client runtime.
           </p>
 
-          <Link href="/kreisman" className="block mt-8 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
+          <Link href="/museum-connections" className="block mt-8 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2 flex-1">
+                <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
+                  Featured Digital Experience
+                </div>
+                <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors">
+                  Museum Connections
+                </h2>
+                <p className="text-sm font-sans text-gray-400 font-light max-w-xl">
+                  Explore the hidden relationships between artifacts in this interactive visual network graph.
+                </p>
+              </div>
+              <div className="flex-shrink-0 hidden md:block">
+                <div className="w-24 h-24 md:w-32 md:h-32 border border-mca-cyan/30 bg-black/50 transform group-hover:scale-105 transition-all duration-500 rounded-2xl flex items-center justify-center text-5xl">
+                  🕸️
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/kreisman" className="block mt-4 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-2 flex-1">
                 <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
