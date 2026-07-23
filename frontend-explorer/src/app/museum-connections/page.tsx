@@ -17,6 +17,10 @@ type Node = {
   val: number;
   type: 'artifact' | 'creator' | 'subject';
   loaded: boolean;
+  x?: number;
+  y?: number;
+  vx?: number;
+  vy?: number;
 };
 
 type LinkType = {
@@ -28,7 +32,7 @@ export default function MuseumConnections() {
   const { isReady, runQuery } = useDuckDB();
   const [graphData, setGraphData] = useState<{ nodes: Node[], links: LinkType[] }>({ nodes: [], links: [] });
   const [hoverNode, setHoverNode] = useState<Node | null>(null);
-  const fgRef = useRef<any>();
+  const fgRef = useRef<any>(null);
 
   // Fetch initial random artifacts
   useEffect(() => {
@@ -67,7 +71,7 @@ export default function MuseumConnections() {
   }, [isReady]);
 
   // Handle clicking a node to expand its network
-  const handleNodeClick = useCallback(async (node: Node) => {
+  const handleNodeClick = useCallback(async (node: any) => {
     if (!isReady || node.loaded || node.type !== 'artifact') return;
 
     // Center on node
@@ -224,6 +228,7 @@ export default function MuseumConnections() {
       {/* Force Graph Canvas */}
       <div className="flex-1 w-full h-full cursor-crosshair">
         {typeof window !== 'undefined' && (
+          // @ts-ignore - react-force-graph doesn't have perfect TS definitions
           <ForceGraph2D
             ref={fgRef}
             graphData={graphData}
@@ -231,7 +236,7 @@ export default function MuseumConnections() {
             nodeColor={(node: any) => node.type === 'creator' ? '#05C3DD' : '#ffffff'}
             linkColor={() => 'rgba(255,255,255,0.2)'}
             nodeCanvasObject={paintNode}
-            nodePointerAreaPaint={(node: any, color, ctx) => {
+            nodePointerAreaPaint={(node: any, color: any, ctx: any) => {
               ctx.fillStyle = color;
               ctx.beginPath();
               ctx.arc(node.x, node.y, node.val, 0, 2 * Math.PI, false);
