@@ -1,0 +1,102 @@
+from fastapi import FastAPI, HTTPException, Query
+import duckdb
+from pydantic import BaseModel
+from typing import List, Optional, Dict, Any
+from pathlib import Path
+
+app = FastAPI(
+    title="Wolfsonian Lakehouse API",
+    description="Public REST API for programmatic access to the Wolfsonian-FIU collections data.",
+    version="1.0.0"
+)
+
+PARQUET_PATH = "/app/data/gold/unified_catalog_normalized.parquet"
+
+# Initialize DuckDB connection
+conn = duckdb.connect(database=':memory:', read_only=False)
+
+def check_data_ready():
+    if not Path(PARQUET_PATH).exists():
+        raise HTTPException(status_code=503, detail="Lakehouse data is currently unavailable.")
+
+@app.get("/api/v1/records")
+def get_records(
+    limit: int = Query(50, ge=1, le=1000, description="Number of records to return"),
+    offset: int = Query(0, ge=0, description="Number of records to skip")
+):
+    """
+    Fetch a paginated list of artifacts from the Lakehouse.
+    """
+    check_data_ready()
+    try:
+        query = f"""
+            SELECT * EXCLUDE (search_text) 
+            FROM read_parquet('{PARQUET_PATH}') 
+            ORDER BY id
+            LIMIT {limit} OFFSET {offset}
+        """
+        results = conn.execute(query).fetchdf()
+        # fillna to avoid JSON serialization errors with NaN
+        records = results.fillna("").to_dict(orient="records")
+        return {"data": records, "limit": limit, "offset": offset}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/records/{identifier}")
+def get_record(identifier: str):
+    """
+    Fetch a specific artifact by its exact ID (e.g., 2022.7.3).
+    Matches against both the internal id and the accession number (field_identifier).
+    """
+    check_data_ready()
+    try:
+        # Use parameters to prevent SQL injection
+        query = f"""
+            SELECT * EXCLUDE (search_text) 
+            FROM read_parquet('{PARQUET_PATH}')
+            WHERE field_identifier = ? OR CAST(id AS VARCHAR) = ?
+            LIMIT 1
+        """
+        results = conn.execute(query, [identifier, identifier]).fetchdf()
+        
+        if results.empty:
+            raise HTTPException(status_code=404, detail="Record not found")
+            
+        record = results.fillna("").to_dict(orient="records")[0]
+        return record
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/search")
+def search_records(
+    q: str = Query(..., description="Full-text search query"),
+    limit: int = Query(50, ge=1, le=1000),
+    offset: int = Query(0, ge=0)
+):
+    """
+    Full-text search leveraging DuckDB's search indexes.
+    """
+    check_data_ready()
+    try:
+        # DuckDB string functions: list_contains(string_split(search_text, ' '), 'chair') 
+        # Or simple ILIKE for demonstration if FTS is not pre-indexed in Parquet
+        # To make it safer against SQL injection, we use parameters.
+        search_term = f"%{q}%"
+        query = f"""
+            SELECT * EXCLUDE (search_text)
+            FROM read_parquet('{PARQUET_PATH}')
+            WHERE title ILIKE ? OR field_description_long ILIKE ? OR field_identifier ILIKE ?
+            ORDER BY has_image DESC, title ASC
+            LIMIT {limit} OFFSET {offset}
+        """
+        results = conn.execute(query, [search_term, search_term, search_term]).fetchdf()
+        records = results.fillna("").to_dict(orient="records")
+        return {"data": records, "query": q, "limit": limit, "offset": offset}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "data_ready": Path(PARQUET_PATH).exists()}

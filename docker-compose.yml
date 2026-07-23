@@ -76,5 +76,12 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
       - DESTINATION_EMAIL=${DESTINATION_EMAIL:-}
 
+  api-server:
+    build: ./api-server
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data:ro
+
 volumes:
   prefect-data: {}
