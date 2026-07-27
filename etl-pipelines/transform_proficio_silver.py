@@ -278,7 +278,9 @@ def main():
         else:
             df_deltas['field_edtf_date_created'] = ''
             
-    if MASTER_SILVER.exists():
+    is_full_extract = any(f.name.startswith('full_extract_') for f in delta_files)
+    
+    if MASTER_SILVER.exists() and not is_full_extract:
         df_master = pd.read_parquet(MASTER_SILVER)
         logging.info(f"Loaded existing Silver Master with {len(df_master)} records.")
         if not df_deltas.empty:
@@ -302,7 +304,10 @@ def main():
                 df_master = df_combined
             logging.info(f"Merged deltas. New Silver Master has {len(df_master)} records.")
     else:
-        logging.info("No Silver Master exists. Creating new from Deltas.")
+        if is_full_extract:
+            logging.info("Full extract detected. Replacing existing Silver Master.")
+        else:
+            logging.info("No Silver Master exists. Creating new from Deltas.")
         df_master = df_deltas
         # Still deduplicate even on first build — multiple delta files (raw dump + fresh pull) can overlap
         if 'record_id' in df_master.columns:

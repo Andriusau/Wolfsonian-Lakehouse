@@ -118,7 +118,8 @@ def raw_data_dump(table_name, incremental_dir):
         # Save to Delta File
         os.makedirs(incremental_dir, exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = os.path.join(incremental_dir, f"delta_{timestamp}.parquet")
+        prefix = "delta" if last_watermark else "full_extract"
+        output_path = os.path.join(incremental_dir, f"{prefix}_{timestamp}.parquet")
         
         df.to_parquet(output_path, index=False)
         logging.info(f"✅ Success! Dumped {len(df)} new rows to {output_path}")
