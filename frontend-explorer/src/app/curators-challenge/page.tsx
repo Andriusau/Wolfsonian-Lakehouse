@@ -129,7 +129,7 @@ export default function CuratorsChallengePage() {
     const { realArtifact, options, correctAnswer } = currentChallenge;
 
     return (
-        <div className="min-h-screen bg-black flex flex-col overflow-hidden fixed inset-0">
+        <div className="min-h-screen bg-black flex flex-col">
             <div className="p-6 flex justify-between items-center z-50">
                 <Link href="/" className="text-white/50 hover:text-white transition-colors font-mono text-sm tracking-widest uppercase">
                     ← Back

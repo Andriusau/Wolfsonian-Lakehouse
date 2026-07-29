@@ -145,7 +145,7 @@ export default function Chatbot() {
     return parts.length > 0 ? parts : content;
   };
 
-  if (pathname === '/art-swipe') return null;
+  if (pathname === '/art-swipe' || pathname === '/curators-challenge') return null;
 
   return (
     <>
