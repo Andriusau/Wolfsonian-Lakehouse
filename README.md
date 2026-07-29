@@ -38,10 +38,11 @@ In addition to the data pipeline, the project features a powerful **Frontend Exp
 ## 🎮 Featured Digital Experiences
 Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Frontend Explorer features interactive mini-games and curation tools designed to engage users with the archive in novel ways:
 
-- 🕵️‍♂️ **Curator's Challenge (Spot the Real Title):** A fast-paced, 10-round multiple-choice game where users must identify the real artifact title from a list of dynamically generated, highly-plausible fake titles pulled from the database.
-- 🎨 **Art Swipe Discovery Mode:** A highly engaging, Tinder-style serendipity engine that utilizes DuckDB's `USING SAMPLE` function to serve a blazing-fast, randomized deck of visual artifacts. Users can casually swipe right and securely batch-save the entire curated deck to their personal collection simultaneously.
-- 🧠 **Memory Match (Kreisman Collection):** A classic concentration card game that dynamically generates matching pairs using high-resolution architectural artifacts from the Kreisman collection, testing users' spatial memory.
 - 🕸️ **Museum Connections:** A highly interactive, physics-based network visualization built with `react-force-graph-2d`. Users can click on artifacts to instantly query DuckDB and spawn dynamic webs of related creators and objects in real-time, mapping the hidden relationships within the archive.
+- 🎨 **Art Swipe Discovery Mode:** A highly engaging, Tinder-style serendipity engine that utilizes DuckDB's `USING SAMPLE` function to serve a blazing-fast, randomized deck of visual artifacts. Users can casually swipe right and securely batch-save the entire curated deck to their personal collection simultaneously.
+- 🖼️ **Virtual Exhibition Builder:** A highly interactive sandbox where users can drag, drop, and creatively arrange their saved artifacts on a 2D gallery wall. Powered by `@dnd-kit`, users can curate their layout and instantly export it as a high-resolution exhibition poster.
+- 🧠 **Memory Match (Kreisman Collection):** A classic concentration card game that dynamically generates matching pairs using high-resolution architectural artifacts from the Kreisman collection, testing users' spatial memory.
+- 🕵️‍♂️ **Curator's Challenge (Spot the Real Title):** A fast-paced, 10-round multiple-choice game where users must identify the real artifact title from a list of dynamically generated, highly-plausible fake titles pulled from the database.
 
 ## 🏗️ Architecture & Tech Stack
 * **Orchestration:** Prefect 3 (Native 21-Node DAG), Docker Compose, and Make
@@ -208,6 +209,7 @@ graph TD
 * **Direct Standalone Routing:** We recently executed a sweeping architectural refactor to standardize the application's UX and navigation flow. We completely eliminated legacy modal-based overlay systems across all six search grids, replacing it with a clean, direct routing architecture utilizing standard Next.js navigation. Users now seamlessly navigate directly to dedicated, shareable standalone record pages to view the 50/50 metadata split, resulting in a leaner, faster application.
 * **Interactive Historical Timeline:** Allows users to dynamically slide and filter the entire catalog by decade or specific years in real-time.
 * **Art Swipe Discovery Mode:** A highly engaging, Tinder-style serendipity engine that utilizes DuckDB's `USING SAMPLE` function to serve a blazing-fast, randomized deck of visual artifacts. Users can casually swipe right and securely batch-save the entire curated deck to their personal collection simultaneously.
+* **Virtual Exhibition Builder:** A drag-and-drop 2D canvas that allows users to playfully arrange their saved artifacts into a customized digital gallery wall, complete with custom typography and high-res poster exporting capabilities.
 * **Semantic Discovery:** When viewing a record, the engine instantly queries DuckDB for 4 randomized, related records that share the same Subject, Genre, or Creator, encouraging users to discover related content.
 * **Dynamic Creator & Subject Dossiers:** Automatically generates dedicated landing pages that aggregate and display all cataloged works by a specific artist, designer, author, or subject. Clickable hyperlinks are integrated across the search grid and standalone record pages for seamless navigation.
 * **Clean Metadata Records:** Dedicated standalone pages automatically map internal database fields to user-friendly labels (e.g., Accession Number) and hide redundant system data to provide a pristine viewing experience.
