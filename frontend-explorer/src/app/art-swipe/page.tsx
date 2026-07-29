@@ -126,8 +126,8 @@ export default function ArtSwipePage() {
     const nextCard = currentIndex + 1 < cards.length ? cards[currentIndex + 1] : null;
 
     return (
-        <div className="min-h-screen bg-black flex flex-col overflow-hidden fixed inset-0">
-            <div className="p-6 flex justify-between items-center z-50">
+        <div className="h-[100dvh] w-full bg-black flex flex-col overflow-hidden">
+            <div className="p-4 md:p-6 flex justify-between items-center z-50 shrink-0">
                 <Link href="/" className="text-white/50 hover:text-white transition-colors font-mono text-sm tracking-widest uppercase">
                     ← Back
                 </Link>
@@ -174,18 +174,18 @@ export default function ArtSwipePage() {
                 </div>
             </div>
 
-            <div className="p-8 pb-16 flex justify-center gap-10 z-50">
+            <div className="p-4 pb-8 md:p-8 md:pb-16 flex justify-center gap-6 md:gap-10 z-50 shrink-0">
                 <button 
                     onClick={() => handleDecision("skip")}
-                    className="w-24 h-24 rounded-full border border-red-500/30 bg-black/50 backdrop-blur-sm text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all active:scale-95 group shadow-[0_0_30px_rgba(239,68,68,0.15)] hover:shadow-[0_0_50px_rgba(239,68,68,0.4)]"
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-full border border-red-500/30 bg-black/50 backdrop-blur-sm text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all active:scale-95 group shadow-[0_0_30px_rgba(239,68,68,0.15)] hover:shadow-[0_0_50px_rgba(239,68,68,0.4)] shrink-0"
                 >
-                    <svg className="w-10 h-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <svg className="w-8 h-8 md:w-10 md:h-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
                 <button 
                     onClick={() => handleDecision("save")}
-                    className="w-24 h-24 rounded-full border border-mca-cyan/30 bg-black/50 backdrop-blur-sm text-mca-cyan flex items-center justify-center hover:bg-mca-cyan hover:text-black transition-all active:scale-95 group shadow-[0_0_30px_rgba(0,255,255,0.15)] hover:shadow-[0_0_50px_rgba(0,255,255,0.4)]"
+                    className="w-20 h-20 md:w-24 md:h-24 rounded-full border border-mca-cyan/30 bg-black/50 backdrop-blur-sm text-mca-cyan flex items-center justify-center hover:bg-mca-cyan hover:text-black transition-all active:scale-95 group shadow-[0_0_30px_rgba(0,255,255,0.15)] hover:shadow-[0_0_50px_rgba(0,255,255,0.4)] shrink-0"
                 >
-                    <svg className="w-10 h-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"></path></svg>
+                    <svg className="w-8 h-8 md:w-10 md:h-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"></path></svg>
                 </button>
             </div>
         </div>
