@@ -62,11 +62,11 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 
 | Source | System | Records | Method |
 |---|---|---|---|
-| **Alma** | Ex Libris Library Management | 55,035 | Binary MARC (`.mrc`) parsing via PyMARC & Physical Item (`.csv`) mapping |
-| **Proficio** | Museum Collection Database | 61,015 | Kerberos-authenticated SQL Server via ODBC |
+| **Alma** | Ex Libris Library Management | 55,056 | Binary MARC (`.mrc`) parsing via PyMARC & Physical Item (`.csv`) mapping |
+| **Proficio** | Museum Collection Database | 61,019 | Kerberos-authenticated SQL Server via ODBC |
 | **Islandora** | Public Digital Archive | 267,007 | Paginated REST API with concurrent fetching |
-| **Unified Gold Catalog** | Merged output | 116,050 | Alma + Proficio aligned and concatenated |
-| **Normalized Gold Catalog** | Analytics-ready output | 116,050 | Harmonized genres, dates, creators & titles |
+| **Unified Gold Catalog** | Merged output | 116,075 | Alma + Proficio aligned and concatenated |
+| **Normalized Gold Catalog** | Analytics-ready output | 116,075 | Harmonized genres, dates, creators & titles |
 | **Digital Images** | NFS Mounted Share | 335,070 | Parallel ingestion and JPEG compression |
 | **Digital Audio** | NFS Mounted Share | 26 | MP3 caching and metadata mapping |
 | **Google Analytics** | GA4 Data API | Dynamic | Automated extraction of website traffic metrics |
