@@ -55,7 +55,7 @@ export default function MuseumConnections() {
             title: d.title,
             creator: d.creator || 'Unknown',
             group: 1,
-            val: 10,
+            val: 24,
             type: 'artifact',
             loaded: false
           }));
@@ -106,7 +106,7 @@ export default function MuseumConnections() {
               creator: node.creator,
               imgUrl: '',
               group: 2,
-              val: 15,
+              val: 36,
               type: 'creator',
               loaded: true
             });
@@ -126,7 +126,7 @@ export default function MuseumConnections() {
                 title: d.title,
                 creator: d.creator,
                 group: 1,
-                val: 8,
+                val: 20,
                 type: 'artifact',
                 loaded: false
               });
@@ -255,7 +255,7 @@ export default function MuseumConnections() {
 
       {/* Info Panel Overlay */}
       {hoverNode && hoverNode.type === 'artifact' && (
-        <div className="absolute bottom-8 right-8 z-10 bg-mca-black border-2 border-mca-cyan p-6 max-w-sm brutalist-shadow-cyan">
+        <div className="absolute bottom-8 right-8 z-10 bg-mca-black border-2 border-mca-cyan p-4 w-72 brutalist-shadow-cyan">
           <div className="text-[10px] font-bold text-mca-cyan uppercase tracking-widest mb-2">
             ARTIFACT DATA
           </div>
@@ -292,8 +292,8 @@ export default function MuseumConnections() {
       {/* Intro Modal Overlay */}
       {graphData.nodes.length > 0 && graphData.nodes.length <= 15 && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none text-center">
-          <div className="bg-mca-black/90 border border-white p-6 max-w-md mx-auto backdrop-blur-md">
-            <h2 className="text-xl font-black text-mca-cyan uppercase tracking-widest mb-2">
+          <div className="bg-mca-black/90 border border-white p-5 max-w-sm mx-auto backdrop-blur-md">
+            <h2 className="text-lg font-black text-mca-cyan uppercase tracking-widest mb-2">
               Explore the Archive
             </h2>
             <p className="text-sm font-bold text-slate-300 uppercase tracking-widest leading-relaxed">
