@@ -145,7 +145,7 @@ export default function Chatbot() {
     return parts.length > 0 ? parts : content;
   };
 
-  if (pathname.startsWith('/art-swipe') || pathname.startsWith('/curators-challenge') || pathname.startsWith('/kreisman/memory') || pathname.startsWith('/museum-connections')) return null;
+  if (pathname.startsWith('/art-swipe') || pathname.startsWith('/curators-challenge') || pathname.startsWith('/kreisman/memory') || pathname.startsWith('/museum-connections') || pathname.startsWith('/exhibition-builder')) return null;
 
   return (
     <>
