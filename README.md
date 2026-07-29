@@ -67,7 +67,7 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 | **Islandora** | Public Digital Archive | 267,007 | Paginated REST API with concurrent fetching |
 | **Unified Gold Catalog** | Merged output | 116,075 | Alma + Proficio aligned and concatenated |
 | **Normalized Gold Catalog** | Analytics-ready output | 116,075 | Harmonized genres, dates, creators & titles |
-| **Digital Images** | NFS Mounted Share | 335,070 | Parallel ingestion and JPEG compression |
+| **Digital Images** | NFS Mounted Share | 335,286 | Parallel ingestion and JPEG compression |
 | **Digital Audio** | NFS Mounted Share | 26 | MP3 caching and metadata mapping |
 | **Google Analytics** | GA4 Data API | Dynamic | Automated extraction of website traffic metrics |
 
