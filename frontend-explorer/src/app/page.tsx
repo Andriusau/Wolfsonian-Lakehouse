@@ -670,7 +670,7 @@ export default function Home() {
                   Curator's Challenge
                 </h2>
                 <p className="text-sm font-sans text-gray-400 font-light max-w-xl">
-                  Can you spot the real title? Test your eye against the archive in this fast-paced multiple-choice challenge.
+                  Can you spot the real title? Test your eye against the collection in this fast-paced multiple-choice challenge.
                 </p>
               </div>
               <div className="flex-shrink-0 hidden md:block">
