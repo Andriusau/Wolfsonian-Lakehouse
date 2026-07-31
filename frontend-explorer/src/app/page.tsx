@@ -524,7 +524,7 @@ export default function Home() {
       {/* Top Banner Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 border-b-2 border-white text-xs uppercase font-bold tracking-wider divide-y-2 md:divide-y-0 md:divide-x-2 divide-white bg-mca-black">
         <div className="p-4 flex items-center justify-between">
-          <span>ARCHIVE INDEX</span>
+          <span>COLLECTION INDEX</span>
           <span className="text-mca-cyan">WOLFSONIAN-FIU</span>
         </div>
         <div className="p-4 flex items-center justify-between">
@@ -555,7 +555,7 @@ export default function Home() {
         {/* Giant MCA-Style Typography Header */}
         <header className="space-y-6">
           <div className="text-[11px] uppercase tracking-widest text-mca-cyan font-bold font-mono">
-            COLLECTION DATA LAKEHOUSE / OPEN ARCHIVES
+            COLLECTION DATA LAKEHOUSE / OPEN COLLECTION
           </div>
           
           <h1 className="text-[12vw] md:text-[8vw] font-black font-display uppercase tracking-tighter leading-[0.85] text-white select-none">
@@ -581,7 +581,7 @@ export default function Home() {
                   Museum Connections
                 </h2>
                 <p className="text-sm font-sans text-gray-400 font-light max-w-xl">
-                  Explore the hidden relationships between artifacts in this interactive visual network graph.
+                  Explore the hidden relationships between works in this interactive visual network graph.
                 </p>
               </div>
               <div className="flex-shrink-0 hidden md:block">
@@ -626,7 +626,7 @@ export default function Home() {
                   Virtual Exhibition Builder
                 </h2>
                 <p className="text-sm font-sans text-gray-400 font-light max-w-xl">
-                  Arrange your saved artifacts on a digital gallery wall. Drag, drop, and curate your own high-quality exhibition poster.
+                  Arrange your saved works on a digital gallery wall. Drag, drop, and curate your own high-quality exhibition poster.
                 </p>
               </div>
               <div className="flex-shrink-0 hidden md:block">
@@ -1193,7 +1193,7 @@ export default function Home() {
             <div className="text-center py-32 border border-white/20 bg-mca-black space-y-4 max-w-md mx-auto p-8">
               <span className="text-3xl">📭</span>
               <div className="space-y-2">
-                <h4 className="font-extrabold text-white uppercase text-sm tracking-wider">No Archive Matches</h4>
+                <h4 className="font-extrabold text-white uppercase text-sm tracking-wider">No Collection Matches</h4>
                 <p className="text-xs text-slate-500 font-sans leading-relaxed">
                   The query returned zero rows. Clean your filter values or enter a different search phrase to scan the catalog database.
                 </p>
