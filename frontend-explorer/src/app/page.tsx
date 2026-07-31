@@ -568,7 +568,7 @@ export default function Home() {
           <div className="h-1 bg-white w-full mt-4" />
           
           <p className="text-slate-400 text-sm md:text-base font-sans max-w-2xl font-light leading-relaxed">
-            A serverless web explorer querying clean catalog metadata directly in your browser. Powered by DuckDB WebAssembly to scan local Parquet storage at client runtime.
+            A serverless web explorer querying Wolfsonian-FIU metadata directly in your browser.
           </p>
 
           <Link href="/museum-connections" className="block mt-8 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
