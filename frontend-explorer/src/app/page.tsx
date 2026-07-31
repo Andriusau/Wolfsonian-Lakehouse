@@ -1223,7 +1223,7 @@ export default function Home() {
         </main>
 
         {/* Collapsible Debug Panel */}
-        {debugInfo && (
+        {process.env.NODE_ENV === 'development' && debugInfo && (
           <div className="border border-white/20 bg-mca-black rounded-none">
             <details className="group">
               <summary className="bg-mca-dark px-6 py-4 flex items-center justify-between cursor-pointer select-none border-b border-white/10">
