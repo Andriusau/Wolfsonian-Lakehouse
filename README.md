@@ -25,7 +25,7 @@
 
 ## 🔗 Quick Links
 - **Lakehouse Catalog**: [lakehouse.wolfsonian.org](https://lakehouse.wolfsonian.org)
-- **Lakehouse API Lookup Tool**
+- **Interactive API Documentation**: [lakehouse.wolfsonian.org/docs](https://lakehouse.wolfsonian.org/docs)
 - **Metabase**: [metabase.wolfsonian.org](https://metabase.wolfsonian.org)
 
 ---
@@ -221,7 +221,7 @@ graph TD
 * **Smart Fallback Identifiers:** Seamlessly handles untitled items by safely falling back to their Accession Number, ensuring every record remains identifiable.
 
 **Staff & Researcher Tools**
-* **Standalone API Lookup Tool:** A lightweight, statically hosted web tool deployed externally. It provides staff with an instantaneous, minimalistic interface for executing exact-match accession number lookups via the new FastAPI backend, allowing for ultra-fast reference checks without loading the full Next.js Explorer.
+* **Interactive API Documentation:** The Swagger UI deployed at `lakehouse.wolfsonian.org/docs`. It provides developers and technical staff with an interactive interface to explore and execute raw backend endpoints directly against the FastAPI server.
 * **Bulk CSV Filtering:** The frontend explorer natively supports bulk CSV uploads. Staff and researchers can upload an arbitrary list of accession numbers or field identifiers, which the browser instantly parses with a robust, quote-aware parser. It automatically performs case-insensitive matching and translates it into a dynamic DuckDB `IN` clause, enabling hyper-specific batch filtering.
 * **Batch Collection Curation:** Staff and researchers can execute complex search queries (or bulk CSV filters) and instantly save up to 1,000 matching results to their personal "Saved Collection" with a single click, completely eliminating manual curation bottlenecks.
 * **Browser-Native Staff Collections:** Staff can curate custom lists of catalog records directly within their browser memory (`localStorage`), allowing them to build research sets without ever needing to log in or create an account. It features advanced BigInt serialization to safely handle DuckDB WASM's 64-bit integer properties natively within the browser caching system.
