@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useDuckDB } from "@/providers/DuckDBProvider";
-import { formatEDTFDate } from "../../utils/formatters";
+import { formatEDTFDate, getMediaFilename } from "../../utils/formatters";
 
 export default function KreismanCollection() {
   const { isReady, runQuery, error } = useDuckDB();
@@ -145,7 +145,7 @@ export default function KreismanCollection() {
                   <div className="relative w-full aspect-square bg-black/50 overflow-hidden flex items-center justify-center p-8">
                     {item.has_image ? (
                       <img
-                        src={`https://lakehouse.wolfsonian.org/images/${item.field_identifier.split(";")[0].trim()}.jpg`}
+                        src={`/images/${getMediaFilename(item.field_identifier)}.jpg`}
                         alt={item.title}
                         className="object-contain w-full h-full transform group-hover:scale-105 transition-transform duration-700 ease-out"
                         loading="lazy"
