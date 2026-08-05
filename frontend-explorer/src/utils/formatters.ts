@@ -1,4 +1,3 @@
-import { getMediaFilename } from '@/utils/formatters';
 export function parseDelimited(value: any, delimiter: string = '|'): string[] {
   if (!value) return [];
   
@@ -42,9 +41,5 @@ export function formatEDTFDate(dateStr: any): string {
 export function getMediaFilename(identifier: string | null | undefined): string {
   if (!identifier) return "";
   const primaryId = String(identifier).split(';')[0].trim();
-  let norm = primaryId.toLowerCase();
-  norm = norm.replace(/[()[\]'_]/g, ' ');
-  norm = norm.replace(/[.\s,-]+/g, '.');
-  norm = norm.replace(/^\.+|\.+$/g, '');
-  return norm.replace(/[^a-zA-Z0-9.-]/g, '_');
+  return primaryId.replace(/[^a-zA-Z0-9.-]/g, '_');
 }

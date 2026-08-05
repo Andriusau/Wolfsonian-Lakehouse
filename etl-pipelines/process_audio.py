@@ -24,6 +24,10 @@ def normalize_name(s):
     s = s.strip('.')
     return s
 
+def get_media_filename(s):
+    if not s: return ""
+    return re.sub(r'[^a-zA-Z0-9.-]', '_', str(s).strip())
+
 def process_single_row(identifier):
     if pd.isna(identifier) or not identifier:
         return 'skipped', [], []
@@ -39,7 +43,7 @@ def process_single_row(identifier):
         if len(part) > 200:
             continue
             
-        base_name = re.sub(r'[^a-zA-Z0-9.-]', '_', normalize_name(part))
+        dest_filename = f"{get_media_filename(part)}.mp3"
         norm_candidate = normalize_name(part)
         
         obj_dir = None
@@ -76,6 +80,18 @@ def process_single_row(identifier):
                     if dest_filename in existing_dest_audio:
                         already_exists.append(dest_filename)
                         continue
+                    
+                    ext = best_file.suffix.lower()
+                    legacy_base = re.sub(r'[.\s,-]+', '.', part).strip('.')
+                    legacy_dest = f"{legacy_base}{ext}" if i == 0 else f"{legacy_base}_{i}{ext}"
+                    if legacy_dest in existing_dest_audio:
+                        try:
+                            os.link(OUTPUT_DIR / legacy_dest, dest_path)
+                            existing_dest_audio.add(dest_filename)
+                            already_exists.append(dest_filename)
+                            continue
+                        except Exception:
+                            pass # Fall back to processing
 
                     # Compress using ffmpeg
                     cmd = ['ffmpeg', '-y', '-i', str(best_file), '-codec:a', 'libmp3lame', '-b:a', '128k', str(dest_path)]
@@ -173,7 +189,7 @@ def main():
         id_parts = [p.strip() for p in identifier_str.split(';') if p.strip()]
         for part in id_parts:
             if len(part) <= 200:
-                base = f"{re.sub(r'[^a-zA-Z0-9.-]', '_', normalize_name(part))}"
+                base = get_media_filename(part)
                 if f"{base}.mp3" in final_existing_audio or f"{base}.wav" in final_existing_audio:
                     count = 1
                     while f"{base}_{count}.mp3" in final_existing_audio or f"{base}_{count}.wav" in final_existing_audio:

@@ -43,6 +43,10 @@ def normalize_name(s):
     s = s.strip('.')
     return s
 
+def get_media_filename(s):
+    if not s: return ""
+    return re.sub(r'[^a-zA-Z0-9.-]', '_', str(s).strip())
+
 def process_single_row(row_data):
     identifier, source_system = row_data
     
@@ -68,7 +72,7 @@ def process_single_row(row_data):
             continue
             
         import re
-        dest_filename = f"{re.sub(r'[^a-zA-Z0-9.-]', '_', normalize_name(part))}.jpg"
+        dest_filename = f"{get_media_filename(part)}.jpg"
         dest_path = OUTPUT_DIR / dest_filename
             
         found = False
@@ -97,7 +101,7 @@ def process_single_row(row_data):
                     if image_files:
                         for i, best_file in enumerate(sorted(image_files)):
                             try:
-                                base_name = re.sub(r'[^a-zA-Z0-9.-]', '_', normalize_name(part))
+                                base_name = get_media_filename(part)
                                 if i == 0:
                                     dest_filename = f"{base_name}.jpg"
                                 else:
@@ -108,6 +112,19 @@ def process_single_row(row_data):
                                 if dest_filename in existing_dest_images:
                                     already_exists.append(dest_filename)
                                     continue
+                                
+                                # Check for legacy dot-based Proficio name
+                                legacy_base = re.sub(r'[.\s,-]+', '.', part).strip('.')
+                                legacy_dest = f"{legacy_base}.jpg" if i == 0 else f"{legacy_base}_{i}.jpg"
+                                if legacy_dest in existing_dest_images:
+                                    try:
+                                        os.link(OUTPUT_DIR / legacy_dest, dest_path)
+                                        existing_dest_images.add(dest_filename)
+                                        already_exists.append(dest_filename)
+                                        continue
+                                    except Exception:
+                                        pass # Fall back to processing
+
                                     
                                 if best_file.name in FATAL_FILES_TO_SKIP:
                                     errors.append(f"{best_file.name}: Skipped due to FATAL_FILES_TO_SKIP blocklist (infinite loop bug)")
@@ -237,7 +254,7 @@ def main():
         id_parts = [p.strip() for p in identifier_str.split(';') if p.strip()]
         for part in id_parts:
             if len(part) <= 200:
-                base = f"{re.sub(r'[^a-zA-Z0-9.-]', '_', normalize_name(part))}"
+                base = get_media_filename(part)
                 if f"{base}.jpg" in final_existing_images:
                     count = 1
                     while f"{base}_{count}.jpg" in final_existing_images:

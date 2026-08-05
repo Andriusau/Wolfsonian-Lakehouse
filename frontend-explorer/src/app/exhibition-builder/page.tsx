@@ -1,4 +1,3 @@
-import { getMediaFilename } from '@/utils/formatters';
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
