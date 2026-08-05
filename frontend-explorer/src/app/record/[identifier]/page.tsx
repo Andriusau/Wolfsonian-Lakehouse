@@ -8,6 +8,7 @@ import { useCollection } from "../../../hooks/useCollection";
 import { parseDelimited, formatEDTFDate } from "../../../utils/formatters";
 import ImageReader from "../../../components/ImageReader";
 import AudioReader from "../../../components/AudioReader";
+import { getMediaFilename } from "../../../utils/formatters";
 
 export default function RecordPage({ params }: { params: Promise<{ identifier: string }> }) {
   const resolvedParams = use(params);
@@ -391,7 +392,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                         >
                           <div className="w-full aspect-square bg-white/5 relative">
                             <img 
-                              src={`/images/${encodeURIComponent((rel.field_identifier || "").split(';')[0].trim().replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg`}
+                              src={`/images/${getMediaFilename(rel.field_identifier)}.jpg`}
                               alt={rel.title}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />

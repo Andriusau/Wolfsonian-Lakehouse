@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useDuckDB } from "@/providers/DuckDBProvider";
 import Link from "next/link";
+import { getMediaFilename } from "../../utils/formatters";
 
 type Challenge = {
     realArtifact: any;
@@ -148,7 +149,7 @@ export default function CuratorsChallengePage() {
                 <div className="w-full md:w-1/2 h-[40vh] md:h-[70vh] flex items-center justify-center relative">
                     <div className="w-full h-full bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative p-4 flex items-center justify-center">
                         <img 
-                            src={`https://lakehouse.wolfsonian.org/images/${realArtifact.field_identifier.split(';')[0].trim()}.jpg`}
+                            src={`/images/${getMediaFilename(realArtifact.field_identifier)}.jpg`}
                             className="w-full h-full object-contain"
                             alt="Mystery Artifact"
                         />

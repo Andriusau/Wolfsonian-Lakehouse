@@ -65,7 +65,7 @@ export default function ExhibitCatalog() {
       <div className="max-w-4xl mx-auto p-8 space-y-16 print:p-0 print:space-y-12">
         {collection.map((item, index) => {
           const primaryId = (item.field_identifier || "").split(";")[0].trim();
-          const imageUrl = item.has_image ? `https://lakehouse.wolfsonian.org/images/${getMediaFilename(primaryId)}.jpg` : null;
+          const imageUrl = item.has_image ? `/images/${getMediaFilename(primaryId)}.jpg` : null;
 
           return (
             <div 

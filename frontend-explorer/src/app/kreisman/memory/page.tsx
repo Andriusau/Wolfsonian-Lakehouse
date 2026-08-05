@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { getMediaFilename } from "../../../utils/formatters";
 import { useDuckDB } from "@/providers/DuckDBProvider";
 
 type Card = {
@@ -67,7 +68,7 @@ export default function MemoryMatch() {
         const pairs: Card[] = [];
         data.forEach((item: any) => {
           const id = item.field_identifier.split(";")[0].trim();
-          const img = `https://lakehouse.wolfsonian.org/images/${id}.jpg`;
+          const img = `/images/${getMediaFilename(item.field_identifier)}.jpg`;
           
           const cardData = {
             id,

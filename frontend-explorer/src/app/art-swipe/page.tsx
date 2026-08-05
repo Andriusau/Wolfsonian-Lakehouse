@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useDuckDB } from "@/providers/DuckDBProvider";
 import { useCollection } from "@/hooks/useCollection";
 import Link from "next/link";
+import { getMediaFilename } from "../../utils/formatters";
 
 export default function ArtSwipePage() {
     const { runQuery } = useDuckDB();
@@ -84,7 +85,7 @@ export default function ArtSwipePage() {
                             {likedCards.map((card, i) => (
                                 <img 
                                     key={i}
-                                    src={`https://lakehouse.wolfsonian.org/images/${card.field_identifier.split(';')[0].trim()}.jpg`}
+                                    src={`/images/${getMediaFilename(card.field_identifier)}.jpg`}
                                     className="w-16 h-16 md:w-20 md:h-20 object-cover border border-white/20 rounded-xl"
                                     alt="Liked artifact"
                                 />
@@ -141,7 +142,7 @@ export default function ArtSwipePage() {
                 {nextCard && (
                     <div className="absolute w-full max-w-md aspect-[3/4] bg-zinc-900 border border-white/5 rounded-2xl overflow-hidden shadow-2xl scale-95 opacity-40 translate-y-6 blur-[2px]">
                         <img 
-                            src={`https://lakehouse.wolfsonian.org/images/${nextCard.field_identifier.split(';')[0].trim()}.jpg`}
+                            src={`/images/${getMediaFilename(nextCard.field_identifier)}.jpg`}
                             className="w-full h-full object-cover opacity-50"
                         />
                     </div>
@@ -155,7 +156,7 @@ export default function ArtSwipePage() {
                 >
                     <div className="flex-1 bg-[#0a0a0a] relative flex items-center justify-center p-6">
                         <img 
-                            src={`https://lakehouse.wolfsonian.org/images/${currentCard.field_identifier.split(';')[0].trim()}.jpg`}
+                            src={`/images/${getMediaFilename(currentCard.field_identifier)}.jpg`}
                             className="w-full h-full object-contain"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none" />

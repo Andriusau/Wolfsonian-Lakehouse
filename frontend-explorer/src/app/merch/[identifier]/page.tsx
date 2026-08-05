@@ -4,6 +4,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useDuckDB } from "@/providers/DuckDBProvider";
 import { toJpeg } from 'html-to-image';
+import { getMediaFilename } from "../../../utils/formatters";
 
 export default function MerchMockupPage({ params }: { params: Promise<{ identifier: string }> }) {
   const resolvedParams = use(params);
@@ -65,7 +66,7 @@ export default function MerchMockupPage({ params }: { params: Promise<{ identifi
     }
   };
 
-  const imgSrc = record ? `/images/${encodeURIComponent((record.field_identifier || "").split(';')[0].trim().replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg` : "";
+  const imgSrc = record ? `/images/${getMediaFilename(record.field_identifier)}.jpg` : "";
 
   return (
     <div className="min-h-screen bg-mca-black text-white flex flex-col antialiased font-mono selection:bg-mca-yellow selection:text-mca-black">
