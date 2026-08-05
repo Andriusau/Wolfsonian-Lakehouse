@@ -1,3 +1,4 @@
+import { getMediaFilename } from '@/utils/formatters';
 "use client";
 
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
@@ -51,7 +52,7 @@ export default function MuseumConnections() {
         if (initialData && initialData.length > 0) {
           const nodes: Node[] = initialData.map((d: any) => ({
             id: d.field_identifier,
-            imgUrl: `/images/${d.field_identifier}.jpg`,
+            imgUrl: `/images/${getMediaFilename(d.field_identifier)}.jpg`,
             title: d.title,
             creator: d.creator || 'Unknown',
             group: 1,
@@ -122,7 +123,7 @@ export default function MuseumConnections() {
             if (!newNodes.find(n => n.id === d.field_identifier)) {
               newNodes.push({
                 id: d.field_identifier,
-                imgUrl: `/images/${d.field_identifier}.jpg`,
+                imgUrl: `/images/${getMediaFilename(d.field_identifier)}.jpg`,
                 title: d.title,
                 creator: d.creator,
                 group: 1,

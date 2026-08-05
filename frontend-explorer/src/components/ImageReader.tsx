@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { getMediaFilename } from '@/utils/formatters';
 
 interface ImageReaderProps {
   images: string[];
@@ -53,7 +54,7 @@ export default function ImageReader({ images, selectedRecord }: ImageReaderProps
   }
 
   const activeImageId = images[currentIndex];
-  const imgSrc = `/images/${encodeURIComponent(activeImageId)}.jpg`;
+  const imgSrc = `/images/${getMediaFilename(activeImageId)}.jpg`;
   
   return (
     <div className={
@@ -158,7 +159,7 @@ export default function ImageReader({ images, selectedRecord }: ImageReaderProps
         
         <div className="absolute bottom-4 left-4 z-20 flex flex-col gap-2 items-start">
           <Link 
-            href={`/merch/${encodeURIComponent(selectedRecord.field_identifier)}`}
+            href={`/merch/${getMediaFilename(selectedRecord.field_identifier)}`}
             className="bg-white text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-white hover:bg-mca-black hover:text-white transition-colors text-[10px] shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
@@ -180,7 +181,7 @@ export default function ImageReader({ images, selectedRecord }: ImageReaderProps
       {images.length > 1 && (
         <div className="h-24 md:h-32 w-full border-t border-white/20 bg-mca-black flex items-center overflow-x-auto overflow-y-hidden custom-scrollbar px-4 space-x-3 py-3 z-20 shrink-0">
           {images.map((id, idx) => {
-            const thumbSrc = `/images/${encodeURIComponent(id)}.jpg`;
+            const thumbSrc = `/images/${getMediaFilename(id)}.jpg`;
             const isActive = idx === currentIndex;
             return (
               <button

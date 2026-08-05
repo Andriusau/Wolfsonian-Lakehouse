@@ -13,6 +13,7 @@ OUTPUT_DIR = Path('/app/data/gold/audio')
 PARQUET_FILE = Path('/app/data/gold/unified_catalog_normalized.parquet')
 
 existing_dest_audio = set()
+existing_folders = {}
 
 def normalize_name(s):
     if not s: return ""
@@ -38,23 +39,15 @@ def process_single_row(identifier):
         if len(part) > 200:
             continue
             
-        base_name = re.sub(r'[^a-zA-Z0-9.-]', '_', part)
+        base_name = re.sub(r'[^a-zA-Z0-9.-]', '_', normalize_name(part))
+        norm_candidate = normalize_name(part)
         
         obj_dir = None
-        try:
-            candidate = AUDIO_DIR / part
-            if candidate.exists() and candidate.is_dir():
+        if norm_candidate in existing_folders:
+            real_folder_name = existing_folders[norm_candidate]
+            candidate = AUDIO_DIR / real_folder_name
+            if candidate.is_dir():
                 obj_dir = candidate
-        except OSError:
-            pass
-            
-        if not obj_dir:
-            try:
-                candidate = AUDIO_DIR / base_name
-                if candidate.exists() and candidate.is_dir():
-                    obj_dir = candidate
-            except OSError:
-                pass
                 
         if not obj_dir:
             continue
@@ -119,6 +112,16 @@ def main():
     df = pd.read_parquet(PARQUET_FILE)
     print(f"Loaded {len(df)} records from catalog.")
     
+    print("Caching NFS directory structure...")
+    if AUDIO_DIR.exists() and AUDIO_DIR.is_dir():
+        try:
+            folders = os.listdir(AUDIO_DIR)
+            for f in folders:
+                existing_folders[normalize_name(f)] = f
+            print(f"  Cached {len(existing_folders)} folders in Islandora_Audio")
+        except Exception as e:
+            print(f"  ⚠️ Failed to cache AUDIO_DIR: {e}")
+    
     print("Caching local processed audio files...")
     existing_dest_audio.update(f.name for f in OUTPUT_DIR.iterdir() if f.is_file())
     print(f"  Cached {len(existing_dest_audio)} processed audio files.")
@@ -170,7 +173,7 @@ def main():
         id_parts = [p.strip() for p in identifier_str.split(';') if p.strip()]
         for part in id_parts:
             if len(part) <= 200:
-                base = f"{re.sub(r'[^a-zA-Z0-9.-]', '_', part)}"
+                base = f"{re.sub(r'[^a-zA-Z0-9.-]', '_', normalize_name(part))}"
                 if f"{base}.mp3" in final_existing_audio or f"{base}.wav" in final_existing_audio:
                     count = 1
                     while f"{base}_{count}.mp3" in final_existing_audio or f"{base}_{count}.wav" in final_existing_audio:

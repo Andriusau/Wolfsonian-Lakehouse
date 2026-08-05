@@ -68,7 +68,7 @@ def process_single_row(row_data):
             continue
             
         import re
-        dest_filename = f"{re.sub(r'[^a-zA-Z0-9.-]', '_', part)}.jpg"
+        dest_filename = f"{re.sub(r'[^a-zA-Z0-9.-]', '_', normalize_name(part))}.jpg"
         dest_path = OUTPUT_DIR / dest_filename
             
         found = False
@@ -97,7 +97,7 @@ def process_single_row(row_data):
                     if image_files:
                         for i, best_file in enumerate(sorted(image_files)):
                             try:
-                                base_name = re.sub(r'[^a-zA-Z0-9.-]', '_', part)
+                                base_name = re.sub(r'[^a-zA-Z0-9.-]', '_', normalize_name(part))
                                 if i == 0:
                                     dest_filename = f"{base_name}.jpg"
                                 else:
@@ -237,7 +237,7 @@ def main():
         id_parts = [p.strip() for p in identifier_str.split(';') if p.strip()]
         for part in id_parts:
             if len(part) <= 200:
-                base = f"{re.sub(r'[^a-zA-Z0-9.-]', '_', part)}"
+                base = f"{re.sub(r'[^a-zA-Z0-9.-]', '_', normalize_name(part))}"
                 if f"{base}.jpg" in final_existing_images:
                     count = 1
                     while f"{base}_{count}.jpg" in final_existing_images:

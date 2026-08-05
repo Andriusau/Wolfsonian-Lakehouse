@@ -1,3 +1,4 @@
+import { getMediaFilename } from '@/utils/formatters';
 "use client";
 
 import { useState, useEffect } from "react";
@@ -19,8 +20,8 @@ export default function AudioReader({ identifier, audioCount }: AudioReaderProps
   // First file is base.mp3, subsequent files are base_1.mp3, base_2.mp3
   const audioSrc = currentIndex === 0 
 
-    ? `/audio/${encodeURIComponent(baseId)}.mp3`
-    : `/audio/${encodeURIComponent(baseId)}_${currentIndex}.mp3`;
+    ? `/audio/${getMediaFilename(baseId)}.mp3`
+    : `/audio/${getMediaFilename(baseId)}_${currentIndex}.mp3`;
 
   return (
     <div className="w-full bg-mca-black border-t-2 border-white flex flex-col p-6 animate-in slide-in-from-bottom-4">

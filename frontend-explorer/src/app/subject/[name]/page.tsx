@@ -1,3 +1,4 @@
+import { getMediaFilename } from '@/utils/formatters';
 "use client";
 import { useRouter } from "next/navigation";
 
@@ -159,7 +160,7 @@ export default function SubjectPage({ params }: { params: Promise<{ name: string
                       const imageId = (item.field_identifier || "").split(';')[0].trim();
                       return (
                         <img 
-                          src={`/images/${encodeURIComponent(imageId.replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg`}
+                          src={`/images/${getMediaFilename(imageId)}.jpg`}
                           alt={item.title}
                           className="object-contain max-w-full max-h-full opacity-90 group-hover:opacity-100 transition-all duration-300"
                           onError={(e: any) => {

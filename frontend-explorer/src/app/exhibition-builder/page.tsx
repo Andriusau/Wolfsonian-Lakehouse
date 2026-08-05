@@ -1,3 +1,4 @@
+import { getMediaFilename } from '@/utils/formatters';
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -40,7 +41,7 @@ function SortableItem(props: { id: string; item: any }) {
   };
 
   const primaryId = (props.item.field_identifier || "").split(';')[0].trim();
-  const imageUrl = `https://lakehouse.wolfsonian.org/images/${primaryId}.jpg`;
+  const imageUrl = `https://lakehouse.wolfsonian.org/images/${getMediaFilename(primaryId)}.jpg`;
 
   return (
     <div

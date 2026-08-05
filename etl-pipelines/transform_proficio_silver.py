@@ -291,12 +291,10 @@ def main():
             # Use field_identifier (renamed from cat_nbr) as the true Proficio primary key.
             # access_nbr is NULL for most records and causes massive data loss with drop_duplicates.
             if 'record_id' in df_combined.columns:
-                if 'field_identifier' in df_combined.columns:
-                    df_combined['field_identifier'] = df_combined['field_identifier'].apply(normalize_identifier)
                 df_master = df_combined.drop_duplicates(subset=['record_id'], keep='last')
             elif 'field_identifier' in df_combined.columns:
-                df_combined['field_identifier'] = df_combined['field_identifier'].apply(normalize_identifier)
-                df_master = df_combined.drop_duplicates(subset=['field_identifier'], keep='last')
+                df_combined['norm_id'] = df_combined['field_identifier'].apply(normalize_identifier)
+                df_master = df_combined.drop_duplicates(subset=['norm_id'], keep='last').drop(columns=['norm_id'])
             elif 'access_nbr' in df_combined.columns:
                 logging.warning("field_identifier not found. Falling back to access_nbr for dedup.")
                 df_master = df_combined.drop_duplicates(subset=['access_nbr'], keep='last')
@@ -311,13 +309,11 @@ def main():
         df_master = df_deltas
         # Still deduplicate even on first build — multiple delta files (raw dump + fresh pull) can overlap
         if 'record_id' in df_master.columns:
-            if 'field_identifier' in df_master.columns:
-                df_master['field_identifier'] = df_master['field_identifier'].apply(normalize_identifier)
             df_master = df_master.drop_duplicates(subset=['record_id'], keep='last')
             logging.info(f"Deduplication on fresh build: {len(df_master)} unique records.")
         elif 'field_identifier' in df_master.columns:
-            df_master['field_identifier'] = df_master['field_identifier'].apply(normalize_identifier)
-            df_master = df_master.drop_duplicates(subset=['field_identifier'], keep='last')
+            df_master['norm_id'] = df_master['field_identifier'].apply(normalize_identifier)
+            df_master = df_master.drop_duplicates(subset=['norm_id'], keep='last').drop(columns=['norm_id'])
             logging.info(f"Deduplication on fresh build: {len(df_master)} unique records.")
 
     if df_master.empty:

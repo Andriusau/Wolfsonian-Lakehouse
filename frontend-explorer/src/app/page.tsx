@@ -1,11 +1,14 @@
+import { getMediaFilename } from '@/utils/formatters';
 "use client";
 import { useRouter } from "next/navigation";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+
 import { useDuckDB } from "@/providers/DuckDBProvider";
 import { useCollection } from "../hooks/useCollection";
-import { parseDelimited, formatEDTFDate } from "../utils/formatters";
+import { parseDelimited, formatEDTFDate, getMediaFilename } from "../utils/formatters";
+import Image from "next/image";
 
 export default function Home() {
   const { isReady, runQuery, error } = useDuckDB();
@@ -1066,7 +1069,7 @@ export default function Home() {
                       const imageId = (item.field_identifier || "").split(';')[0].trim();
                       return (
                         <img 
-                          src={`/images/${encodeURIComponent(imageId.replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg`}
+                          src={`/images/${getMediaFilename(imageId)}.jpg`}
                           alt={item.title}
                           className="object-contain max-w-full max-h-full opacity-90 group-hover:opacity-100 transition-all duration-300"
                           onError={(e: any) => {
@@ -1353,7 +1356,7 @@ export default function Home() {
                       }}
                     >
                       <img 
-                        src={`/images/${encodeURIComponent((item.field_identifier || "").split(';')[0].trim().replace(/[^a-zA-Z0-9.-]/g, '_'))}.jpg`}
+                        src={`/images/${getMediaFilename(item.field_identifier)}.jpg`}
                         alt={item.title}
                         className="object-contain max-w-full max-h-full"
                         onError={(e: any) => {

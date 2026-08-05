@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getMediaFilename } from '@/utils/formatters';
 import { usePathname } from "next/navigation";
 
 export function useCollection() {
@@ -105,7 +106,7 @@ export function useCollection() {
     // Add rows
     for (const row of collection) {
       const primaryId = (row.field_identifier || "").split(';')[0].trim();
-      const imageUrl = row.has_image ? `https://lakehouse.wolfsonian.org/images/${primaryId}.jpg` : "";
+      const imageUrl = row.has_image ? `https://lakehouse.wolfsonian.org/images/${getMediaFilename(primaryId)}.jpg` : "";
       
       const values = exportHeaders.map(header => {
         let val = "";
