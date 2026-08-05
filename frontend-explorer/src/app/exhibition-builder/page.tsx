@@ -21,6 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import * as htmlToImage from "html-to-image";
+import { getMediaFilename } from "@/utils/formatters";
 
 function SortableItem(props: { id: string; item: any }) {
   const {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getMediaFilename } from "@/utils/formatters";
 
 interface AudioReaderProps {
   identifier: string;

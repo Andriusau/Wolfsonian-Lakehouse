@@ -5,6 +5,7 @@ import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useDuckDB } from "@/providers/DuckDBProvider";
 import { formatEDTFDate } from "../../../utils/formatters";
+import { getMediaFilename } from "@/utils/formatters";
 
 
 export default function CreatorPage({ params }: { params: Promise<{ name: string }> }) {

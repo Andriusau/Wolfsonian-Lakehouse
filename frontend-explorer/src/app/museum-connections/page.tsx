@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useDuckDB } from "@/providers/DuckDBProvider";
 import dynamic from 'next/dynamic';
+import { getMediaFilename } from "@/utils/formatters";
 
 // Dynamically import react-force-graph to prevent SSR issues (it requires window)
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), { ssr: false });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getMediaFilename } from "@/utils/formatters";
 
 export default function ExhibitCatalog() {
   const [collection, setCollection] = useState<any[]>([]);
