@@ -24,3 +24,7 @@ __pycache__/
 logs/
 *.log
 uptime-kuma-data/
+
+# Archive scripts and output
+archive_scripts/
+*.xlsx
