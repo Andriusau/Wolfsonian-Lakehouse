@@ -6,7 +6,7 @@ FROM eclipse-temurin:21-jre-jammy
 RUN apt-get update && apt-get install -y wget curl && rm -rf /var/lib/apt/lists/*
 
 # Download the exact pinned version of Metabase to prevent future database corruption
-RUN wget https://downloads.metabase.com/v0.61.3/metabase.jar -O /metabase.jar
+RUN wget https://downloads.metabase.com/v0.61.11/metabase.jar -O /metabase.jar
 
 # Tell Metabase where to find the plugins folder
 ENV MB_PLUGINS_DIR=/plugins
