@@ -1,4 +1,4 @@
-.PHONY: start stop run-pipeline logs logs-frontend build-all frontend lakehouse metabase
+.PHONY: start stop run-pipeline logs logs-frontend build-all frontend lakehouse metabase process-poster-stamps test-poster-stamps
 
 # Start the full environment (Prefect, Metabase, NGINX frontend)
 start:
@@ -47,3 +47,15 @@ run-pipeline:
 # Run the cleanup script to remove old reports
 cleanup-reports:
 	docker compose run --rm lakehouse python etl-pipelines/cleanup_reports.py
+
+# ==========================================
+# ARCHIVE SCRIPTS
+# ==========================================
+
+# Run the poster stamps metadata extraction script on all images
+process-poster-stamps:
+	docker compose run --rm archiver python poster_stamps.py
+
+# Run a test of the poster stamps script on a limited number of images
+test-poster-stamps:
+	docker compose run --rm -e TEST_LIMIT=5 archiver python poster_stamps.py
