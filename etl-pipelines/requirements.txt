@@ -30,3 +30,5 @@ tqdm==4.68.3
 # --- Orchestration ---
 prefect==3.7.5
 pillow==12.2.0
+google-generativeai==0.8.3
+python-dotenv==1.0.1
