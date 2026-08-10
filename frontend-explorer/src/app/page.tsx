@@ -1026,11 +1026,11 @@ export default function Home() {
               </button>
             </div>
           )}
-          <div className="flex justify-between items-end mb-6 border-b border-white/20 pb-4">
+          <div className="flex flex-col md:flex-row md:justify-between items-start md:items-end gap-4 mb-6 border-b border-white/20 pb-4">
             <h2 className="text-white font-bold tracking-widest text-sm uppercase">
               RESULTS GRID
             </h2>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               {results.length > 0 && (
                 <button 
                   onClick={handleSaveAllResults}
