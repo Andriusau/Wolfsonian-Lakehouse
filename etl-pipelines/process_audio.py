@@ -43,7 +43,8 @@ def process_single_row(identifier):
         if len(part) > 200:
             continue
             
-        dest_filename = f"{get_media_filename(part)}.mp3"
+        base_name = get_media_filename(part)
+        dest_filename = f"{base_name}.mp3"
         norm_candidate = normalize_name(part)
         
         obj_dir = None
