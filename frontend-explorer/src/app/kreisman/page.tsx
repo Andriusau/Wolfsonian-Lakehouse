@@ -86,7 +86,7 @@ export default function KreismanCollection() {
             </div>
 
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black font-display uppercase tracking-tighter leading-none bg-clip-text text-transparent bg-gradient-to-br from-white to-gray-500 pb-2">
-              The Dodge and Kreisman Collection
+              Wayne Dodge and Lawrence Kreisman Medallic Art and Poster Stamp Collection
             </h1>
 
             <p className="text-gray-400 text-lg md:text-xl font-light leading-relaxed max-w-2xl mx-auto">
@@ -101,6 +101,18 @@ export default function KreismanCollection() {
                 <span>Play Memory Match Game</span>
                 <span>→</span>
               </Link>
+            </div>
+
+            <div className="pt-12 text-gray-400 text-sm md:text-base font-light leading-relaxed max-w-4xl mx-auto space-y-6 text-left border-t border-white/10 mt-8">
+              <p>
+                Over 1,300 bronze and silver medals and plaquettes with 100 reference books, catalogs, and articles document the remarkable work of sculptors, and foundries that produced artwork which could be held in the hand, worn, and displayed. The myriad designs and craftsmanship of European, British, and American artists reflects the remarkable qualities that medalists were able to master in the medium initially following historic and classic traditions and venturing into the design reform movements of Art Nouveau, Jugendstil, Secession, Art Deco and Modernism. They showcase the expansion of architecture, arts, culture, industry, economy, the extraordinary reach of world’s fairs and regional and local expositions, along with the destruction and loss of life in wars, the exploitation of workers in colonial occupations, and the propaganda and promotion potentials seen in the distribution of medals to the public. 
+              </p>
+              <p>
+                The Dodge/Kreisman collection also comprises over 1,400 poster stamps, 30 reference books, catalogs, and newsletters. Also known as “Cinderellas,” defined as virtually anything resembling a postage stamp, but not issued for postal purposes by a government postal administration, the works in this collection were produced between 1890 and the 1960s. Many of these are extreme reductions of well-known full-size posters by well-known artists. As with the medals, they offered affordable miniature keepsakes of important local, regional, national, and international fairs and exhibitions, provided promotional outlets for retailers and manufacturers, and supported cultural and sporting events in Europe, Great Britain, and the US. 
+              </p>
+              <p>
+                These collections grew out of the couple’s interest in architecture and the design arts c. 1900, inspired by their long-standing friendship with Mitchell Wolfson, Jr., and appreciation for his unrivaled passion to bring the lessons of material culture of this period to the public.
+              </p>
             </div>
           </div>
         </header>
