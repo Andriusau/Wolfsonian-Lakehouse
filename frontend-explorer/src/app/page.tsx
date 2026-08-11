@@ -573,7 +573,30 @@ export default function Home() {
             A serverless web explorer querying the Wolfsonian-FIU digital collections directly in your browser.
           </p>
 
-          <Link href="/museum-connections" className="block mt-8 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
+          <Link href="/kreisman" className="block mt-8 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2 flex-1">
+                <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
+                  Featured Digital Exhibition
+                </div>
+                <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors">
+                  Wayne Dodge and Lawrence Kreisman Medallic Art and Poster Stamp Collection
+                </h2>
+
+              </div>
+              <div className="flex-shrink-0 hidden md:block">
+                <img 
+                  src="https://lakehouse.wolfsonian.org/images/2022.7.563.jpg" 
+                  alt="Featured Kreisman Object" 
+                  className="w-24 h-24 md:w-32 md:h-32 object-contain border border-mca-cyan/30 bg-black/50 p-2 transform group-hover:scale-105 transition-all duration-500"
+                  crossOrigin="anonymous"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/museum-connections" className="block mt-4 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-2 flex-1">
                 <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
@@ -635,29 +658,6 @@ export default function Home() {
                 <div className="w-24 h-24 md:w-32 md:h-32 border border-mca-cyan/30 bg-black/50 transform group-hover:scale-105 transition-all duration-500 rounded-2xl flex items-center justify-center text-5xl">
                   🖼️
                 </div>
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/kreisman" className="block mt-4 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2 flex-1">
-                <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
-                  Featured Digital Exhibition
-                </div>
-                <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors">
-                  The Dodge and Kreisman Collection
-                </h2>
-
-              </div>
-              <div className="flex-shrink-0 hidden md:block">
-                <img 
-                  src="https://lakehouse.wolfsonian.org/images/2022.7.563.jpg" 
-                  alt="Featured Kreisman Object" 
-                  className="w-24 h-24 md:w-32 md:h-32 object-contain border border-mca-cyan/30 bg-black/50 p-2 transform group-hover:scale-105 transition-all duration-500"
-                  crossOrigin="anonymous"
-                  loading="lazy"
-                />
               </div>
             </div>
           </Link>
