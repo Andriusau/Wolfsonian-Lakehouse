@@ -1,26 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 @import "tailwindcss";
 
-
 @theme {
   --font-display: 'Syne', sans-serif;
   --font-sans: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'Space Grotesk', sans-serif;
   
-  /* Stark MCA Contemporary Palette */
-  --color-mca-blue: #0044ff;
-  --color-mca-cyan: #00e1ff;
-  --color-mca-yellow: #f0f000;
-  --color-mca-black: #000000;
-  --color-mca-dark: #090909;
-  --color-mca-gray: #1a1a1a;
-  --color-mca-lightgray: #f0f0f0;
-  --color-mca-border: #333333;
+  /* Premium Light Mode Palette (Inverted) */
+  --color-mca-blue: #0055ff;
+  --color-mca-cyan: #0077aa; /* Darkened for light background */
+  --color-mca-yellow: #dca300; /* Darkened for light background */
+  
+  /* Inverting base colors so page.tsx works flawlessly without edits */
+  --color-mca-black: #ffffff;
+  --color-mca-dark: #f1f5f9; /* Slightly darker slate to blend with white background */
+  --color-mca-gray: #e2e8f0;
+  --color-mca-lightgray: #0f172a;
+  --color-mca-border: #cbd5e1;
+  
+  /* Overriding Tailwind default white and black to flip the whole site */
+  --color-white: #0f172a;
+  --color-black: #ffffff;
 }
 
 :root {
-  --background: #000000;
-  --foreground: #ffffff;
+  --background: #f8fafc;
+  --foreground: #0f172a;
 }
 
 body {
@@ -30,45 +35,53 @@ body {
   overflow-x: hidden;
 }
 
-/* Swiss-brutalist design highlights */
+/* Premium Light Mode design highlights */
 .brutalist-border {
-  border: 2px solid #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
 }
 
 .brutalist-shadow-blue {
-  box-shadow: 4px 4px 0px 0px #0044ff;
+  box-shadow: 0 4px 6px -1px rgba(0, 68, 255, 0.1), 0 2px 4px -1px rgba(0, 68, 255, 0.06);
 }
 
 .brutalist-shadow-yellow {
-  box-shadow: 4px 4px 0px 0px #f0f000;
+  box-shadow: 0 4px 6px -1px rgba(240, 240, 0, 0.1), 0 2px 4px -1px rgba(240, 240, 0, 0.06);
 }
 
 .brutalist-shadow-white {
-  box-shadow: 4px 4px 0px 0px #ffffff;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
 }
 
 .brutalist-shadow-hover:hover {
-  transform: translate(-4px, -4px);
-  box-shadow: 8px 8px 0px 0px #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
 }
 
 .brutalist-shadow-hover-blue:hover {
-  transform: translate(-4px, -4px);
-  box-shadow: 8px 8px 0px 0px #0044ff;
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 68, 255, 0.1), 0 10px 10px -5px rgba(0, 68, 255, 0.04);
 }
 
 /* Custom premium scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #000000;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #333333;
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #ffffff;
+  background: #94a3b8;
+}
+
+/* Fix for react-zoom-pan-pinch collapsing */
+.zoom-wrapper-custom, .zoom-content-custom {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Fix for react-zoom-pan-pinch collapsing */

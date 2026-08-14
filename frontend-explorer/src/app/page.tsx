@@ -573,115 +573,116 @@ export default function Home() {
             A serverless web explorer querying the Wolfsonian-FIU digital collections directly in your browser.
           </p>
 
-          <Link href="/kreisman" className="block mt-8 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2 flex-1">
-                <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
-                  Featured Digital Exhibition
+          <div className="flex overflow-x-auto gap-4 pb-6 snap-x hide-scrollbar">
+            <Link href="/kreisman" className="block flex-shrink-0 w-[85vw] md:w-[350px] snap-center group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-dark p-6">
+              <div className="flex flex-col h-full justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
+                    Featured Digital Exhibition
+                  </div>
+                  <h2 className="text-xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors leading-none">
+                    Wayne Dodge and Lawrence Kreisman Collection
+                  </h2>
                 </div>
-                <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors">
-                  Wayne Dodge and Lawrence Kreisman Medallic Art and Poster Stamp Collection
-                </h2>
+                <div className="flex justify-end">
+                  <img 
+                    src="https://lakehouse.wolfsonian.org/images/2022.7.563.jpg" 
+                    alt="Featured Kreisman Object" 
+                    className="w-16 h-16 object-contain border border-mca-cyan/30 bg-black/50 p-1 transform group-hover:scale-105 transition-all duration-500"
+                    crossOrigin="anonymous"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            </Link>
 
+            <Link href="/museum-connections" className="block flex-shrink-0 w-[85vw] md:w-[350px] snap-center group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-dark p-6">
+              <div className="flex flex-col h-full justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
+                    Featured Digital Experience
+                  </div>
+                  <h2 className="text-xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors leading-none">
+                    Museum Connections
+                  </h2>
+                  <p className="text-xs font-sans text-slate-700 font-medium line-clamp-2">
+                    Explore the hidden relationships between works in this interactive visual network graph.
+                  </p>
+                </div>
+                <div className="flex justify-end">
+                  <div className="w-16 h-16 border border-mca-cyan/30 bg-black/50 transform group-hover:scale-105 transition-all duration-500 rounded-xl flex items-center justify-center text-3xl">
+                    🕸️
+                  </div>
+                </div>
               </div>
-              <div className="flex-shrink-0 hidden md:block">
-                <img 
-                  src="https://lakehouse.wolfsonian.org/images/2022.7.563.jpg" 
-                  alt="Featured Kreisman Object" 
-                  className="w-24 h-24 md:w-32 md:h-32 object-contain border border-mca-cyan/30 bg-black/50 p-2 transform group-hover:scale-105 transition-all duration-500"
-                  crossOrigin="anonymous"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-          </Link>
+            </Link>
 
-          <Link href="/museum-connections" className="block mt-4 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2 flex-1">
-                <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
-                  Featured Digital Experience
+            <Link href="/art-swipe" className="block flex-shrink-0 w-[85vw] md:w-[350px] snap-center group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-dark p-6">
+              <div className="flex flex-col h-full justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
+                    Featured Digital Experience
+                  </div>
+                  <h2 className="text-xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors leading-none">
+                    Art Swipe
+                  </h2>
+                  <p className="text-xs font-sans text-slate-700 font-medium line-clamp-2">
+                    Discover random gems from the collection. Swipe right on your favorites to save them!
+                  </p>
                 </div>
-                <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors">
-                  Museum Connections
-                </h2>
-                <p className="text-sm font-sans text-gray-400 font-light max-w-xl">
-                  Explore the hidden relationships between works in this interactive visual network graph.
-                </p>
-              </div>
-              <div className="flex-shrink-0 hidden md:block">
-                <div className="w-24 h-24 md:w-32 md:h-32 border border-mca-cyan/30 bg-black/50 transform group-hover:scale-105 transition-all duration-500 rounded-2xl flex items-center justify-center text-5xl">
-                  🕸️
+                <div className="flex justify-end">
+                  <img 
+                    src="/art-swipe-thumbnail.png" 
+                    alt="Art Swipe Thumbnail" 
+                    className="w-16 h-16 object-cover border border-mca-cyan/30 bg-black/50 transform group-hover:scale-105 transition-all duration-500 rounded-xl"
+                    loading="lazy"
+                  />
                 </div>
               </div>
-            </div>
-          </Link>
+            </Link>
 
-          <Link href="/art-swipe" className="block mt-4 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2 flex-1">
-                <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
-                  Featured Digital Experience
+            <Link href="/exhibition-builder" className="block flex-shrink-0 w-[85vw] md:w-[350px] snap-center group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-dark p-6">
+              <div className="flex flex-col h-full justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
+                    Featured Digital Experience
+                  </div>
+                  <h2 className="text-xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors leading-none">
+                    Virtual Exhibition Builder
+                  </h2>
+                  <p className="text-xs font-sans text-slate-700 font-medium line-clamp-2">
+                    Arrange your saved works on a digital gallery wall to curate your own exhibition poster.
+                  </p>
                 </div>
-                <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors">
-                  Art Swipe
-                </h2>
-                <p className="text-sm font-sans text-gray-400 font-light max-w-xl">
-                  Discover random gems from the collection. Swipe right on your favorites to save them instantly to your curated list!
-                </p>
+                <div className="flex justify-end">
+                  <div className="w-16 h-16 border border-mca-cyan/30 bg-black/50 transform group-hover:scale-105 transition-all duration-500 rounded-xl flex items-center justify-center text-3xl">
+                    🖼️
+                  </div>
+                </div>
               </div>
-              <div className="flex-shrink-0 hidden md:block">
-                <img 
-                  src="/art-swipe-thumbnail.png" 
-                  alt="Art Swipe Thumbnail" 
-                  className="w-24 h-24 md:w-32 md:h-32 object-cover border border-mca-cyan/30 bg-black/50 transform group-hover:scale-105 transition-all duration-500 rounded-2xl"
-                  loading="lazy"
-                />
-              </div>
-            </div>
-          </Link>
+            </Link>
 
-          <Link href="/exhibition-builder" className="block mt-4 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2 flex-1">
-                <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
-                  Featured Digital Experience
+            <Link href="/curators-challenge" className="block flex-shrink-0 w-[85vw] md:w-[350px] snap-center group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-dark p-6">
+              <div className="flex flex-col h-full justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
+                    Featured Digital Experience
+                  </div>
+                  <h2 className="text-xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors leading-none">
+                    Curator's Challenge
+                  </h2>
+                  <p className="text-xs font-sans text-slate-700 font-medium line-clamp-2">
+                    Can you spot the real title? Test your eye against the collection in this multiple-choice challenge.
+                  </p>
                 </div>
-                <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors">
-                  Virtual Exhibition Builder
-                </h2>
-                <p className="text-sm font-sans text-gray-400 font-light max-w-xl">
-                  Arrange your saved works on a digital gallery wall. Drag, drop, and curate your own high-quality exhibition poster.
-                </p>
-              </div>
-              <div className="flex-shrink-0 hidden md:block">
-                <div className="w-24 h-24 md:w-32 md:h-32 border border-mca-cyan/30 bg-black/50 transform group-hover:scale-105 transition-all duration-500 rounded-2xl flex items-center justify-center text-5xl">
-                  🖼️
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/curators-challenge" className="block mt-4 group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-cyan/5 p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2 flex-1">
-                <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
-                  Featured Digital Experience
-                </div>
-                <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors">
-                  Curator's Challenge
-                </h2>
-                <p className="text-sm font-sans text-gray-400 font-light max-w-xl">
-                  Can you spot the real title? Test your eye against the collection in this fast-paced multiple-choice challenge.
-                </p>
-              </div>
-              <div className="flex-shrink-0 hidden md:block">
-                <div className="w-24 h-24 md:w-32 md:h-32 border border-mca-cyan/30 bg-black/50 transform group-hover:scale-105 transition-all duration-500 rounded-2xl flex items-center justify-center text-5xl">
-                  🕵️‍♂️
+                <div className="flex justify-end">
+                  <div className="w-16 h-16 border border-mca-cyan/30 bg-black/50 transform group-hover:scale-105 transition-all duration-500 rounded-xl flex items-center justify-center text-3xl">
+                    🕵️‍♂️
+                  </div>
                 </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+          </div>
         </header>
 
         {/* Database Error Banner */}
