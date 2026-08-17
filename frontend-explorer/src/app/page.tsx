@@ -521,7 +521,7 @@ export default function Home() {
   }, [results.length]); // Wait for results to be populated from sessionStorage
 
   return (
-    <div className="min-h-screen bg-mca-black text-white flex flex-col selection:bg-mca-yellow selection:text-mca-black antialiased font-mono">
+    <div className="light-theme-explorer min-h-screen flex flex-col selection:bg-mca-yellow selection:text-mca-black antialiased font-mono">
       
       {/* Top Banner Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 border-b-2 border-white text-xs uppercase font-bold tracking-wider divide-y-2 md:divide-y-0 md:divide-x-2 divide-white bg-mca-black">

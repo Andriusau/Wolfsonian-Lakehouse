@@ -6,26 +6,39 @@
   --font-sans: 'Plus Jakarta Sans', sans-serif;
   --font-mono: 'Space Grotesk', sans-serif;
   
-  /* Premium Light Mode Palette (Inverted) */
+  /* Stark MCA Contemporary Palette (Default Global) */
+  --color-mca-blue: #0044ff;
+  --color-mca-cyan: #00e1ff;
+  --color-mca-yellow: #f0f000;
+  --color-mca-black: #000000;
+  --color-mca-dark: #090909;
+  --color-mca-gray: #1a1a1a;
+  --color-mca-lightgray: #f0f0f0;
+  --color-mca-border: #333333;
+}
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+}
+
+/* Scoped Light Theme for the Explorer Page */
+.light-theme-explorer {
   --color-mca-blue: #0055ff;
-  --color-mca-cyan: #0077aa; /* Darkened for light background */
-  --color-mca-yellow: #dca300; /* Darkened for light background */
+  --color-mca-cyan: #0077aa;
+  --color-mca-yellow: #dca300;
   
-  /* Inverting base colors so page.tsx works flawlessly without edits */
   --color-mca-black: #ffffff;
-  --color-mca-dark: #f1f5f9; /* Slightly darker slate to blend with white background */
+  --color-mca-dark: #f1f5f9;
   --color-mca-gray: #e2e8f0;
   --color-mca-lightgray: #0f172a;
   --color-mca-border: #cbd5e1;
   
-  /* Overriding Tailwind default white and black to flip the whole site */
   --color-white: #0f172a;
   --color-black: #ffffff;
-}
 
-:root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  background-color: #f8fafc;
+  color: #0f172a;
 }
 
 body {
