@@ -808,7 +808,7 @@ export default function Home() {
                   <button
                     key={opt.key}
                     onClick={() => setSelectedGenre(opt.key)}
-                    className={`px-3 py-2 border text-[11px] font-bold uppercase transition-all duration-150 cursor-pointer ${selectedGenre === opt.key ? 'bg-mca-yellow border-mca-yellow text-mca-black font-extrabold' : 'border-white/10 text-slate-400 hover:border-white/40 hover:text-white'}`}
+                    className={`px-3 py-2 border text-[11px] font-bold uppercase transition-all duration-150 cursor-pointer ${selectedGenre === opt.key ? 'bg-mca-yellow border-mca-yellow text-mca-black font-extrabold' : 'border-slate-200 text-slate-400 hover:border-white/40 hover:text-white'}`}
                   >
                     {opt.label}
                   </button>
@@ -823,7 +823,7 @@ export default function Home() {
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="flex flex-col space-y-2">
-                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">OBJECT NAME</label>
+                  <label className="text-[11px] text-slate-600 font-bold tracking-wider">OBJECT NAME</label>
                   <select 
                     value={selectedGenre}
                     onChange={(e) => setSelectedGenre(e.target.value)}
@@ -835,7 +835,7 @@ export default function Home() {
                 </div>
 
                 <div className="flex flex-col space-y-2">
-                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">CREATOR</label>
+                  <label className="text-[11px] text-slate-600 font-bold tracking-wider">CREATOR</label>
                   <select 
                     value={selectedCreator}
                     onChange={(e) => setSelectedCreator(e.target.value)}
@@ -847,7 +847,7 @@ export default function Home() {
                 </div>
                 
                 <div className="flex flex-col space-y-2">
-                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">SUBJECT</label>
+                  <label className="text-[11px] text-slate-600 font-bold tracking-wider">SUBJECT</label>
                   <select 
                     value={selectedSubject}
                     onChange={(e) => setSelectedSubject(e.target.value)}
@@ -859,7 +859,7 @@ export default function Home() {
                 </div>
 
                 <div className="flex flex-col space-y-2">
-                  <label className="text-[10px] text-slate-400 font-bold tracking-wider">PLACE PUBLISHED</label>
+                  <label className="text-[11px] text-slate-600 font-bold tracking-wider">PLACE PUBLISHED</label>
                   <select 
                     value={selectedPlace}
                     onChange={(e) => setSelectedPlace(e.target.value)}
@@ -940,7 +940,7 @@ export default function Home() {
                       // SELECT DATE RANGE
                     </span>
                     
-                    <div className="flex flex-col flex-1 justify-center space-y-6 bg-mca-dark/50 p-4 border border-white/10 min-h-[96px]">
+                    <div className="flex flex-col flex-1 justify-center space-y-6 bg-mca-dark/50 p-4 border border-slate-200 min-h-[96px]">
                       <div className="flex items-center justify-between text-mca-cyan font-bold font-mono">
                         <span>{minYear || "1800"}</span>
                         <span className="text-white">-</span>
@@ -1064,7 +1064,7 @@ export default function Home() {
                 >
                   
                   {/* Image Area - Stark Fit Layout */}
-                  <div className="h-60 bg-mca-black relative flex items-center justify-center p-2 border border-white/10">
+                  <div className="h-60 bg-mca-black relative flex items-center justify-center p-2 border border-slate-200">
                     {(() => {
                       const imageId = (item.field_identifier || "").split(';')[0].trim();
                       return (
@@ -1097,15 +1097,15 @@ export default function Home() {
                         {item.title || item.field_identifier || '[UNTITLED OBJECT]'}
                       </h3>
                       
-                      <p className="text-slate-400 text-xs leading-relaxed font-sans font-light line-clamp-4">
+                      <p className="text-slate-600 text-sm leading-relaxed font-sans line-clamp-4">
                         {item.field_description_long || 'No description at this time.'}
                       </p>
                       
-                      <div className="flex flex-col space-y-1 pt-3 text-[10px] uppercase font-bold tracking-widest text-slate-500 border-t border-white/10 mt-3">
+                      <div className="flex flex-col space-y-1 pt-3 text-[10px] uppercase font-bold tracking-widest text-slate-500 border-t border-slate-200 mt-3">
                         {item.field_linked_agent && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">CREATOR</span>
-                            <span className="text-slate-300 truncate">
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">CREATOR</span>
+                            <span className="text-slate-700 font-medium truncate">
                               {parseDelimited(item.field_linked_agent, '|').map((agent: any, i: number, arr: any[]) => (
                                 <span key={i}>
                                   <Link href={`/creator/${encodeURIComponent(agent)}`} className="hover:text-mca-yellow hover:underline" onClick={(e: any) => e.stopPropagation()}>
@@ -1119,32 +1119,32 @@ export default function Home() {
                         )}
                         {item.field_edtf_date_created && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">DATE</span>
-                            <span className="text-slate-300 truncate">{formatEDTFDate(item.field_edtf_date_created)}</span>
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">DATE</span>
+                            <span className="text-slate-700 font-medium truncate">{formatEDTFDate(item.field_edtf_date_created)}</span>
                           </div>
                         )}
                         {item.field_place_published && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">PLACE</span>
-                            <span className="text-slate-300 truncate">{item.field_place_published}</span>
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">PLACE</span>
+                            <span className="text-slate-700 font-medium truncate">{item.field_place_published}</span>
                           </div>
                         )}
                         {item.field_physical_form && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">MATERIAL</span>
-                            <span className="text-slate-300 truncate">{item.field_physical_form}</span>
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">MATERIAL</span>
+                            <span className="text-slate-700 font-medium truncate">{item.field_physical_form}</span>
                           </div>
                         )}
                         {item.field_extent && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">DIMENSIONS</span>
-                            <span className="text-slate-300 truncate">{item.field_extent}</span>
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">DIMENSIONS</span>
+                            <span className="text-slate-700 font-medium truncate">{item.field_extent}</span>
                           </div>
                         )}
                         {item.field_subject && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">SUBJECT</span>
-                            <span className="text-slate-300 truncate">
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">SUBJECT</span>
+                            <span className="text-slate-700 font-medium truncate">
                               {parseDelimited(item.field_subject, item.field_subject.includes(';') ? ';' : '|').map((subject: string, i: number, arr: any[]) => (
                                 <span key={i}>
                                   <Link href={`/subject/${encodeURIComponent(subject)}`} className="hover:text-mca-yellow hover:underline" onClick={(e: any) => e.stopPropagation()}>
@@ -1158,20 +1158,20 @@ export default function Home() {
                         )}
                         {item.field_credit_line && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">CREDIT</span>
-                            <span className="text-slate-300 truncate">{item.field_credit_line}</span>
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">CREDIT</span>
+                            <span className="text-slate-700 font-medium truncate">{item.field_credit_line}</span>
                           </div>
                         )}
                         {item.field_collection_note && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">NOTE</span>
-                            <span className="text-slate-300 truncate">{item.field_collection_note}</span>
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">NOTE</span>
+                            <span className="text-slate-700 font-medium truncate">{item.field_collection_note}</span>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-white/10 flex items-center justify-between text-[10px] font-bold">
+                    <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] font-bold">
                       <span className="text-mca-yellow">{item.field_genre || 'UNCATEGORIZED'}</span>
                       <div className="flex items-center space-x-2">
                         <button 
@@ -1229,7 +1229,7 @@ export default function Home() {
         {process.env.NODE_ENV === 'development' && debugInfo && (
           <div className="border border-white/20 bg-mca-black rounded-none">
             <details className="group">
-              <summary className="bg-mca-dark px-6 py-4 flex items-center justify-between cursor-pointer select-none border-b border-white/10">
+              <summary className="bg-mca-dark px-6 py-4 flex items-center justify-between cursor-pointer select-none border-b border-slate-200">
                 <span className="text-xs uppercase tracking-widest font-bold text-slate-400">
                   ⚙️ DATABASE ENGINE DEBUGGER
                 </span>
@@ -1246,7 +1246,7 @@ export default function Home() {
 
       </div>
       {/* Footer */}
-      <footer className="border-t border-white/10 mt-auto">
+      <footer className="border-t border-slate-200 mt-auto">
         <div className="w-full px-6 md:px-12 2xl:px-24 py-6 flex flex-col md:flex-row items-center md:justify-start gap-4 md:gap-12 text-[10px] font-mono uppercase tracking-widest text-slate-600">
           <span>Wolfsonian-FIU Collection Data Lakehouse</span>
           <span>Built by <span className="text-slate-400">Andrius Aukstuolis</span></span>
@@ -1349,7 +1349,7 @@ export default function Home() {
                 {collection.map((item, idx) => (
                   <article key={idx} className="bg-mca-black border border-white/20 p-4 flex flex-col space-y-4 group">
                     <div 
-                      className="h-40 bg-mca-dark relative flex items-center justify-center p-2 border border-white/10 cursor-pointer hover:border-mca-cyan transition-colors"
+                      className="h-40 bg-mca-dark relative flex items-center justify-center p-2 border border-slate-200 cursor-pointer hover:border-mca-cyan transition-colors"
                       onClick={() => {
                         setIsCollectionModalOpen(false);
                         handleRecordClick(item.field_identifier);

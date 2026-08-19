@@ -147,7 +147,7 @@ export default function CuratorsChallengePage() {
                 
                 {/* Image Section */}
                 <div className="w-full md:w-1/2 h-[40vh] md:h-[70vh] flex items-center justify-center relative">
-                    <div className="w-full h-full bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative p-4 flex items-center justify-center">
+                    <div className="w-full h-full bg-[#0a0a0a] border border-slate-200 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative p-4 flex items-center justify-center">
                         <img 
                             src={`/images/${getMediaFilename(realArtifact.field_identifier)}.jpg`}
                             className="w-full h-full object-contain"
@@ -173,7 +173,7 @@ export default function CuratorsChallengePage() {
                                 } else if (option === selectedAnswer) {
                                     buttonStyle = "border-red-500 bg-red-500/10 text-red-400";
                                 } else {
-                                    buttonStyle = "border-white/10 bg-zinc-900/30 text-gray-500 opacity-50";
+                                    buttonStyle = "border-slate-200 bg-zinc-900/30 text-gray-500 opacity-50";
                                 }
                             }
                             

@@ -62,7 +62,7 @@ export default function KreismanCollection() {
     <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col selection:bg-mca-yellow selection:text-mca-black antialiased font-sans">
 
       {/* Top Banner Navigation */}
-      <nav className="sticky top-0 z-50 backdrop-blur-md bg-[#0a0a0a]/80 border-b border-white/10 px-6 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 z-50 backdrop-blur-md bg-[#0a0a0a]/80 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
         <Link href="/" className="text-xs uppercase tracking-widest font-mono text-gray-400 hover:text-white transition-colors duration-300">
           ← Back to Explorer
         </Link>
@@ -74,11 +74,11 @@ export default function KreismanCollection() {
       <div className="w-full flex-1 flex flex-col">
 
         {/* Immersive Hero Section */}
-        <header className="relative w-full py-24 md:py-40 px-6 md:px-12 2xl:px-24 flex flex-col items-center justify-center text-center overflow-hidden border-b border-white/10">
+        <header className="relative w-full py-24 md:py-40 px-6 md:px-12 2xl:px-24 flex flex-col items-center justify-center text-center overflow-hidden border-b border-slate-200">
           <div className="absolute inset-0 bg-gradient-to-b from-mca-cyan/10 to-transparent pointer-events-none opacity-50" />
 
           <div className="relative z-10 space-y-8 max-w-4xl mx-auto">
-            <div className="inline-flex items-center space-x-3 bg-white/5 border border-white/10 px-4 py-1.5 rounded-full backdrop-blur-sm">
+            <div className="inline-flex items-center space-x-3 bg-white/5 border border-slate-200 px-4 py-1.5 rounded-full backdrop-blur-sm">
               <span className={`h-2 w-2 rounded-full ${isReady ? 'bg-mca-cyan animate-pulse' : 'bg-mca-yellow animate-ping'}`} />
               <span className="text-[10px] uppercase tracking-[0.2em] font-mono text-gray-300">
                 {isReady ? 'Collection Online' : 'Initializing Engine...'}
@@ -103,7 +103,7 @@ export default function KreismanCollection() {
               </Link>
             </div>
 
-            <div className="pt-12 text-gray-400 text-sm md:text-base font-light leading-relaxed max-w-4xl mx-auto space-y-6 text-left border-t border-white/10 mt-8">
+            <div className="pt-12 text-gray-400 text-sm md:text-base font-light leading-relaxed max-w-4xl mx-auto space-y-6 text-left border-t border-slate-200 mt-8">
               <p>
                 Over 1,300 bronze and silver medals and plaquettes with 100 reference books, catalogs, and articles document the remarkable work of sculptors, and foundries that produced artwork which could be held in the hand, worn, and displayed. The myriad designs and craftsmanship of European, British, and American artists reflects the remarkable qualities that medalists were able to master in the medium initially following historic and classic traditions and venturing into the design reform movements of Art Nouveau, Jugendstil, Secession, Art Deco and Modernism. They showcase the expansion of architecture, arts, culture, industry, economy, the extraordinary reach of world’s fairs and regional and local expositions, along with the destruction and loss of life in wars, the exploitation of workers in colonial occupations, and the propaganda and promotion potentials seen in the distribution of medals to the public. 
               </p>
@@ -129,7 +129,7 @@ export default function KreismanCollection() {
 
         {/* Collection Gallery */}
         <main className="w-full px-6 md:px-12 2xl:px-24 py-16">
-          <div className="flex justify-between items-end mb-12 border-b border-white/10 pb-6">
+          <div className="flex justify-between items-end mb-12 border-b border-slate-200 pb-6">
             <h2 className="text-white font-bold tracking-[0.3em] text-sm font-mono uppercase">
               Exhibition Gallery
             </h2>
@@ -152,7 +152,7 @@ export default function KreismanCollection() {
                 <article
                   key={idx}
                   onClick={() => handleRecordClick(item.field_identifier.split(";")[0].trim())}
-                  className="group relative flex flex-col bg-white/5 border border-white/10 hover:bg-white/10 transition-all duration-500 cursor-pointer overflow-hidden rounded-sm"
+                  className="group relative flex flex-col bg-white/5 border border-slate-200 hover:bg-white/10 transition-all duration-500 cursor-pointer overflow-hidden rounded-sm"
                 >
                   <div className="relative w-full aspect-square bg-black/50 overflow-hidden flex items-center justify-center p-8">
                     {item.has_image ? (

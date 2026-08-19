@@ -149,7 +149,7 @@ export default function ArtSwipePage() {
                 )}
                 
                 <div 
-                    className={`absolute w-full max-w-md aspect-[3/4] bg-zinc-900 border border-white/10 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-10 flex flex-col transition-transform duration-300 ease-out origin-bottom
+                    className={`absolute w-full max-w-md aspect-[3/4] bg-zinc-900 border border-slate-200 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] z-10 flex flex-col transition-transform duration-300 ease-out origin-bottom
                         ${animating === 'left' ? '-translate-x-[120%] -rotate-12 opacity-0' : ''}
                         ${animating === 'right' ? 'translate-x-[120%] rotate-12 opacity-0' : ''}
                     `}

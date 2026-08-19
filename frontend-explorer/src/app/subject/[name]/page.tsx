@@ -155,7 +155,7 @@ export default function SubjectPage({ params }: { params: Promise<{ name: string
                 >
                   
                   {/* Image Area - Stark Fit Layout */}
-                  <div className="h-60 bg-mca-black relative flex items-center justify-center p-2 border border-white/10">
+                  <div className="h-60 bg-mca-black relative flex items-center justify-center p-2 border border-slate-200">
                     {(() => {
                       const imageId = (item.field_identifier || "").split(';')[0].trim();
                       return (
@@ -188,15 +188,15 @@ export default function SubjectPage({ params }: { params: Promise<{ name: string
                         {item.title || item.field_identifier || '[UNTITLED OBJECT]'}
                       </h3>
                       
-                      <p className="text-slate-400 text-xs leading-relaxed font-sans font-light line-clamp-4">
+                      <p className="text-slate-600 text-sm leading-relaxed font-sans line-clamp-4">
                         {item.field_description_long || 'No description at this time.'}
                       </p>
                       
-                      <div className="flex flex-col space-y-1 pt-3 text-[10px] uppercase font-bold tracking-widest text-slate-500 border-t border-white/10 mt-3">
+                      <div className="flex flex-col space-y-1 pt-3 text-[10px] uppercase font-bold tracking-widest text-slate-500 border-t border-slate-200 mt-3">
                         {item.field_linked_agent && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">CREATOR</span>
-                            <span className="text-slate-300 truncate">
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">CREATOR</span>
+                            <span className="text-slate-700 font-medium truncate">
                               {item.field_linked_agent.split('|').map((agent: string, i: number) => (
                                 <span key={i}>
                                   <Link href={`/creator/${encodeURIComponent(agent.trim())}`} className="hover:text-mca-yellow hover:underline" onClick={(e: any) => e.stopPropagation()}>
@@ -210,50 +210,50 @@ export default function SubjectPage({ params }: { params: Promise<{ name: string
                         )}
                         {item.field_edtf_date_created && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">DATE</span>
-                            <span className="text-slate-300 truncate">{formatEDTFDate(item.field_edtf_date_created)}</span>
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">DATE</span>
+                            <span className="text-slate-700 font-medium truncate">{formatEDTFDate(item.field_edtf_date_created)}</span>
                           </div>
                         )}
                         {item.field_place_published && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">PLACE</span>
-                            <span className="text-slate-300 truncate">{item.field_place_published}</span>
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">PLACE</span>
+                            <span className="text-slate-700 font-medium truncate">{item.field_place_published}</span>
                           </div>
                         )}
                         {item.field_physical_form && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">MATERIAL</span>
-                            <span className="text-slate-300 truncate">{item.field_physical_form}</span>
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">MATERIAL</span>
+                            <span className="text-slate-700 font-medium truncate">{item.field_physical_form}</span>
                           </div>
                         )}
                         {item.field_extent && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">DIMENSIONS</span>
-                            <span className="text-slate-300 truncate">{item.field_extent}</span>
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">DIMENSIONS</span>
+                            <span className="text-slate-700 font-medium truncate">{item.field_extent}</span>
                           </div>
                         )}
                         {item.field_subject && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">SUBJECT</span>
-                            <span className="text-slate-300 truncate">{item.field_subject}</span>
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">SUBJECT</span>
+                            <span className="text-slate-700 font-medium truncate">{item.field_subject}</span>
                           </div>
                         )}
                         {item.field_credit_line && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">CREDIT</span>
-                            <span className="text-slate-300 truncate">{item.field_credit_line}</span>
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">CREDIT</span>
+                            <span className="text-slate-700 font-medium truncate">{item.field_credit_line}</span>
                           </div>
                         )}
                         {item.field_collection_note && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-600 w-20 shrink-0">NOTE</span>
-                            <span className="text-slate-300 truncate">{item.field_collection_note}</span>
+                            <span className="text-slate-800 w-20 shrink-0 font-bold">NOTE</span>
+                            <span className="text-slate-700 font-medium truncate">{item.field_collection_note}</span>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-white/10 flex items-center justify-between text-[10px] font-bold">
+                    <div className="pt-4 border-t border-slate-200 flex items-center justify-between text-[10px] font-bold">
                       <span className="text-mca-yellow">{item.field_genre || 'UNCATEGORIZED'}</span>
                       <span className="text-slate-500 bg-mca-gray px-2 py-1">{item.source_system}</span>
                     </div>
@@ -280,7 +280,7 @@ export default function SubjectPage({ params }: { params: Promise<{ name: string
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 mt-auto">
+      <footer className="border-t border-slate-200 mt-auto">
         <div className="w-full px-6 md:px-12 2xl:px-24 py-6 flex flex-col md:flex-row items-center md:justify-start gap-4 md:gap-12 text-[10px] font-mono uppercase tracking-widest text-slate-600">
           <span>Wolfsonian-FIU Collection Data Lakehouse</span>
           <span>Built by <span className="text-slate-400">Andrius Aukstuolis</span></span>
