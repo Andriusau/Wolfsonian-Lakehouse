@@ -307,7 +307,7 @@ export default function Home() {
       }
       if (state.term) {
         let sqlCondition = "";
-        if (/\b(AND|OR|NOT)\b/i.test(state.term)) {
+        if (/\b(AND|OR|NOT)\b/i.test(state.term) || state.term.includes('"')) {
           const tokens = state.term.match(/(".*?"|\bAND\b|\bOR\b|\bNOT\b|\S+)/ig) || [];
           let expectOperator = false;
           for (let i = 0; i < tokens.length; i++) {
@@ -325,7 +325,7 @@ export default function Home() {
               }
               const e = token.replace(/(^"|"$)/g, '').replace(/'/g, "''").toLowerCase();
               const unaccented = e.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-              sqlCondition += `search_text LIKE '%${unaccented}%'`;
+              sqlCondition += `(search_text LIKE '%${unaccented}%' OR lower(field_identifier) LIKE '%${e}%')`;
               expectOperator = true;
             }
           }
@@ -335,7 +335,7 @@ export default function Home() {
             const termConditions = terms.map((term: string) => {
               const escapedSearch = term.replace(/'/g, "''").toLowerCase();
               const unaccented = escapedSearch.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-              return `search_text LIKE '%${unaccented}%'`;
+              return `(search_text LIKE '%${unaccented}%' OR lower(field_identifier) LIKE '%${escapedSearch}%')`;
             });
             sqlCondition = termConditions.join(' OR ');
           }
@@ -417,8 +417,8 @@ export default function Home() {
 
       let orderByClause = `ORDER BY has_image DESC, field_identifier ASC`;
       if (searchTerm) {
-          const termsToScore = /\\b(AND|OR|NOT)\\b/.test(searchTerm) 
-              ? (searchTerm.match(/(".*?"|\\bAND\\b|\\bOR\\b|\\bNOT\\b|\\S+)/g) || []).filter((t: string) => !/\\b(AND|OR|NOT)\\b/i.test(t))
+          const termsToScore = (/\b(AND|OR|NOT)\b/i.test(searchTerm) || searchTerm.includes('"'))
+              ? (searchTerm.match(/(".*?"|\bAND\b|\bOR\b|\bNOT\b|\S+)/ig) || []).filter((t: string) => !/\b(AND|OR|NOT)\b/i.test(t))
               : searchTerm.split(',').map((t: string) => t.trim()).filter((t: string) => t.length > 0);
               
           if (termsToScore.length > 0) {
@@ -739,7 +739,10 @@ export default function Home() {
               <span className="text-[10px] text-mca-yellow uppercase font-bold tracking-widest pl-2">
                 * Advanced: Use AND, OR, NOT for complex queries (e.g., France AND Medal)
               </span>
-              <span className="text-[10px] text-slate-300 uppercase font-bold tracking-widest pl-2">
+              <span className="text-[10px] text-pink-400 uppercase font-bold tracking-widest pl-2">
+                * Exact Phrase: Wrap text in "double quotes" to prevent splitting by comma (e.g., "2022.7.884 a,b")
+              </span>
+              <span className="text-[10px] text-slate-700 uppercase font-bold tracking-widest pl-2">
                 * Exact accession numbers or field identifiers will be prioritized at the top of results
               </span>
               <div className="pl-2 mt-4 flex flex-col items-start gap-2 border-t border-white/20 pt-4">
