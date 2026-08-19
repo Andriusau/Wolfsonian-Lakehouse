@@ -233,11 +233,11 @@ export default function Home() {
           setPage(1);
           handleSearch(1);
         }
-        fetchFacets();
+        fetchResponsiveFacets();
       } else {
         setPage(1);
         handleSearch(1);
-        fetchFacets();
+        // fetchResponsiveFacets is now automatically called inside handleSearch
       }
     }
   }, [isReady, selectedSystem, selectedGenre, hasImageOnly, hasAudioOnly, selectedCreator, selectedSubject, selectedPlace, minYear, maxYear, selectedDecade]);
@@ -268,68 +268,47 @@ export default function Home() {
     return () => observer.disconnect();
   }, [handleObserver]);
 
-  const fetchFacets = async () => {
-    if (!isReady || topCreators.length > 0) return; // Only fetch once
-    try {
-      const creatorsQuery = `SELECT facet FROM (SELECT DISTINCT field_identifier, trim(raw_facet) as facet FROM (SELECT field_identifier, unnest(string_split(field_linked_agent, '|')) as raw_facet FROM catalog WHERE field_linked_agent IS NOT NULL)) WHERE facet != '' GROUP BY 1 ORDER BY count(*) DESC LIMIT 1000`;
-      const creators = await runQuery(creatorsQuery);
-      if (creators) setTopCreators(creators.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
+  const buildWhereClause = useCallback((overrides: any = {}) => {
+    const state = {
+      sharedIds: sharedCollectionIds,
+      uploadedIds: uploadedIdentifiers,
+      term: searchTerm,
+      system: selectedSystem,
+      genre: selectedGenre,
+      imgOnly: hasImageOnly,
+      audOnly: hasAudioOnly,
+      creator: selectedCreator,
+      subject: selectedSubject,
+      place: selectedPlace,
+      decade: selectedDecade,
+      minY: minYear,
+      maxY: maxYear,
+      ...overrides
+    };
 
-      const subjectsQuery = `SELECT facet FROM (SELECT DISTINCT field_identifier, trim(raw_facet) as facet FROM (SELECT field_identifier, unnest(string_split(field_subject, '|')) as raw_facet FROM catalog WHERE field_subject IS NOT NULL)) WHERE facet != '' GROUP BY 1 ORDER BY count(*) DESC LIMIT 1000`;
-      const subjects = await runQuery(subjectsQuery);
-      if (subjects) setTopSubjects(subjects.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
+    let clause = `WHERE 1=1`;
 
-      const placesQuery = `SELECT facet FROM (SELECT DISTINCT field_identifier, trim(raw_facet) as facet FROM (SELECT field_identifier, unnest(string_split(field_place_published, '|')) as raw_facet FROM catalog WHERE field_place_published IS NOT NULL)) WHERE facet != '' GROUP BY 1 ORDER BY count(*) DESC LIMIT 1000`;
-      const places = await runQuery(placesQuery);
-      if (places) setTopPlaces(places.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
-
-      const timeline = await runQuery(`SELECT decade_created as decade, count(*) as count FROM catalog WHERE decade_created IS NOT NULL GROUP BY 1 ORDER BY 1`);
-      if (timeline) setTimelineData(timeline);
-
-      const genres = await runQuery(`SELECT field_genre as facet FROM catalog WHERE field_genre IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 1000`);
-      if (genres) setTopGenres(genres.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
-
-      const collections = await runQuery(`SELECT field_collection_type as facet FROM catalog WHERE field_collection_type IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 50`);
-      if (collections) setTopCollections(collections.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
-    } catch (e) {
-      console.error("Failed to fetch facets", e);
+    let sIds: string[] = state.sharedIds;
+    if (typeof window !== 'undefined' && sIds.length === 0 && !window.location.search.includes('collection_cleared')) {
+       const urlParams = new URLSearchParams(window.location.search);
+       const param = urlParams.get('collection');
+       if (param) {
+          sIds = param.split('|').filter(id => id.trim() !== '');
+       }
     }
-  };
 
-  const handleSearch = async (targetPage: number = page) => {
-    if (!isReady) return;
-    
-    if (targetPage === 1) {
-      setLoading(true);
+    if (sIds.length > 0) {
+      const escapedIds = sIds.map((id: string) => `'${id.replace(/'/g, "''")}'`).join(',');
+      clause = `WHERE field_identifier IN (${escapedIds})`;
     } else {
-      setIsAppending(true);
-    }
-    
-    try {
-      let whereClause = `WHERE 1=1`;
-
-      let sharedIds: string[] = sharedCollectionIds;
-      if (typeof window !== 'undefined' && sharedIds.length === 0 && !window.location.search.includes('collection_cleared')) {
-         const urlParams = new URLSearchParams(window.location.search);
-         const param = urlParams.get('collection');
-         if (param) {
-            sharedIds = param.split('|').filter(id => id.trim() !== '');
-            if (sharedCollectionIds.length === 0) setSharedCollectionIds(sharedIds);
-         }
+      if (state.uploadedIds.length > 0) {
+        const escapedIds = state.uploadedIds.map((id: string) => `'${id.replace(/'/g, "''").toLowerCase()}'`).join(',');
+        clause += ` AND lower(field_identifier) IN (${escapedIds})`;
       }
-
-      if (sharedIds.length > 0) {
-        const escapedIds = sharedIds.map(id => `'${id.replace(/'/g, "''")}'`).join(',');
-        whereClause = `WHERE field_identifier IN (${escapedIds})`;
-      } else {
-      if (uploadedIdentifiers.length > 0) {
-        const escapedIds = uploadedIdentifiers.map(id => `'${id.replace(/'/g, "''").toLowerCase()}'`).join(',');
-        whereClause += ` AND lower(field_identifier) IN (${escapedIds})`;
-      }
-      if (searchTerm) {
+      if (state.term) {
         let sqlCondition = "";
-        if (/\b(AND|OR|NOT)\b/i.test(searchTerm)) {
-          const tokens = searchTerm.match(/(".*?"|\bAND\b|\bOR\b|\bNOT\b|\S+)/ig) || [];
+        if (/\b(AND|OR|NOT)\b/i.test(state.term)) {
+          const tokens = state.term.match(/(".*?"|\bAND\b|\bOR\b|\bNOT\b|\S+)/ig) || [];
           let expectOperator = false;
           for (let i = 0; i < tokens.length; i++) {
             let token = tokens[i];
@@ -351,7 +330,7 @@ export default function Home() {
             }
           }
         } else {
-          const terms = searchTerm.split(',').map((t: string) => t.trim()).filter((t: string) => t.length > 0);
+          const terms = state.term.split(',').map((t: string) => t.trim()).filter((t: string) => t.length > 0);
           if (terms.length > 0) {
             const termConditions = terms.map((term: string) => {
               const escapedSearch = term.replace(/'/g, "''").toLowerCase();
@@ -362,29 +341,75 @@ export default function Home() {
           }
         }
         if (sqlCondition) {
-          whereClause += ` AND (${sqlCondition})`;
+          clause += ` AND (${sqlCondition})`;
         }
       }
-      if (selectedSystem !== "ALL") {
-        if (selectedSystem === "Reference") {
-          whereClause += ` AND field_collection_type = 'Research/Reference Books'`;
-        } else if (selectedSystem === "Alma") {
-          whereClause += ` AND source_system = 'Alma' AND field_collection_type = 'Library'`;
+      if (state.system !== "ALL") {
+        if (state.system === "Reference") {
+          clause += ` AND field_collection_type = 'Research/Reference Books'`;
+        } else if (state.system === "Alma") {
+          clause += ` AND source_system = 'Alma' AND field_collection_type = 'Library'`;
         } else {
-          whereClause += ` AND source_system = '${selectedSystem}'`;
+          clause += ` AND source_system = '${state.system}'`;
         }
       }
-      if (selectedGenre !== "ALL") whereClause += ` AND field_genre LIKE '%${selectedGenre.replace(/'/g, "''")}%'`;
-      if (hasImageOnly) whereClause += ` AND has_image = true`;
-      if (hasAudioOnly) whereClause += ` AND has_audio = true`;
-      if (selectedCreator !== "ALL") whereClause += ` AND field_linked_agent LIKE '%${selectedCreator.replace(/'/g, "''")}%'`;
-      if (selectedSubject !== "ALL") whereClause += ` AND field_subject LIKE '%${selectedSubject.replace(/'/g, "''")}%'`;
-      if (selectedPlace !== "ALL") whereClause += ` AND field_place_published LIKE '%${selectedPlace.replace(/'/g, "''")}%'`;
-      if (selectedDecade !== "ALL") whereClause += ` AND decade_created = ${selectedDecade}`;
-      if (minYear && !isNaN(parseInt(minYear))) whereClause += ` AND year_created >= ${parseInt(minYear)}`;
-      if (maxYear && !isNaN(parseInt(maxYear))) whereClause += ` AND year_created <= ${parseInt(maxYear)}`;
-      }
-      
+      if (state.genre !== "ALL") clause += ` AND field_genre LIKE '%${state.genre.replace(/'/g, "''")}%'`;
+      if (state.imgOnly) clause += ` AND has_image = true`;
+      if (state.audOnly) clause += ` AND has_audio = true`;
+      if (state.creator !== "ALL") clause += ` AND field_linked_agent LIKE '%${state.creator.replace(/'/g, "''")}%'`;
+      if (state.subject !== "ALL") clause += ` AND field_subject LIKE '%${state.subject.replace(/'/g, "''")}%'`;
+      if (state.place !== "ALL") clause += ` AND field_place_published LIKE '%${state.place.replace(/'/g, "''")}%'`;
+      if (state.decade !== "ALL") clause += ` AND decade_created = ${state.decade}`;
+      if (state.minY && !isNaN(parseInt(state.minY))) clause += ` AND year_created >= ${parseInt(state.minY)}`;
+      if (state.maxY && !isNaN(parseInt(state.maxY))) clause += ` AND year_created <= ${parseInt(state.maxY)}`;
+    }
+    return clause;
+  }, [sharedCollectionIds, uploadedIdentifiers, searchTerm, selectedSystem, selectedGenre, hasImageOnly, hasAudioOnly, selectedCreator, selectedSubject, selectedPlace, selectedDecade, minYear, maxYear]);
+
+  const fetchResponsiveFacets = useCallback(async () => {
+    if (!isReady) return;
+    try {
+      const creatorsWhere = buildWhereClause({ creator: 'ALL' });
+      const creatorsQuery = `SELECT facet FROM (SELECT DISTINCT field_identifier, trim(raw_facet) as facet FROM (SELECT field_identifier, unnest(string_split(field_linked_agent, '|')) as raw_facet FROM catalog ${creatorsWhere} AND field_linked_agent IS NOT NULL)) WHERE facet != '' GROUP BY 1 ORDER BY count(*) DESC LIMIT 1000`;
+      const creators = await runQuery(creatorsQuery);
+      if (creators) setTopCreators(creators.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
+
+      const subjectsWhere = buildWhereClause({ subject: 'ALL' });
+      const subjectsQuery = `SELECT facet FROM (SELECT DISTINCT field_identifier, trim(raw_facet) as facet FROM (SELECT field_identifier, unnest(string_split(field_subject, '|')) as raw_facet FROM catalog ${subjectsWhere} AND field_subject IS NOT NULL)) WHERE facet != '' GROUP BY 1 ORDER BY count(*) DESC LIMIT 1000`;
+      const subjects = await runQuery(subjectsQuery);
+      if (subjects) setTopSubjects(subjects.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
+
+      const placesWhere = buildWhereClause({ place: 'ALL' });
+      const placesQuery = `SELECT facet FROM (SELECT DISTINCT field_identifier, trim(raw_facet) as facet FROM (SELECT field_identifier, unnest(string_split(field_place_published, '|')) as raw_facet FROM catalog ${placesWhere} AND field_place_published IS NOT NULL)) WHERE facet != '' GROUP BY 1 ORDER BY count(*) DESC LIMIT 1000`;
+      const places = await runQuery(placesQuery);
+      if (places) setTopPlaces(places.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
+
+      const timelineWhere = buildWhereClause({ decade: 'ALL' });
+      const timelineQuery = `SELECT decade_created as decade, count(*) as count FROM catalog ${timelineWhere} AND decade_created IS NOT NULL GROUP BY 1 ORDER BY 1`;
+      const timeline = await runQuery(timelineQuery);
+      if (timeline) setTimelineData(timeline);
+
+      const genresWhere = buildWhereClause({ genre: 'ALL' });
+      const genresQuery = `SELECT field_genre as facet FROM catalog ${genresWhere} AND field_genre IS NOT NULL GROUP BY 1 ORDER BY count(*) DESC LIMIT 1000`;
+      const genres = await runQuery(genresQuery);
+      if (genres) setTopGenres(genres.map((r: any) => r.facet).sort((a: string, b: string) => a.localeCompare(b)));
+    } catch (e) {
+      console.error("Failed to fetch responsive facets", e);
+    }
+  }, [isReady, buildWhereClause, runQuery]);
+
+  const handleSearch = async (targetPage: number = page) => {
+    if (!isReady) return;
+    
+    if (targetPage === 1) {
+      setLoading(true);
+      fetchResponsiveFacets();
+    } else {
+      setIsAppending(true);
+    }
+    
+    try {
+      const whereClause = buildWhereClause();
       setActiveWhereClause(whereClause);
       
       const limit = 48;
