@@ -276,7 +276,7 @@ def main():
         nfd_form = unicodedata.normalize('NFD', str(input_str))
         return ''.join([c for c in nfd_form if not unicodedata.combining(c)])
 
-    search_cols = ['title', 'field_identifier', 'field_collection_type', 'field_collection_note', 'field_credit_line', 'field_extent', 'field_physical_form', 'field_genre', 'field_description_long', 'field_linked_agent', 'field_subject', 'field_place_published', 'source_system']
+    search_cols = ['title', 'field_identifier', 'field_collection_type', 'field_collection_note', 'field_credit_line', 'field_extent', 'field_physical_form', 'field_genre', 'field_description_long', 'field_linked_agent', 'field_subject', 'field_place_published', 'source_system', 'Inscription']
     search_cols = [c for c in search_cols if c in df.columns]
     
     df['search_text'] = df[search_cols].fillna('').astype(str).agg(' '.join, axis=1)

@@ -239,7 +239,8 @@ def main():
             'class': 'field_physical_form',
             'weight': 'field_extent',
             'sortable4': 'location',
-            'categ_8': 'storage_location'
+            'categ_8': 'storage_location',
+            'categ_6': 'Inscription'
         }
         df_deltas = df_deltas.rename(columns=rename_map)
         
