@@ -1,6 +1,6 @@
 <div align="center">
 
-  # 🐺 Wolfsonian Lakehouse ETL
+  # 🐺 Wolfsonian Lakehouse ELT
 
   *An enterprise-grade, containerized Data Lakehouse architecture for extracting, staging, and incrementally merging museum and library collection data using Python, DuckDB, and Parquet.*
 
@@ -33,13 +33,13 @@
 ## 🧐 About the Project
 The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transform) pipeline designed to unify disparate data sources into a single, high-performance analytics layer. It extracts data from APIs, legacy SQL Server databases, and binary MARC files, staging them as raw Parquet files before transforming them into a clean, "Gold" standard layer for downstream systems like Workbench and Metabase.
 
-In addition to the data pipeline, the project features a powerful **Frontend Explorer**—a serverless, zero-latency web application built with Next.js and DuckDB WebAssembly. This custom interface directly queries the compressed Parquet data right inside the user's browser, allowing staff, researchers, and the public to visually search, filter, and curate collections across all 116,000+ unified library and museum records without the need for expensive database hosting or backend architecture.
+In addition to the data pipeline, the project features a powerful **Frontend Explorer**—a serverless, zero-latency web application built with Next.js and DuckDB WebAssembly. This custom interface directly queries the compressed Parquet data right inside the user's browser, allowing staff, researchers, and the public to visually search, filter, and curate collections across all 115,000+ unified library and museum records without the need for expensive database hosting or backend architecture.
 
 ## 🎮 Featured Digital Experiences
 Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Frontend Explorer features interactive mini-games and curation tools designed to engage users with the archive in novel ways:
 
 - 🕸️ **Museum Connections:** A highly interactive, physics-based network visualization built with `react-force-graph-2d`. Users can click on artifacts to instantly query DuckDB and spawn dynamic webs of related creators and objects in real-time, mapping the hidden relationships within the archive.
-- 🎨 **Art Swipe Discovery Mode:** A highly engaging, Tinder-style serendipity engine that utilizes DuckDB's `USING SAMPLE` function to serve a blazing-fast, randomized deck of visual artifacts. Users can casually swipe right and securely batch-save the entire curated deck to their personal collection simultaneously.
+- 🎨 **Art Swipe Discovery Mode:** A highly engaging, card-swiping serendipity engine that utilizes DuckDB's `USING SAMPLE` function to serve a blazing-fast, randomized deck of visual artifacts. Users can casually swipe right and securely batch-save the entire curated deck to their personal collection simultaneously.
 - 🖼️ **Virtual Exhibition Builder:** A highly interactive sandbox where users can drag, drop, and creatively arrange their saved artifacts on a 2D gallery wall. Powered by `@dnd-kit`, users can curate their layout and instantly export it as a high-resolution exhibition poster.
 - 🧠 **Memory Match (Kreisman Collection):** A classic concentration card game that dynamically generates matching pairs using high-resolution architectural artifacts from the Kreisman collection, testing users' spatial memory.
 - 🕵️‍♂️ **Curator's Challenge (Spot the Real Title):** A fast-paced, 10-round multiple-choice game where users must identify the real artifact title from a list of dynamically generated, highly-plausible fake titles pulled from the database.
@@ -87,7 +87,7 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 * **Automated Audio Ingestion:** Recursively scans the `Islandora_Audio` network drive to ingest, parse, and map `.mp3` and `.wav` audio files directly to unified catalog identifiers using high-performance, memory-optimized multi-threading.
 * **Storage Protection & Web Resizing:** Converts large ~10MB+ TIFFs into highly compressed JPEGs restricted to a maximum of 1200px on the longest side and saved at quality 80. This reduces file size by ~20x-50x (down to ~200KB per image), allowing the full ~56k image catalog to fit in less than 13GB of local disk space while drastically accelerating webpage loading times.
 * **Cross-System Deduplication:** Dynamically reconciles identifiers between Library (Alma) and Museum (Proficio) catalogs, natively handling Alma's semicolon-separated multi-accession numbers to prioritize Museum records. A reporting script automatically generates exact collision matches for manual staff review on every pipeline run.
-* **Library Inventory Tracking:** Natively tracks the origin of all Alma library records through the ETL (`alma_source_type`), dynamically distinguishing purely metadata-based bibliographic records from those explicitly tracked with a physical item in inventory.
+* **Library Inventory Tracking:** Natively tracks the origin of all Alma library records through the ELT (`alma_source_type`), dynamically distinguishing purely metadata-based bibliographic records from those explicitly tracked with a physical item in inventory.
 * **Native Workflow Orchestration:** The pipeline execution is managed natively by Prefect. The core logic operates as a 21-node Directed Acyclic Graph (DAG) using direct function imports, which now seamlessly integrates external API data (like Google Analytics web traffic) alongside internal database extracts. This ensures stateful execution, robust exception handling, and highly granular task-level monitoring via the Prefect dashboard without relying on fragile sub-shells.
 * **Automated Uptime & Error Alerting:** A dedicated Uptime Kuma container continuously tracks the health of all web and orchestration endpoints. Alongside this, a custom local Python microservice continuously tails the Docker logs, instantly dispatching SMTP email alerts to the team if any container throws a critical error or exception.
 * **Automated Website Traffic Analytics:** Connects securely to the Google Analytics 4 Data API to incrementally fetch frontend explorer traffic (users, sessions, page views) and stores it natively inside the Lakehouse for unified BI dashboarding in Metabase.
@@ -199,6 +199,7 @@ graph TD
 * **Hybrid RAG AI Assistant:** A persistent, context-aware Chatbot powered by Google's Gemini 2.5 Flash API. It leverages Retrieval-Augmented Generation (RAG) by dynamically querying the local DuckDB instance and injecting accurate catalog metadata directly into the system prompt before responding.
 * **Context-Aware Hyperlinking:** The AI naturally integrates clickable Markdown links pointing straight to standalone, full-screen metadata records (`/record/[id]`), smoothly bridging the gap between natural language discovery and deep collection exploration.
 * **Weighted Search Ranking Algorithm:** Replaced rudimentary exact-match sorting with a highly tuned, dynamic SQL relevance engine. It applies custom multipliers to priority fields (e.g., Title is 5x, Genre is 4.5x) and automatically grants a +10 point quality boost to any artifact containing an image, ensuring the most visually rich and relevant records surface first.
+* **Poster Stamp AI Metadata Extraction:** A specialized multimodal pipeline (`poster_stamps.py`) utilizing Google's Gemini Vision AI. It processes uncataloged, raw images of poster stamps to automatically analyze their visual contents and extract titles, creators, and subject terms, transforming image pixels directly into structured, queryable metadata.
 
 **Architecture & Performance**
 * **Serverless Zero-Latency Engine:** Uses DuckDB WebAssembly to download and query the compressed Parquet data directly inside the user's browser, resulting in instantaneous search results.
@@ -208,7 +209,7 @@ graph TD
 **Discovery & Navigation**
 * **Direct Standalone Routing:** We recently executed a sweeping architectural refactor to standardize the application's UX and navigation flow. We completely eliminated legacy modal-based overlay systems across all six search grids, replacing it with a clean, direct routing architecture utilizing standard Next.js navigation. Users now seamlessly navigate directly to dedicated, shareable standalone record pages to view the 50/50 metadata split, resulting in a leaner, faster application.
 * **Interactive Historical Timeline:** Allows users to dynamically slide and filter the entire catalog by decade or specific years in real-time.
-* **Art Swipe Discovery Mode:** A highly engaging, Tinder-style serendipity engine that utilizes DuckDB's `USING SAMPLE` function to serve a blazing-fast, randomized deck of visual artifacts. Users can casually swipe right and securely batch-save the entire curated deck to their personal collection simultaneously.
+* **Art Swipe Discovery Mode:** A highly engaging, card-swiping serendipity engine that utilizes DuckDB's `USING SAMPLE` function to serve a blazing-fast, randomized deck of visual artifacts. Users can casually swipe right and securely batch-save the entire curated deck to their personal collection simultaneously.
 * **Virtual Exhibition Builder:** A drag-and-drop 2D canvas that allows users to playfully arrange their saved artifacts into a customized digital gallery wall, complete with custom typography and high-res poster exporting capabilities.
 * **Semantic Discovery:** When viewing a record, the engine instantly queries DuckDB for 4 randomized, related records that share the same Subject, Genre, or Creator, encouraging users to discover related content.
 * **Dynamic Creator & Subject Dossiers:** Automatically generates dedicated landing pages that aggregate and display all cataloged works by a specific artist, designer, author, or subject. Clickable hyperlinks are integrated across the search grid and standalone record pages for seamless navigation.
@@ -239,6 +240,14 @@ graph TD
 ```text
 wolf-lakehouse/
 ├── archive_scripts/             # Historical or one-off duplicate reports and scripts
+│   ├── poster_stamps.py         # Gemini Vision AI metadata extraction script
+│   ├── check_dupes.py           # Duplicate detection script
+│   ├── extract_terms.py         # Subject term extraction utility
+│   ├── inspect_xls.py           # Excel metadata inspection utility
+│   ├── search_xls.py            # Excel metadata search utility
+│   ├── Poster_Stamps_Metadata.csv
+│   ├── Poster_Stamps_Metadata.xlsx
+│   └── Poster_Stamps/           # Source imagery directory (contents omitted)
 ├── data/                        # The Lakehouse Storage Volume
 │   ├── export/
 │   │   └── workbench_upload.csv

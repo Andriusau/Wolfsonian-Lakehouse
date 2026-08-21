@@ -14,12 +14,12 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Wolfsonian-FIU Lakehouse",
-  description: "Explore over 116,000 museum and library collection artifacts from the Wolfsonian-FIU through our lightning-fast, zero-latency Data Lakehouse.",
+  description: "Explore over 115,000 museum and library collection artifacts from the Wolfsonian-FIU through our lightning-fast, zero-latency Data Lakehouse.",
   keywords: ["Wolfsonian", "FIU", "Museum", "Library", "Art", "Design", "Data Lakehouse", "Digital Archive"],
   authors: [{ name: "Andrius Aukstuolis" }, { name: "Wolfsonian-FIU" }],
   openGraph: {
     title: "Wolfsonian-FIU Lakehouse",
-    description: "Explore over 116,000 museum and library collection artifacts from the Wolfsonian-FIU.",
+    description: "Explore over 115,000 museum and library collection artifacts from the Wolfsonian-FIU.",
     url: "https://lakehouse.wolfsonian.org",
     siteName: "Wolfsonian-FIU Lakehouse",
     images: [
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Wolfsonian-FIU Lakehouse",
-    description: "Explore over 116,000 museum and library collection artifacts through our zero-latency Data Lakehouse.",
+    description: "Explore over 115,000 museum and library collection artifacts through our zero-latency Data Lakehouse.",
     images: ["https://lakehouse.wolfsonian.org/art-swipe-thumbnail.png"],
   },
   metadataBase: new URL("https://lakehouse.wolfsonian.org"),
