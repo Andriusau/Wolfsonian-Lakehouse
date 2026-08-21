@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDuckDB } from '@/providers/DuckDBProvider';
 import { usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Chatbot() {
   const pathname = usePathname();
@@ -62,7 +63,7 @@ export default function Chatbot() {
           results.forEach((r: any, i: number) => {
             dbContext += `${i+1}. Title: ${r.title}\nID: ${r.field_identifier}\nDescription: ${r.field_description_long || 'N/A'}\nSubject: ${r.field_subject || 'N/A'}\n\n`;
           });
-          dbContext += "Please use this data to answer the user's question.]";
+          dbContext += "Please use this data to answer the user's question. IMPORTANT: When you mention an item, you MUST link to it using this exact format: [Title](/record/ID) replacing ID with the provided ID.]";
         }
       }
 
@@ -129,13 +130,13 @@ export default function Chatbot() {
         parts.push(<span key={`text-${lastIndex}`}>{content.substring(lastIndex, match.index)}</span>);
       }
       parts.push(
-        <a 
+        <Link 
           key={`link-${match.index}`} 
           href={match[2]} 
           className="text-mca-cyan underline hover:text-white transition-colors font-bold tracking-wider"
         >
           {match[1]}
-        </a>
+        </Link>
       );
       lastIndex = regex.lastIndex;
     }
