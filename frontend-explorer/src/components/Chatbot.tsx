@@ -64,6 +64,8 @@ export default function Chatbot() {
             dbContext += `${i+1}. Title: ${r.title}\nID: ${r.field_identifier}\nDescription: ${r.field_description_long || 'N/A'}\nSubject: ${r.field_subject || 'N/A'}\n\n`;
           });
           dbContext += "Please use this data to answer the user's question. IMPORTANT: When you mention an item, you MUST link to it using this exact format: [Title](/record/ID) replacing ID with the provided ID.]";
+        } else {
+          dbContext = "\n\n[SYSTEM CONTEXT: I searched the local catalog but found ZERO matching items. You MUST tell the user that no items matched their search in the Wolfsonian catalog.]";
         }
       }
 
