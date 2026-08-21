@@ -45,7 +45,7 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 - 🕵️‍♂️ **Curator's Challenge (Spot the Real Title):** A fast-paced, 10-round multiple-choice game where users must identify the real artifact title from a list of dynamically generated, highly-plausible fake titles pulled from the database.
 
 ## 🏗️ Architecture & Tech Stack
-* **Orchestration:** Prefect 3 (Native 21-Node DAG), Docker Compose, and Make
+* **Orchestration:** Prefect 3 (Native 22-Node DAG), Docker Compose, and Make
 * **Data Extraction:** Python 3.10 (Pandas, PyArrow, requests, pymarc) with strictly pinned dependencies for deterministic builds.
 * **Database Connectivity:** SQLAlchemy, pyodbc (ODBC Driver 18 for SQL Server)
 * **Authentication:** Automated Kerberos (`kinit`) integration inside containers
@@ -88,7 +88,7 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 * **Storage Protection & Web Resizing:** Converts large ~10MB+ TIFFs into highly compressed JPEGs restricted to a maximum of 1200px on the longest side and saved at quality 80. This reduces file size by ~20x-50x (down to ~200KB per image), allowing the full ~56k image catalog to fit in less than 13GB of local disk space while drastically accelerating webpage loading times.
 * **Cross-System Deduplication:** Dynamically reconciles identifiers between Library (Alma) and Museum (Proficio) catalogs, natively handling Alma's semicolon-separated multi-accession numbers to prioritize Museum records. A reporting script automatically generates exact collision matches for manual staff review on every pipeline run.
 * **Library Inventory Tracking:** Natively tracks the origin of all Alma library records through the ELT (`alma_source_type`), dynamically distinguishing purely metadata-based bibliographic records from those explicitly tracked with a physical item in inventory.
-* **Native Workflow Orchestration:** The pipeline execution is managed natively by Prefect. The core logic operates as a 21-node Directed Acyclic Graph (DAG) using direct function imports, which now seamlessly integrates external API data (like Google Analytics web traffic) alongside internal database extracts. This ensures stateful execution, robust exception handling, and highly granular task-level monitoring via the Prefect dashboard without relying on fragile sub-shells.
+* **Native Workflow Orchestration:** The pipeline execution is managed natively by Prefect. The core logic operates as a 22-node Directed Acyclic Graph (DAG) using direct function imports, which now seamlessly integrates external API data (like Google Analytics web traffic) alongside internal database extracts. This ensures stateful execution, robust exception handling, and highly granular task-level monitoring via the Prefect dashboard without relying on fragile sub-shells.
 * **Automated Uptime & Error Alerting:** A dedicated Uptime Kuma container continuously tracks the health of all web and orchestration endpoints. Alongside this, a custom local Python microservice continuously tails the Docker logs, instantly dispatching SMTP email alerts to the team if any container throws a critical error or exception.
 * **Automated Website Traffic Analytics:** Connects securely to the Google Analytics 4 Data API to incrementally fetch frontend explorer traffic (users, sessions, page views) and stores it natively inside the Lakehouse for unified BI dashboarding in Metabase.
 * **Bulk CSV Filtering:** The frontend explorer natively supports bulk CSV uploads. Staff can upload an arbitrary list of accession numbers or field identifiers, which the browser instantly parses and translates into a dynamic DuckDB `IN` clause, enabling hyper-specific batch filtering.
@@ -169,6 +169,7 @@ graph TD
         DB[Build DuckDB Metabase Views]
         PI[Process NFS Images]
         PA[Process NFS Audio]
+        TL[Transform API Logs]
         
         EP --> DB
         EA --> DB
@@ -177,6 +178,7 @@ graph TD
         CA --> DB
         IA --> DB
         GA --> DB
+        TL --> DB
         
         NC --> PI
         PI --> PA
