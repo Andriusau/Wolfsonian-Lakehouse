@@ -45,6 +45,7 @@ export const metadata: Metadata = {
 import Chatbot from "../components/Chatbot";
 import { DuckDBProvider } from "@/providers/DuckDBProvider";
 
+// @ts-ignore
 import { GoogleAnalytics } from "@next/third-parties/google";
 
 export default function RootLayout({

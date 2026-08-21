@@ -1,4 +1,8 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
+import time
+import json
+import os
+from datetime import datetime
 import duckdb
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
@@ -20,6 +24,37 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time_ms = (time.time() - start_time) * 1000
+
+    # Ensure logs directory exists
+    log_dir = "/app/logs"
+    os.makedirs(log_dir, exist_ok=True)
+    
+    # Filter out health checks if desired, but good to log everything
+    log_data = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "endpoint": request.url.path,
+        "method": request.method,
+        "client_ip": request.client.host if request.client else None,
+        "status_code": response.status_code,
+        "response_time_ms": round(process_time_ms, 2)
+    }
+    
+    # Append to JSONL file
+    log_file_path = os.path.join(log_dir, "api_requests.jsonl")
+    try:
+        with open(log_file_path, "a") as f:
+            f.write(json.dumps(log_data) + "\n")
+    except Exception as e:
+        # Silently fail if log can't be written so API doesn't crash
+        pass
+        
+    return response
 
 PARQUET_PATH = "/app/data/gold/unified_catalog_normalized.parquet"
 

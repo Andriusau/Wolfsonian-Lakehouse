@@ -27,6 +27,7 @@ import export_alma_to_workbench
 import build_duckdb_views
 import process_images
 import process_audio
+import transform_api_logs
 
 # ==========================================
 # 1. BRONZE LAYER (Extraction)
@@ -127,6 +128,13 @@ def process_audio_task():
     process_audio.main()
 
 # ==========================================
+# 4.7. API LOGS LAYER
+# ==========================================
+@task(name="Transform API Logs")
+def transform_api_logs_task():
+    transform_api_logs.main()
+
+# ==========================================
 # 5. MONITORING
 # ==========================================
 @task(name="Report Pipeline Metrics")
@@ -192,8 +200,11 @@ def lakehouse_flow():
     # 6.6. Process NFS Audio
     audio_fut = process_audio_task.submit(wait_for=[images_fut])
 
+    # 6.7. Transform API Logs
+    api_logs_fut = transform_api_logs_task.submit()
+
     # 6. Serving Layer Phase (DuckDB)
-    duckdb_fut = build_duckdb.submit(wait_for=[proficio_csv, alma_csv, normalized_catalog, history_metrics, comparison_alma, comparison_proficio, image_audit, audio_fut, ga4_raw])
+    duckdb_fut = build_duckdb.submit(wait_for=[proficio_csv, alma_csv, normalized_catalog, history_metrics, comparison_alma, comparison_proficio, image_audit, audio_fut, ga4_raw, api_logs_fut])
     
     # 7. Metrics Dashboard Phase
     metrics_fut = report_metrics.submit(wait_for=[duckdb_fut, audio_fut])
