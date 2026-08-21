@@ -42,18 +42,20 @@ export default function Chatbot() {
       let dbContext = '';
       if (keywords.length > 0) {
         const safeKeywords = keywords.map(k => k.replace(/'/g, "''"));
-        const conditions = safeKeywords.map(k => `(
-          title ILIKE '%${k}%' OR 
-          field_subject ILIKE '%${k}%' OR 
-          field_genre ILIKE '%${k}%' OR 
-          field_description_long ILIKE '%${k}%' OR
-          field_linked_agent ILIKE '%${k}%'
-        )`).join(' AND ');
+        
+        const scoreSelects = safeKeywords.map(k => `
+          (CASE WHEN title ILIKE '%${k}%' THEN 2 ELSE 0 END) +
+          (CASE WHEN field_subject ILIKE '%${k}%' THEN 1 ELSE 0 END) +
+          (CASE WHEN field_description_long ILIKE '%${k}%' THEN 1 ELSE 0 END) +
+          (CASE WHEN field_genre ILIKE '%${k}%' THEN 1 ELSE 0 END)
+        `).join(' + ');
 
         const query = `
-          SELECT title, field_identifier, field_collection_type, field_subject, field_description_long
+          SELECT title, field_identifier, field_collection_type, field_subject, field_description_long,
+          (${scoreSelects}) as match_score
           FROM catalog 
-          WHERE ${conditions}
+          WHERE match_score > 0
+          ORDER BY match_score DESC
           LIMIT 5;
         `;
         
