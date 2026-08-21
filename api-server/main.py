@@ -9,12 +9,19 @@ from typing import List, Optional, Dict, Any
 from pathlib import Path
 
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 app = FastAPI(
     title="Wolfsonian Lakehouse API",
     description="Public REST API for programmatic access to the Wolfsonian-FIU collections data.",
     version="1.0.0"
 )
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Allow cross-origin requests (CORS) from any origin (or specify labs.wolfsonian.org)
 app.add_middleware(
@@ -66,7 +73,9 @@ def check_data_ready():
         raise HTTPException(status_code=503, detail="Lakehouse data is currently unavailable.")
 
 @app.get("/api/v1/records")
+@limiter.limit("100/minute")
 def get_records(
+    request: Request,
     limit: int = Query(50, ge=1, le=1000, description="Number of records to return"),
     offset: int = Query(0, ge=0, description="Number of records to skip")
 ):
@@ -96,7 +105,9 @@ def get_records(
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/aa_good_lookup")
+@limiter.limit("100/minute")
 def get_aa_good_lookup(
+    request: Request,
     limit: int = Query(50, ge=1, le=1000, description="Number of records to return"),
     offset: int = Query(0, ge=0, description="Number of records to skip")
 ):
@@ -142,7 +153,8 @@ def get_aa_good_lookup(
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/records/{identifier}")
-def get_record(identifier: str):
+@limiter.limit("100/minute")
+def get_record(request: Request, identifier: str):
     """
     Fetch a specific artifact by its exact ID (e.g., 2022.7.3).
     Matches against both the internal id and the accession number (field_identifier).
@@ -176,7 +188,9 @@ def get_record(identifier: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/v1/search")
+@limiter.limit("100/minute")
 def search_records(
+    request: Request,
     q: str = Query(..., description="Full-text search query"),
     limit: int = Query(50, ge=1, le=1000),
     offset: int = Query(0, ge=0)
