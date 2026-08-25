@@ -42,12 +42,21 @@ async def log_requests(request: Request, call_next):
     log_dir = "/app/logs"
     os.makedirs(log_dir, exist_ok=True)
     
+    forwarded_for = request.headers.get("x-forwarded-for")
+    real_ip = request.headers.get("x-real-ip")
+    if forwarded_for:
+        client_ip = forwarded_for.split(',')[0].strip()
+    elif real_ip:
+        client_ip = real_ip
+    else:
+        client_ip = request.client.host if request.client else None
+
     # Filter out health checks if desired, but good to log everything
     log_data = {
         "timestamp": datetime.utcnow().isoformat(),
         "endpoint": request.url.path,
         "method": request.method,
-        "client_ip": request.client.host if request.client else None,
+        "client_ip": client_ip,
         "status_code": response.status_code,
         "response_time_ms": round(process_time_ms, 2)
     }
