@@ -8,10 +8,10 @@ import { formatEDTFDate } from "../../../utils/formatters";
 import { getMediaFilename } from "@/utils/formatters";
 
 
-export default function SubjectPage({ params }: { params: Promise<{ name: string }> }) {
+export default function SubjectPage({ params }: { params: Promise<{ name: string[] }> }) {
   const resolvedParams = use(params);
   const { isReady, runQuery, error } = useDuckDB();
-  const subjectName = decodeURIComponent(resolvedParams.name);
+  const subjectName = decodeURIComponent(resolvedParams.name.join('/'));
 
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
