@@ -34,7 +34,8 @@ def create_views():
         'comparison_alma': '/app/data/gold/comparison_alma.parquet',
         'image_audit_report': '/app/data/gold/image_audit_report.csv',
         'ga4_metrics': '/app/data/gold/ga4_metrics.parquet',
-        'api_requests': '/app/data/gold/api_metrics.parquet'
+        'api_requests': '/app/data/gold/api_metrics.parquet',
+        'rediscovery_subjects_summary': '/app/data/gold/rediscovery_subjects_summary.parquet'
     }
     snapshot_files = glob.glob('/app/data/gold/snapshots/history_*.parquet')
     for parquet_path in snapshot_files:

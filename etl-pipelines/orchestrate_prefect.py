@@ -21,6 +21,7 @@ import export_comparison_proficio
 import export_comparison_alma
 import export_image_audit_report
 import export_gold_normalized
+import export_rediscovery_subjects
 import snapshot_dashboard_metrics
 import export_proficio_to_workbench
 import export_alma_to_workbench
@@ -93,6 +94,10 @@ def generate_image_audit_report():
 @task(name="Normalize Gold Catalog")
 def normalize_catalog():
     export_gold_normalized.main()
+
+@task(name="Generate Rediscovery Subjects Summary")
+def generate_rediscovery_subjects_summary():
+    export_rediscovery_subjects.main()
 
 @task(name="Snapshot Dashboard Metrics")
 def snapshot_dashboard_metrics_task():
@@ -184,6 +189,7 @@ def lakehouse_flow():
     duplicates_report = generate_duplicates_report.submit(wait_for=[proficio_silver, alma_silver])
     unified_catalog = generate_unified_catalog.submit(wait_for=[proficio_silver, alma_silver])
     normalized_catalog = normalize_catalog.submit(wait_for=[unified_catalog])
+    rediscovery_subjects = generate_rediscovery_subjects_summary.submit(wait_for=[normalized_catalog])
     missing_objects = generate_missing_objects.submit(wait_for=[qa_failures, islandora_raw, unified_catalog])
     comparison_proficio = generate_comparison_proficio.submit(wait_for=[proficio_silver, islandora_raw])
     comparison_alma = generate_comparison_alma.submit(wait_for=[alma_silver, islandora_raw])
@@ -204,7 +210,7 @@ def lakehouse_flow():
     api_logs_fut = transform_api_logs_task.submit()
 
     # 6. Serving Layer Phase (DuckDB)
-    duckdb_fut = build_duckdb.submit(wait_for=[proficio_csv, alma_csv, normalized_catalog, history_metrics, comparison_alma, comparison_proficio, image_audit, audio_fut, ga4_raw, api_logs_fut])
+    duckdb_fut = build_duckdb.submit(wait_for=[proficio_csv, alma_csv, normalized_catalog, rediscovery_subjects, history_metrics, comparison_alma, comparison_proficio, image_audit, audio_fut, ga4_raw, api_logs_fut])
     
     # 7. Metrics Dashboard Phase
     metrics_fut = report_metrics.submit(wait_for=[duckdb_fut, audio_fut])
