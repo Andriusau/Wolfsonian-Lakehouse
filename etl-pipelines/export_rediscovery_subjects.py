@@ -54,11 +54,27 @@ def main():
         SELECT 
             u.collection,
             u.subject,
+            CASE 
+                WHEN regexp_matches(u.subject, '(?i)ship|ocean|steamboat|cruise|boat|maritime|naval|ferry|vessel') THEN 'Maritime & Ocean Travel'
+                WHEN regexp_matches(u.subject, '(?i)war|military|nazi|reich|propaganda|falkland|weapon|gun|army|navy|conflict') THEN 'War, Military & Politics'
+                WHEN regexp_matches(u.subject, '(?i)ceramic|glass|porcelain|pottery|enamel') THEN 'Ceramics & Glass'
+                WHEN regexp_matches(u.subject, '(?i)metal|silver|gold|jewelry|medallic|medal|iron|steel|brass') THEN 'Metals & Jewelry'
+                WHEN regexp_matches(u.subject, '(?i)textile|clothing|fashion|garment|silk|cotton|lace|woven') THEN 'Textiles & Fashion'
+                WHEN regexp_matches(u.subject, '(?i)food|beverage|drink|dining|kitchen') THEN 'Food & Beverage'
+                WHEN regexp_matches(u.subject, '(?i)furniture|domestic|home|house|seating|cabinet') THEN 'Domestic Life & Furniture'
+                WHEN regexp_matches(u.subject, '(?i)health|hygiene|science|technolog|machin|industry|industrial|railroad|train|transportation|transport') THEN 'Science, Industry & Transport'
+                WHEN regexp_matches(u.subject, '(?i)architect|building|habitat|interior|structure') THEN 'Architecture & Environment'
+                WHEN regexp_matches(u.subject, '(?i)exhibition|fair|exposition') THEN 'Exhibitions & World Fairs'
+                WHEN regexp_matches(u.subject, '(?i)book|literature|print|publication') THEN 'Books & Literature'
+                WHEN regexp_matches(u.subject, '(?i)travel|tourism|tourist|vacation') THEN 'Travel & Tourism'
+                WHEN regexp_matches(u.subject, '(?i)art |arts|nouveau|design|decorat|ornament|graphic|figurative|allegory|portrait|landscape|photography|painting|drawing|sculpture|artist|advertis|commercial') THEN 'Art, Design & Visual Media'
+                ELSE 'Other / Uncategorized'
+            END AS category,
             COUNT(*) AS total_count
         FROM UnnestedBase u
         JOIN TargetSubjects t ON u.subject = t.subject
-        GROUP BY 1, 2
-        ORDER BY u.subject ASC, total_count DESC
+        GROUP BY 1, 2, 3
+        ORDER BY category ASC, total_count DESC
     ) TO '{OUTPUT_PARQUET}' (FORMAT 'PARQUET');
     """
     
