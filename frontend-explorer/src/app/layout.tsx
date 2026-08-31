@@ -24,9 +24,7 @@ export const metadata: Metadata = {
     siteName: "Wolfsonian-FIU Lakehouse",
     images: [
       {
-        url: "https://lakehouse.wolfsonian.org/art-swipe-thumbnail.png",
-        width: 1200,
-        height: 630,
+        url: "https://lakehouse.wolfsonian.org/icon.png",
         alt: "Wolfsonian Lakehouse Explorer",
       },
     ],
@@ -37,7 +35,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Wolfsonian-FIU Lakehouse",
     description: "Explore over 115,000 museum and library collection artifacts through our zero-latency Data Lakehouse.",
-    images: ["https://lakehouse.wolfsonian.org/art-swipe-thumbnail.png"],
+    images: ["https://lakehouse.wolfsonian.org/icon.png"],
   },
   metadataBase: new URL("https://lakehouse.wolfsonian.org"),
 };
