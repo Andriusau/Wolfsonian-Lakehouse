@@ -162,6 +162,24 @@ export default function Home() {
     handleSearch(1);
   };
 
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setSelectedSystem("ALL");
+    setSelectedGenre("ALL");
+    setHasImageOnly(false);
+    setHasAudioOnly(false);
+    setSelectedCreator("ALL");
+    setSelectedSubject("ALL");
+    setSelectedPlace("ALL");
+    setSelectedDecade("ALL");
+    setMinYear("");
+    setMaxYear("");
+    setUploadedIdentifiers([]);
+    setResults([]);
+    setFilteredCount(0);
+    setPage(1);
+  };
+
   const handleSaveAllResults = async () => {
     if (filteredCount > 1000) {
       alert(`Cannot save ${filteredCount.toLocaleString()} items at once. Please filter your results down to 1,000 items or fewer before saving all.`);
@@ -788,6 +806,13 @@ export default function Home() {
               className="bg-mca-yellow hover:bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-8 py-4 rounded-none border-2 border-mca-yellow hover:border-mca-cyan transition-all duration-200 cursor-pointer disabled:opacity-30 shrink-0 text-sm active:translate-y-1"
             >
               SURPRISE ME
+            </button>
+            <button 
+              onClick={handleResetFilters}
+              disabled={!isReady}
+              className="bg-mca-black hover:bg-red-500 text-white hover:text-black font-black uppercase tracking-widest px-8 py-4 rounded-none border-2 border-slate-600 hover:border-red-500 transition-all duration-200 cursor-pointer disabled:opacity-30 shrink-0 text-sm active:translate-y-1"
+            >
+              [X] CLEAR FILTERS
             </button>
           </div>
 
