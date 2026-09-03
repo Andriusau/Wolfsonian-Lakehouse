@@ -173,14 +173,16 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
               if (identifiers.length === 0) return (
                 <div className="flex flex-col items-center justify-center text-slate-600 text-lg uppercase font-bold tracking-widest space-y-6 my-auto flex-shrink-0 px-6 text-center">
                   <span>[ NO IMAGE DATA FOUND ]</span>
-                  <a 
-                    href="https://wolfsonian.org/research/image-reproductions/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-mca-cyan hover:bg-transparent hover:text-mca-cyan transition-colors text-sm shadow-xl"
-                  >
-                    [↗] REQUEST DIGITIZATION
-                  </a>
+                  {selectedRecord.field_collection_type !== 'Research/Reference Books' && (
+                    <a 
+                      href="https://wolfsonian.org/research/image-reproductions/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-mca-cyan hover:bg-transparent hover:text-mca-cyan transition-colors text-sm shadow-xl"
+                    >
+                      [↗] REQUEST DIGITIZATION
+                    </a>
+                  )}
                 </div>
               );
 
