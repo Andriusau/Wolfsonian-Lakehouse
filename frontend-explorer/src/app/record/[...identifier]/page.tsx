@@ -10,11 +10,16 @@ import ImageReader from "../../../components/ImageReader";
 import AudioReader from "../../../components/AudioReader";
 import { getMediaFilename } from "../../../utils/formatters";
 
-export default function RecordPage({ params }: { params: Promise<{ identifier: string }> }) {
+export default function RecordPage({ params }: { params: Promise<{ identifier: string | string[] }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
   const { isReady, runQuery, error } = useDuckDB();
-  const identifier = decodeURIComponent(resolvedParams.identifier);
+  
+  // Catch-all routes split the path into an array if it contains slashes
+  const resolvedIdentifier = Array.isArray(resolvedParams.identifier) 
+    ? resolvedParams.identifier.join('/') 
+    : resolvedParams.identifier;
+  const identifier = decodeURIComponent(resolvedIdentifier);
 
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
   const [relatedRecords, setRelatedRecords] = useState<any[]>([]);
