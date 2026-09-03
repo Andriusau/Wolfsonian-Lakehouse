@@ -186,6 +186,9 @@ def main():
     # Apply text transformations (from MASTER notebook)
     if 'field_identifier' in df.columns:
         df['field_identifier'] = df['field_identifier'].str.replace('Local', '', regex=False).str.replace('local', '', regex=False).str.replace('@', ' ', regex=False)
+        # Fallback to alma_identifier if field_identifier is empty or missing (especially for Reference books)
+        if 'alma_identifier' in df.columns:
+            df['field_identifier'] = df['field_identifier'].replace(r'^\s*$', None, regex=True).fillna(df['alma_identifier'])
     if 'title' in df.columns:
         df['title'] = df['title'].str.replace('/', '', regex=False).str.replace('--', '', regex=False)
     if 'field_genre' in df.columns:
