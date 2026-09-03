@@ -29,6 +29,7 @@ import build_duckdb_views
 import process_images
 import process_audio
 import transform_api_logs
+import get_metrics
 
 # ==========================================
 # 1. BRONZE LAYER (Extraction)
@@ -170,6 +171,10 @@ def report_metrics():
     except Exception as e:
         logger.warning(f"Could not load metrics summary: {e}")
 
+@task(name="Update README and Complete Metrics")
+def update_readme_metrics_task():
+    get_metrics.main()
+
 @flow(name="Wolfsonian Lakehouse Pipeline")
 def lakehouse_flow():
     # 1. Extraction Phase
@@ -214,9 +219,12 @@ def lakehouse_flow():
     
     # 7. Metrics Dashboard Phase
     metrics_fut = report_metrics.submit(wait_for=[duckdb_fut, audio_fut])
+    
+    # 8. Update automated README metrics
+    readme_fut = update_readme_metrics_task.submit(wait_for=[metrics_fut])
 
     # Explicitly wait for terminal tasks to complete
-    metrics_fut.wait()
+    readme_fut.wait()
 
 if __name__ == "__main__":
     lakehouse_flow()
