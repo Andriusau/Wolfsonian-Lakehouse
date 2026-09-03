@@ -41,14 +41,16 @@ export default function ImageReader({ images, selectedRecord }: ImageReaderProps
     return (
       <div className="flex flex-col items-center justify-center text-slate-600 text-lg uppercase font-bold tracking-widest space-y-6 my-auto flex-shrink-0 min-h-[50vh] w-full px-6 text-center">
         <span>[ NO IMAGE DATA FOUND ]</span>
-        <a 
-          href="https://wolfsonian.org/research/image-reproductions/" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-mca-cyan hover:bg-transparent hover:text-mca-cyan transition-colors text-sm shadow-xl"
-        >
-          [↗] REQUEST DIGITIZATION
-        </a>
+        {!(selectedRecord?.field_collection_type && String(selectedRecord.field_collection_type).includes('Research/Reference Books')) && (
+          <a 
+            href="https://wolfsonian.org/research/image-reproductions/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-mca-cyan hover:bg-transparent hover:text-mca-cyan transition-colors text-sm shadow-xl"
+          >
+            [↗] REQUEST DIGITIZATION
+          </a>
+        )}
       </div>
     );
   }
@@ -165,15 +167,17 @@ export default function ImageReader({ images, selectedRecord }: ImageReaderProps
           >
             [👕] VIEW ON MERCH
           </Link>
-          <a 
-            href="https://wolfsonian.org/research/image-reproductions/" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-mca-cyan hover:bg-mca-black hover:text-mca-cyan transition-colors text-[10px] shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            [↗] REQUEST DIGITIZATION
-          </a>
+          {!(selectedRecord?.field_collection_type && String(selectedRecord.field_collection_type).includes('Research/Reference Books')) && (
+            <a 
+              href="https://wolfsonian.org/research/image-reproductions/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-mca-cyan hover:bg-mca-black hover:text-mca-cyan transition-colors text-[10px] shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              [↗] REQUEST DIGITIZATION
+            </a>
+          )}
         </div>
       </div>
 
