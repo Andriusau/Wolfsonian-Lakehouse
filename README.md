@@ -58,6 +58,24 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 
 ---
 
+## 🐳 Microservices (Docker Containers)
+
+The entire Lakehouse runs as a distributed system using Docker Compose. The following services are orchestrated together:
+
+| Container | Description |
+|---|---|
+| **`prefect-server`** | The orchestration hub running Prefect 3 to monitor and manage the ELT pipelines. |
+| **`lakehouse`** | The core worker node that runs the Python data extraction, transformation, and Parquet generation. |
+| **`archiver`** | A secondary utility container for running asynchronous batch scripts and AI metadata extraction. |
+| **`metabase`** | The business intelligence layer connected to DuckDB for real-time dashboards and SQL analytics. |
+| **`frontend`** | The Next.js web application that provides the public catalog, games, and interactive tools. |
+| **`images-server`** | A lightweight Nginx web server dedicated to serving compressed JPEGs and audio files. |
+| **`api-server`** | A standalone FastAPI REST API serving structured Parquet data directly to external clients. |
+| **`log-alerter`** | A custom Python watcher that monitors all container logs and dispatches SMTP emails upon failures. |
+| **`uptime-kuma`** | A self-hosted monitoring tool tracking the uptime and health of all web services. |
+
+---
+
 ## 📊 Data Sources & Volumes
 
 | Source | System | Records | Method |
