@@ -35,6 +35,24 @@ The Wolfsonian Lakehouse is an automated, incremental ELT (Extract, Load, Transf
 
 In addition to the data pipeline, the project features a powerful **Frontend Explorer**—a serverless, zero-latency web application built with Next.js and DuckDB WebAssembly. This custom interface directly queries the compressed Parquet data right inside the user's browser, allowing staff, researchers, and the public to visually search, filter, and curate collections across all 115,000+ unified library and museum records without the need for expensive database hosting or backend architecture.
 
+## 🐳 Microservices (Docker Containers)
+
+The entire Lakehouse runs as a distributed system using Docker Compose. The following services are orchestrated together:
+
+| Container | Description |
+|---|---|
+| **`prefect-server`** | The orchestration hub running Prefect 3 to monitor and manage the ELT pipelines. |
+| **`lakehouse`** | The core worker node that runs the Python data extraction, transformation, and Parquet generation. |
+| **`archiver`** | A secondary utility container for running asynchronous batch scripts and AI metadata extraction. |
+| **`metabase`** | The business intelligence layer connected to DuckDB for real-time dashboards and SQL analytics. |
+| **`frontend`** | The Next.js web application that provides the public catalog, games, and interactive tools. |
+| **`images-server`** | A lightweight Nginx web server dedicated to serving compressed JPEGs and audio files. |
+| **`api-server`** | A standalone FastAPI REST API serving structured Parquet data directly to external clients. |
+| **`log-alerter`** | A custom Python watcher that monitors all container logs and dispatches SMTP emails upon failures. |
+| **`uptime-kuma`** | A self-hosted monitoring tool tracking the uptime and health of all web services. |
+
+---
+
 ## 🎮 Featured Digital Experiences
 Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Frontend Explorer features interactive mini-games and curation tools designed to engage users with the archive in novel ways:
 
@@ -55,24 +73,6 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 * **AI/LLM Integration:** Google Gemini API (`@google/generative-ai`) with DuckDB-driven Hybrid RAG
 * **Data Pattern:** Medallion Architecture with Incremental Delta Merges (Upserts) and QA Quarantine.
 * **Monitoring & Alerting:** Uptime Kuma for service health, custom Python Log Alerter for SMTP error notifications, structured logging, and automated Google Analytics ingestion for frontend traffic monitoring.
-
----
-
-## 🐳 Microservices (Docker Containers)
-
-The entire Lakehouse runs as a distributed system using Docker Compose. The following services are orchestrated together:
-
-| Container | Description |
-|---|---|
-| **`prefect-server`** | The orchestration hub running Prefect 3 to monitor and manage the ELT pipelines. |
-| **`lakehouse`** | The core worker node that runs the Python data extraction, transformation, and Parquet generation. |
-| **`archiver`** | A secondary utility container for running asynchronous batch scripts and AI metadata extraction. |
-| **`metabase`** | The business intelligence layer connected to DuckDB for real-time dashboards and SQL analytics. |
-| **`frontend`** | The Next.js web application that provides the public catalog, games, and interactive tools. |
-| **`images-server`** | A lightweight Nginx web server dedicated to serving compressed JPEGs and audio files. |
-| **`api-server`** | A standalone FastAPI REST API serving structured Parquet data directly to external clients. |
-| **`log-alerter`** | A custom Python watcher that monitors all container logs and dispatches SMTP emails upon failures. |
-| **`uptime-kuma`** | A self-hosted monitoring tool tracking the uptime and health of all web services. |
 
 ---
 
