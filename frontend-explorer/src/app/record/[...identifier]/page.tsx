@@ -268,7 +268,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                   {Object.entries(selectedRecord)
                     .filter(([key, val]) => val !== null && val !== "" && !["has_image", "title", "year_created", "source_system", "id", "image_count", "has_audio", "audio_count", "search_text", "alma_identifier", "location", "storage_location"].includes(key))
                     .sort(([keyA], [keyB]) => {
-                      const orderedFields = ["field_identifier", "field_collection_type", "field_extent", "field_genre", "field_description_long", "field_linked_agent", "field_subject", "field_place_published", "field_edtf_date_created", "decade_created", "field_physical_form", "field_collection_note", "field_credit_line"];
+                      const orderedFields = ["field_identifier", "field_collection_type", "field_extent", "field_genre", "Inscription", "Style", "field_description_long", "field_linked_agent", "field_subject", "field_place_published", "field_edtf_date_created", "decade_created", "field_physical_form", "field_collection_note", "field_credit_line"];
                       const idxA = orderedFields.indexOf(keyA);
                       const idxB = orderedFields.indexOf(keyB);
                       if (idxA !== -1 && idxB !== -1) return idxA - idxB;
@@ -282,6 +282,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                         field_collection_type: "Collection",
                         field_extent: "Dimensions",
                         field_genre: "Genre",
+                        Style: "Style",
                         field_description_long: "Description",
                         field_linked_agent: "Creator",
                         field_subject: "Subjects",
@@ -291,6 +292,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                         field_credit_line: "Credit Line",
                         field_physical_form: "Material",
                         field_collection_note: "Collection Note",
+                        Inscription: "Inscription",
                       };
                       return (
                         <div key={i} className="flex flex-col space-y-2 group">

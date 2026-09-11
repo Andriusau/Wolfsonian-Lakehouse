@@ -54,6 +54,8 @@ export function DuckDBProvider({ children }: { children: ReactNode }) {
               field_collection_type, 
               field_collection_note,
               field_credit_line,
+              Style,
+              Inscription,
               field_extent,
               field_physical_form,
               field_genre, 

@@ -240,7 +240,8 @@ def main():
             'weight': 'field_extent',
             'sortable4': 'location',
             'categ_8': 'storage_location',
-            'categ_6': 'Inscription'
+            'categ_6': 'Inscription',
+            'categ_3': 'Style'
         }
         df_deltas = df_deltas.rename(columns=rename_map)
         
