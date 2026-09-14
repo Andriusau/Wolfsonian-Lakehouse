@@ -266,9 +266,9 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
 
                 <div className="space-y-8 mt-8">
                   {Object.entries(selectedRecord)
-                    .filter(([key, val]) => val !== null && val !== "" && !["has_image", "title", "year_created", "source_system", "id", "image_count", "has_audio", "audio_count", "search_text", "alma_identifier", "location", "storage_location"].includes(key))
+                    .filter(([key, val]) => val !== null && val !== "" && !["has_image", "title", "year_created", "source_system", "id", "image_count", "has_audio", "audio_count", "search_text", "alma_identifier"].includes(key))
                     .sort(([keyA], [keyB]) => {
-                      const orderedFields = ["field_identifier", "field_collection_type", "field_extent", "field_genre", "Inscription", "Style", "field_description_long", "field_linked_agent", "field_subject", "field_place_published", "field_edtf_date_created", "decade_created", "field_physical_form", "field_collection_note", "field_credit_line"];
+                      const orderedFields = ["field_identifier", "field_collection_type", "location", "storage_location", "field_extent", "field_genre", "Inscription", "Style", "field_description_long", "field_linked_agent", "field_subject", "field_place_published", "field_edtf_date_created", "decade_created", "field_physical_form", "field_collection_note", "field_credit_line"];
                       const idxA = orderedFields.indexOf(keyA);
                       const idxB = orderedFields.indexOf(keyB);
                       if (idxA !== -1 && idxB !== -1) return idxA - idxB;
@@ -280,6 +280,8 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                       const fieldLabels: Record<string, string> = {
                         field_identifier: "Accession Number",
                         field_collection_type: "Collection",
+                        location: "Location",
+                        storage_location: "Storage Location",
                         field_extent: "Dimensions",
                         field_genre: "Genre",
                         Style: "Style",
