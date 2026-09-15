@@ -44,6 +44,10 @@ logs-frontend:
 run-pipeline:
 	docker compose run --rm lakehouse
 
+# Run a full Proficio snapshot so deleted records can be captured.
+run-proficio-full:
+	PROFICIO_FULL_EXTRACT=true docker compose run --rm lakehouse
+
 # Run the cleanup script to remove old reports
 cleanup-reports:
 	docker compose run --rm lakehouse python etl-pipelines/cleanup_reports.py

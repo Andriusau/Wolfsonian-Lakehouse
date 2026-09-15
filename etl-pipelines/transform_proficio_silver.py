@@ -9,6 +9,7 @@ import logging
 import configparser
 import sys
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 # --- Configuration Setup ---
@@ -21,6 +22,7 @@ RAW_ISLANDORA = Path('/app/data/raw/islandora/islandora_lookup.parquet')
 
 # Silver Table (All columns, Deduplicated)
 MASTER_SILVER = Path('/app/data/silver/proficio_silver.parquet')
+DELETED_RECORDS = Path('/app/data/gold/proficio_deleted_records.parquet')
 
 # Gold Table (Missing objects, 24 columns)
 OUTPUT_PARQUET = Path('/app/data/gold/missing_objects.parquet')
@@ -203,6 +205,40 @@ def normalize_identifier(s):
     s = s.strip('.')
     return s
 
+def get_record_keys(df):
+    if 'record_id' in df.columns:
+        return df['record_id'].astype('string').fillna('')
+    if 'field_identifier' in df.columns:
+        return df['field_identifier'].map(normalize_identifier).astype('string').fillna('')
+    return pd.Series('', index=df.index, dtype='string')
+
+def capture_deleted_records(previous_master, current_snapshot):
+    previous_keys = get_record_keys(previous_master)
+    current_keys = set(get_record_keys(current_snapshot))
+    deleted = previous_master.loc[~previous_keys.isin(current_keys)].copy()
+    if deleted.empty:
+        return 0
+
+    if DELETED_RECORDS.exists():
+        history = pd.read_parquet(DELETED_RECORDS)
+        history_keys = set(get_record_keys(history))
+        deleted = deleted.loc[~get_record_keys(deleted).isin(history_keys)]
+        if deleted.empty:
+            return 0
+
+    new_deletions = len(deleted)
+    deleted['deletion_detected_at'] = datetime.now(timezone.utc).isoformat()
+    deleted['deletion_source'] = 'Proficio full snapshot comparison'
+
+    if DELETED_RECORDS.exists():
+        history = pd.read_parquet(DELETED_RECORDS)
+        history, deleted = history.align(deleted, join='outer', axis=1)
+        deleted = pd.concat([history, deleted], ignore_index=True)
+
+    DELETED_RECORDS.parent.mkdir(parents=True, exist_ok=True)
+    deleted.to_parquet(DELETED_RECORDS, index=False)
+    return new_deletions
+
 # ==========================================
 # MAIN PIPELINE EXECUTION
 # ==========================================
@@ -281,6 +317,11 @@ def main():
             df_deltas['field_edtf_date_created'] = ''
             
     is_full_extract = any(f.name.startswith('full_extract_') for f in delta_files)
+    previous_master = pd.read_parquet(MASTER_SILVER) if MASTER_SILVER.exists() else None
+    deleted_count = 0
+    if is_full_extract and previous_master is not None:
+        deleted_count = capture_deleted_records(previous_master, df_deltas)
+        logging.info(f"Detected {deleted_count} newly deleted Proficio records.")
     
     if MASTER_SILVER.exists() and not is_full_extract:
         df_master = pd.read_parquet(MASTER_SILVER)
@@ -342,6 +383,8 @@ def main():
         except: pass
     metrics['proficio_silver_total'] = len(df_master)
     metrics['proficio_deltas_processed'] = len(df_deltas)
+    if is_full_extract:
+        metrics['proficio_deleted_records'] = deleted_count
     with open(metrics_path, 'w') as f:
         json.dump(metrics, f)
 

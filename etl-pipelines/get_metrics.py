@@ -44,10 +44,13 @@ def update_readme(metrics):
 
     # Use regex to replace the table under Data Sources & Volumes
     pattern = r"\| Source \| System \| Records \| Method \|\n\|---\|---\|---\|---\|.*?(?=\n\n|\n---)"
+    match = re.search(pattern, content, flags=re.DOTALL)
     new_content = re.sub(pattern, table, content, flags=re.DOTALL)
 
-    if new_content == content:
-        logging.warning("Regex didn't match the README table. No changes made.")
+    if not match:
+        logging.warning("Could not find the README data table. No changes made.")
+    elif new_content == content:
+        logging.info("README.md already contains the current metrics.")
     else:
         with open(readme_path, 'w') as f:
             f.write(new_content)

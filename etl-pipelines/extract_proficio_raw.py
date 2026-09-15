@@ -65,6 +65,11 @@ def raw_data_dump(table_name, incremental_dir):
         except json.JSONDecodeError:
             pass
 
+    force_full_extract = os.getenv('PROFICIO_FULL_EXTRACT', '').lower() in ('1', 'true', 'yes')
+    if force_full_extract:
+        last_watermark = None
+        logging.info("🔁 Full Proficio extract requested by PROFICIO_FULL_EXTRACT.")
+
     if last_watermark:
         logging.info(f"💧 Incremental Extract: Fetching records modified since {last_watermark}")
         query = f"SELECT * FROM {table_name} WHERE change_dte > '{last_watermark}' OR add_dte > '{last_watermark}'"
