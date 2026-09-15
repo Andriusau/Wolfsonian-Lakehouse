@@ -343,7 +343,7 @@ export default function Home() {
               }
               const e = token.replace(/(^"|"$)/g, '').replace(/'/g, "''").toLowerCase();
               const unaccented = e.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-              sqlCondition += `(search_text LIKE '%${unaccented}%' OR lower(field_identifier) LIKE '%${e}%')`;
+              sqlCondition += `(search_text LIKE '%${unaccented}%' OR lower(field_identifier) LIKE '%${e}%' OR lower(location) LIKE '%${e}%' OR lower(storage_location) LIKE '%${e}%')`;
               expectOperator = true;
             }
           }
@@ -353,7 +353,7 @@ export default function Home() {
             const termConditions = terms.map((term: string) => {
               const escapedSearch = term.replace(/'/g, "''").toLowerCase();
               const unaccented = escapedSearch.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-              return `(search_text LIKE '%${unaccented}%' OR lower(field_identifier) LIKE '%${escapedSearch}%')`;
+              return `(search_text LIKE '%${unaccented}%' OR lower(field_identifier) LIKE '%${escapedSearch}%' OR lower(location) LIKE '%${escapedSearch}%' OR lower(storage_location) LIKE '%${escapedSearch}%')`;
             });
             sqlCondition = termConditions.join(' OR ');
           }
@@ -445,6 +445,10 @@ export default function Home() {
                   return `(
                       (CASE WHEN lower(field_identifier) = '${escapedTerm}' THEN 1000 ELSE 0 END) +
                       (CASE WHEN lower(field_identifier) LIKE '%${escapedTerm}%' THEN 2 ELSE 0 END) +
+                      (CASE WHEN lower(location) = '${escapedTerm}' THEN 8 ELSE 0 END) +
+                      (CASE WHEN lower(storage_location) = '${escapedTerm}' THEN 8 ELSE 0 END) +
+                      (CASE WHEN lower(location) LIKE '%${escapedTerm}%' THEN 2 ELSE 0 END) +
+                      (CASE WHEN lower(storage_location) LIKE '%${escapedTerm}%' THEN 2 ELSE 0 END) +
                       (CASE WHEN lower(title) LIKE '%${escapedTerm}%' THEN 5 ELSE 0 END) +
                       (CASE WHEN lower(field_genre) LIKE '%${escapedTerm}%' THEN 4.5 ELSE 0 END) +
                       (CASE WHEN lower(field_linked_agent) LIKE '%${escapedTerm}%' THEN 4 ELSE 0 END) +
