@@ -243,6 +243,12 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                     >
                       {isInCollection(selectedRecord.field_identifier) ? '[-] REMOVE FROM COLLECTION' : '[+] ADD TO COLLECTION'}
                     </button>
+                    <Link
+                      href={`/record/${encodeURIComponent(identifier)}`}
+                      className="text-xs px-4 py-2 uppercase font-bold tracking-widest border-2 border-white/40 text-white/70 hover:border-mca-cyan hover:text-mca-cyan transition-colors"
+                    >
+                      OPEN IN NEW TAB
+                    </Link>
                   </div>
                   <h2 className="text-3xl md:text-5xl font-black font-display uppercase tracking-tight leading-tight break-words">
                     {selectedRecord.title || selectedRecord.field_identifier || '[UNTITLED OBJECT]'}
