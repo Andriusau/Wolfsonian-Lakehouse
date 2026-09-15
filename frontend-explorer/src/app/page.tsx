@@ -1147,7 +1147,16 @@ export default function Home() {
                       </div>
                       
                       <h3 className="font-bold text-sm leading-tight text-white uppercase group-hover:text-mca-cyan transition-colors">
-                        {item.title || item.field_identifier || '[UNTITLED OBJECT]'}
+                        <Link
+                          href={`/record/${encodeURIComponent(item.field_identifier)}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.sessionStorage.setItem('mca_search_scrollY', window.scrollY.toString());
+                          }}
+                          className="hover:text-mca-cyan"
+                        >
+                          {item.title || item.field_identifier || '[UNTITLED OBJECT]'}
+                        </Link>
                       </h3>
                       
                       <p className="text-slate-600 text-sm leading-relaxed font-sans line-clamp-4">
