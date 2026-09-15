@@ -1115,6 +1115,15 @@ export default function Home() {
                   className="bg-mca-black border-r border-b border-white/20 hover:bg-mca-dark/50 transition-all duration-200 flex flex-col group p-6 space-y-6 cursor-pointer relative"
                   onClick={() => handleRecordClick(item.field_identifier)}
                 >
+                  <Link
+                    href={`/record/${encodeURIComponent(item.field_identifier)}`}
+                    aria-label={`Open ${item.title || item.field_identifier || 'record'}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.sessionStorage.setItem('mca_search_scrollY', window.scrollY.toString());
+                    }}
+                    className="absolute inset-0 z-10"
+                  />
                   
                   {/* Image Area - Stark Fit Layout */}
                   <div className="h-60 bg-mca-black relative flex items-center justify-center p-2 border border-slate-200">
@@ -1146,7 +1155,7 @@ export default function Home() {
                         <span className="text-slate-500">{item.field_identifier}</span>
                       </div>
                       
-                      <h3 className="font-bold text-sm leading-tight text-white uppercase group-hover:text-mca-cyan transition-colors">
+                      <h3 className="relative z-20 font-bold text-sm leading-tight text-white uppercase group-hover:text-mca-cyan transition-colors">
                         <Link
                           href={`/record/${encodeURIComponent(item.field_identifier)}`}
                           onClick={(e) => {
@@ -1167,7 +1176,7 @@ export default function Home() {
                         {item.field_linked_agent && (
                           <div className="flex space-x-2">
                             <span className="text-slate-800 w-20 shrink-0 font-bold">CREATOR</span>
-                            <span className="text-slate-700 font-medium truncate">
+                              <span className="relative z-20 text-slate-700 font-medium truncate">
                               {parseDelimited(item.field_linked_agent, '|').map((agent: any, i: number, arr: any[]) => (
                                 <span key={i}>
                                   <Link href={`/creator/${encodeURIComponent(agent)}`} className="hover:text-mca-yellow hover:underline" onClick={(e: any) => e.stopPropagation()}>
@@ -1206,7 +1215,7 @@ export default function Home() {
                         {item.field_subject && (
                           <div className="flex space-x-2">
                             <span className="text-slate-800 w-20 shrink-0 font-bold">SUBJECT</span>
-                            <span className="text-slate-700 font-medium truncate">
+                            <span className="relative z-20 text-slate-700 font-medium truncate">
                               {parseDelimited(item.field_subject, item.field_subject.includes(';') ? ';' : '|').map((subject: string, i: number, arr: any[]) => (
                                 <span key={i}>
                                   <Link href={`/subject/${encodeURIComponent(subject)}`} className="hover:text-mca-yellow hover:underline" onClick={(e: any) => e.stopPropagation()}>
@@ -1241,7 +1250,7 @@ export default function Home() {
                             e.stopPropagation();
                             isInCollection(item.field_identifier) ? removeItem(item.field_identifier) : addItem(item);
                           }}
-                          className={`px-3 py-1.5 border transition-colors ${isInCollection(item.field_identifier) ? 'bg-mca-cyan border-mca-cyan text-mca-black' : 'border-white/20 text-slate-400 hover:text-white hover:border-white'}`}
+                          className={`relative z-20 px-3 py-1.5 border transition-colors ${isInCollection(item.field_identifier) ? 'bg-mca-cyan border-mca-cyan text-mca-black' : 'border-white/20 text-slate-400 hover:text-white hover:border-white'}`}
                         >
                           {isInCollection(item.field_identifier) ? '[ - ] SAVED' : '[ + ] SAVE'}
                         </button>
