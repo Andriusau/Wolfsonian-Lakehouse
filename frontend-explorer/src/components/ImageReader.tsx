@@ -161,7 +161,7 @@ export default function ImageReader({ images, selectedRecord }: ImageReaderProps
         
         <div className="absolute bottom-4 left-4 z-20 flex flex-col gap-2 items-start">
           <Link 
-            href={`/merch/${getMediaFilename(selectedRecord.field_identifier)}`}
+            href={`/merch/${encodeURIComponent(String(selectedRecord.field_identifier).split(';')[0].trim())}`}
             className="bg-white text-mca-black font-black uppercase tracking-widest px-4 py-3 border-2 border-white hover:bg-mca-black hover:text-white transition-colors text-[10px] shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
