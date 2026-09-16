@@ -79,6 +79,17 @@ def normalize_subject(val):
     parts = [re.sub(r'^subject:', '', p, flags=re.IGNORECASE).strip() for p in parts]
     return ' | '.join([p for p in parts if p]) if parts else pd.NA
 
+def append_style_to_subject(subject, style):
+    subject_parts = [] if pd.isna(subject) else [part.strip() for part in str(subject).split('|') if part.strip()]
+    style_parts = [] if pd.isna(style) else [part.strip() for part in str(style).split('|') if part.strip()]
+
+    merged_parts = subject_parts[:]
+    for style_part in style_parts:
+        if style_part not in merged_parts:
+            merged_parts.append(style_part)
+
+    return ' | '.join(merged_parts) if merged_parts else pd.NA
+
 
 # ---------------------------------------------------------------------------
 # DATE NORMALIZATION
@@ -210,6 +221,18 @@ def main():
     if 'field_subject' in df.columns:
         df['field_subject'] = df['field_subject'].apply(normalize_subject)
         logging.info('✅ Normalized field_subject.')
+
+    # Keep Style as its own field while making it available to subject searches.
+    if 'Style' in df.columns:
+        df['Style'] = df['Style'].apply(normalize_subject)
+        if 'field_subject' in df.columns:
+            df['field_subject'] = df.apply(
+                lambda row: append_style_to_subject(row['field_subject'], row['Style']),
+                axis=1,
+            )
+        else:
+            df['field_subject'] = df['Style']
+        logging.info('✅ Appended Style values to field_subject.')
 
     # --- Title ---
     if 'title' in df.columns:
