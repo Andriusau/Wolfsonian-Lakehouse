@@ -80,13 +80,13 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 
 | Source | System | Records | Method |
 |---|---|---|---|
-| **Alma** | Ex Libris Library Management | 54,835 | Binary MARC (`.mrc`) parsing via PyMARC & Physical Item (`.csv`) mapping |
+| **Alma** | Ex Libris Library Management | 54,893 | Binary MARC (`.mrc`) parsing via PyMARC & Physical Item (`.csv`) mapping |
 | **Proficio** | Museum Collection Database | 61,019 | Kerberos-authenticated SQL Server via ODBC |
 | **Islandora** | Public Digital Archive | 268,062 | Paginated REST API with concurrent fetching |
-| **Unified Gold Catalog** | Merged output | 115,854 | Alma + Proficio aligned and concatenated |
-| **Normalized Gold Catalog** | Analytics-ready output | 115,854 | Harmonized genres, dates, creators & titles |
-| **Records with Images** | Gold Catalog Filter | 55,605 | Distinct records possessing at least one valid image (a single record can have up to 1,000+ images for books/albums) |
-| **Digital Images** | NFS Mounted Share | 341,324 | Parallel ingestion and JPEG compression |
+| **Unified Gold Catalog** | Merged output | 115,912 | Alma + Proficio aligned and concatenated |
+| **Normalized Gold Catalog** | Analytics-ready output | 115,912 | Harmonized genres, dates, creators & titles |
+| **Records with Images** | Gold Catalog Filter | 55,607 | Distinct records possessing at least one valid image (a single record can have up to 1,000+ images for books/albums) |
+| **Digital Images** | NFS Mounted Share | 341,333 | Parallel ingestion and JPEG compression |
 | **Digital Audio** | NFS Mounted Share | 26 | MP3 caching and metadata mapping |
 | **Google Analytics** | GA4 Data API | Dynamic | Automated extraction of website traffic metrics |
 
