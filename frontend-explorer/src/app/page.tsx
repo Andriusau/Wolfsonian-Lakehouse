@@ -575,7 +575,7 @@ export default function Home() {
     <div className="light-theme-explorer min-h-screen flex flex-col selection:bg-mca-yellow selection:text-mca-black antialiased font-mono">
       
       {/* Top Banner Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 border-b-2 border-white text-xs uppercase font-bold tracking-wider divide-y-2 md:divide-y-0 md:divide-x-2 divide-white bg-mca-black">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 border-b-2 border-white text-xs uppercase font-bold tracking-wider divide-y-2 lg:divide-y-0 lg:divide-x-2 divide-white bg-mca-black">
         <div className="p-4 flex items-center justify-between">
           <span>COLLECTION INDEX</span>
           <span className="text-mca-cyan">WOLFSONIAN-FIU</span>
@@ -601,6 +601,12 @@ export default function Home() {
             [{isLoaded ? collection.length : 0}]
           </span>
         </div>
+        <Link href="/features" className="p-4 flex items-center justify-between group cursor-pointer bg-mca-dark hover:bg-mca-cyan transition-colors">
+          <span className="group-hover:text-mca-black">FEATURE REQUESTS</span>
+          <span className="text-mca-cyan group-hover:text-mca-black font-mono font-bold">
+            [ROADMAP]
+          </span>
+        </Link>
       </div>
 
       <div className="w-full px-6 md:px-12 2xl:px-24 py-12 md:py-20 flex-1 space-y-16">
@@ -729,6 +735,27 @@ export default function Home() {
                 <div className="flex justify-end">
                   <div className="w-16 h-16 border border-mca-cyan/30 bg-black/50 transform group-hover:scale-105 transition-all duration-500 rounded-xl flex items-center justify-center text-3xl">
                     🕵️‍♂️
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            <Link href="/features" className="block flex-shrink-0 w-[85vw] md:w-[350px] snap-center group cursor-pointer border border-mca-cyan/30 hover:border-mca-cyan transition-colors bg-mca-dark p-6">
+              <div className="flex flex-col h-full justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="text-[10px] font-mono font-bold text-mca-cyan uppercase tracking-widest">
+                    Community Roadmap &amp; Changelog
+                  </div>
+                  <h2 className="text-xl font-display font-black text-white uppercase tracking-tight group-hover:text-mca-cyan transition-colors leading-none">
+                    Feature Requests &amp; Ideas
+                  </h2>
+                  <p className="text-xs font-sans text-slate-700 font-medium line-clamp-2">
+                    Submit desired features, vote on upcoming tools, and track live dev updates from Andrius (AA).
+                  </p>
+                </div>
+                <div className="flex justify-end">
+                  <div className="w-16 h-16 border border-mca-cyan/30 bg-black/50 transform group-hover:scale-105 transition-all duration-500 rounded-xl flex items-center justify-center text-3xl">
+                    💡
                   </div>
                 </div>
               </div>

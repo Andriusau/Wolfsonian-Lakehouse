@@ -55,6 +55,7 @@ services:
       - "3000:3000"
     volumes:
       - ./data/gold:/app/public/data:ro
+      - ./data/feedback:/app/data/feedback
     environment:
       - NODE_ENV=production
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
