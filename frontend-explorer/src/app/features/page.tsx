@@ -11,6 +11,7 @@ interface Feature {
   category: string;
   status: "done" | "in_progress" | "planned" | "under_review";
   submitter_name: string;
+  submitter_email?: string; // Visible in admin mode
   admin_response?: string;
   votes: number;
   created_at: string;
@@ -51,6 +52,18 @@ export default function FeaturesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Admin Mode State
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPasskey, setAdminPasskey] = useState<string>("");
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
+  const [loginPasskeyInput, setLoginPasskeyInput] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  // Editing AA Note inline
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [noteDraft, setNoteDraft] = useState<string>("");
+  const [isSavingNote, setIsSavingNote] = useState(false);
+
   // Filters & Sorting
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [systemFilter, setSystemFilter] = useState<string>("all");
@@ -75,7 +88,7 @@ export default function FeaturesPage() {
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
 
-  // Load features and user's past votes
+  // Load features and user's past votes & check admin passkey
   useEffect(() => {
     try {
       const savedVotes = localStorage.getItem("wolfsonian_lakehouse_feature_votes");
@@ -86,18 +99,44 @@ export default function FeaturesPage() {
       // Ignore localStorage errors
     }
 
-    fetchFeatures();
+    // Check if admin passkey is passed via URL (?admin=passkey) or saved in localStorage
+    let activeKey = "";
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryAdmin = urlParams.get("admin");
+      if (queryAdmin) {
+        activeKey = queryAdmin;
+        localStorage.setItem("wolfsonian_admin_passkey", queryAdmin);
+      } else {
+        activeKey = localStorage.getItem("wolfsonian_admin_passkey") || "";
+      }
+    } catch {
+      // Ignore
+    }
+
+    if (activeKey) {
+      setAdminPasskey(activeKey);
+    }
+
+    fetchFeatures(activeKey);
   }, []);
 
-  const fetchFeatures = async () => {
+  const fetchFeatures = async (passkey?: string) => {
     try {
       setLoading(true);
-      const res = await fetch("/api/features");
+      const headers: Record<string, string> = {};
+      const keyToUse = passkey !== undefined ? passkey : adminPasskey;
+      if (keyToUse) {
+        headers["x-admin-key"] = keyToUse;
+      }
+
+      const res = await fetch("/api/features", { headers });
       if (!res.ok) {
         throw new Error(`Failed to load features: ${res.statusText}`);
       }
       const data = await res.json();
       setFeatures(data.features || []);
+      setIsAdmin(Boolean(data.is_admin));
       if (data.stats) {
         setStats(data.stats);
       }
@@ -105,6 +144,110 @@ export default function FeaturesPage() {
       setError(err.message || "Could not load features.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError(null);
+    try {
+      const res = await fetch("/api/features", {
+        headers: { "x-admin-key": loginPasskeyInput.trim() },
+      });
+      const data = await res.json();
+      if (data.is_admin) {
+        setIsAdmin(true);
+        setAdminPasskey(loginPasskeyInput.trim());
+        localStorage.setItem("wolfsonian_admin_passkey", loginPasskeyInput.trim());
+        setFeatures(data.features || []);
+        setIsAdminLoginOpen(false);
+        setLoginPasskeyInput("");
+      } else {
+        setLoginError("Invalid admin passkey. Please try again.");
+      }
+    } catch {
+      setLoginError("Verification failed. Please check network connection.");
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdmin(false);
+    setAdminPasskey("");
+    try {
+      localStorage.removeItem("wolfsonian_admin_passkey");
+    } catch {
+      // Ignore
+    }
+    fetchFeatures("");
+  };
+
+  const handleStatusChange = async (id: string, newStatus: Feature["status"]) => {
+    try {
+      // Optimistic update
+      setFeatures((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
+      );
+
+      await fetch("/api/features", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-key": adminPasskey,
+        },
+        body: JSON.stringify({ id, status: newStatus }),
+      });
+
+      // Refresh stats
+      fetchFeatures(adminPasskey);
+    } catch (err) {
+      console.error("Failed to update status:", err);
+    }
+  };
+
+  const handleSaveNote = async (id: string) => {
+    setIsSavingNote(true);
+    try {
+      // Optimistic update
+      setFeatures((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, admin_response: noteDraft.trim() } : item))
+      );
+
+      await fetch("/api/features", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-key": adminPasskey,
+        },
+        body: JSON.stringify({ id, admin_response: noteDraft.trim() }),
+      });
+
+      setEditingNoteId(null);
+      setNoteDraft("");
+    } catch (err) {
+      console.error("Failed to save AA note:", err);
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to permanently delete this feature request?")) {
+      return;
+    }
+
+    try {
+      setFeatures((prev) => prev.filter((item) => item.id !== id));
+      await fetch("/api/features", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-key": adminPasskey,
+        },
+        body: JSON.stringify({ id }),
+      });
+      fetchFeatures(adminPasskey);
+    } catch (err) {
+      console.error("Failed to delete feature request:", err);
     }
   };
 
@@ -227,7 +370,8 @@ export default function FeaturesPage() {
           const matchAdmin = (item.admin_response || "").toLowerCase().includes(q);
           const matchCategory = item.category.toLowerCase().includes(q);
           const matchAuthor = item.submitter_name.toLowerCase().includes(q);
-          if (!matchTitle && !matchDesc && !matchAdmin && !matchCategory && !matchAuthor) {
+          const matchEmail = (item.submitter_email || "").toLowerCase().includes(q);
+          if (!matchTitle && !matchDesc && !matchAdmin && !matchCategory && !matchAuthor && !matchEmail) {
             return false;
           }
         }
@@ -243,6 +387,22 @@ export default function FeaturesPage() {
 
   return (
     <div className="min-h-screen bg-[#070707] text-white flex flex-col font-mono selection:bg-mca-yellow selection:text-black antialiased">
+      {/* Admin Mode Status Banner */}
+      {isAdmin && (
+        <div className="bg-mca-cyan text-black px-6 py-2.5 text-xs uppercase font-bold flex items-center justify-between tracking-wider shadow-md">
+          <div className="flex items-center gap-2">
+            <span className="h-2.5 w-2.5 rounded-full bg-black animate-ping" />
+            <span>ADMIN MODE ACTIVE — LOGGED IN AS AA (SUBMITTER EMAILS &amp; STATUS CONTROLS UNLOCKED)</span>
+          </div>
+          <button
+            onClick={handleAdminLogout}
+            className="px-3 py-1 bg-black text-white hover:bg-white hover:text-black transition-colors text-[10px] cursor-pointer"
+          >
+            [LOGOUT ADMIN]
+          </button>
+        </div>
+      )}
+
       {/* Top Banner Navigation Bar */}
       <div className="grid grid-cols-1 md:grid-cols-4 border-b-2 border-white/20 text-xs uppercase font-bold tracking-wider divide-y-2 md:divide-y-0 md:divide-x-2 divide-white/20 bg-black">
         <Link
@@ -256,7 +416,7 @@ export default function FeaturesPage() {
           <span>FEATURE TRACKER</span>
           <div className="flex items-center space-x-2">
             <span className="h-2 w-2 rounded-full bg-mca-cyan animate-pulse" />
-            <span className="text-mca-cyan">LIVE ARCHIVE</span>
+            <span className="text-mca-cyan">{isAdmin ? "ADMIN CONSOLE" : "LIVE ARCHIVE"}</span>
           </div>
         </div>
         <div className="p-4 flex items-center justify-between">
@@ -278,8 +438,16 @@ export default function FeaturesPage() {
         <header className="space-y-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-3">
-              <div className="text-[11px] uppercase tracking-widest text-mca-cyan font-bold font-mono">
-                RUNNING ROADMAP & DEV CHANGELOG
+              <div className="text-[11px] uppercase tracking-widest text-mca-cyan font-bold font-mono flex items-center gap-2">
+                <span>RUNNING ROADMAP &amp; DEV CHANGELOG</span>
+                {!isAdmin && (
+                  <button
+                    onClick={() => setIsAdminLoginOpen(true)}
+                    className="text-[10px] text-slate-500 hover:text-slate-300 font-mono underline ml-2 cursor-pointer"
+                  >
+                    [Admin Unlock]
+                  </button>
+                )}
               </div>
               <h1 className="text-4xl md:text-6xl font-black font-display uppercase tracking-tight text-white leading-none">
                 FEATURE REQUESTS &amp; <br />
@@ -368,7 +536,7 @@ export default function FeaturesPage() {
             <div className="relative flex-1">
               <input
                 type="text"
-                placeholder="SEARCH FEATURES, DEV UPDATES, KEYWORDS..."
+                placeholder={isAdmin ? "SEARCH FEATURES, SUBMITTER EMAILS, KEYWORDS..." : "SEARCH FEATURES, DEV UPDATES, KEYWORDS..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-black border border-white/30 px-5 py-3 text-sm text-white placeholder:text-slate-500 font-mono uppercase focus:outline-none focus:border-mca-cyan transition-colors"
@@ -510,11 +678,16 @@ export default function FeaturesPage() {
             ) : (
               filteredFeatures.map((item) => {
                 const hasVoted = votedIds.has(item.id);
+                const isEditingThisNote = editingNoteId === item.id;
 
                 return (
                   <article
                     key={item.id}
-                    className="p-6 border border-white/15 bg-[#0f0f0f] hover:border-white/40 transition-all flex flex-col md:flex-row gap-6 items-start group"
+                    className={`p-6 border transition-all flex flex-col md:flex-row gap-6 items-start group ${
+                      isAdmin
+                        ? "border-mca-cyan/30 bg-[#0c1214]"
+                        : "border-white/15 bg-[#0f0f0f] hover:border-white/40"
+                    }`}
                   >
                     {/* Upvote Button */}
                     <div className="flex md:flex-col items-center gap-2 self-start flex-shrink-0">
@@ -578,6 +751,17 @@ export default function FeaturesPage() {
                         <span className="px-2.5 py-1 bg-white/5 text-slate-400 border border-white/10">
                           {item.category}
                         </span>
+
+                        {/* Admin Submitter Email Badge */}
+                        {isAdmin && item.submitter_email && (
+                          <a
+                            href={`mailto:${item.submitter_email}?subject=Wolfsonian Lakehouse: ${encodeURIComponent(item.title)}`}
+                            className="px-2.5 py-1 bg-mca-cyan/20 text-mca-cyan border border-mca-cyan/60 hover:bg-mca-cyan hover:text-black transition-colors"
+                            title="Click to email the submitter directly"
+                          >
+                            ✉️ {item.submitter_email}
+                          </a>
+                        )}
                       </div>
 
                       {/* Title */}
@@ -590,11 +774,22 @@ export default function FeaturesPage() {
                         {item.description}
                       </p>
 
-                      {/* AA Dev Update Box (The beloved "updates in red" preserved!) */}
-                      {item.admin_response && (
+                      {/* AA Dev Update Box */}
+                      {item.admin_response && !isEditingThisNote && (
                         <div className="p-3.5 bg-[#180505] border-l-4 border-red-500 text-red-200 text-xs font-sans space-y-1 rounded-none shadow-sm">
-                          <div className="font-mono text-[10px] font-bold uppercase tracking-widest text-red-400 flex items-center gap-1">
+                          <div className="font-mono text-[10px] font-bold uppercase tracking-widest text-red-400 flex items-center justify-between">
                             <span>AA UPDATE / DEV NOTE:</span>
+                            {isAdmin && (
+                              <button
+                                onClick={() => {
+                                  setEditingNoteId(item.id);
+                                  setNoteDraft(item.admin_response || "");
+                                }}
+                                className="text-[10px] text-red-300 hover:text-white underline font-mono cursor-pointer"
+                              >
+                                [Edit Note]
+                              </button>
+                            )}
                           </div>
                           <p className="font-mono text-red-200 leading-relaxed font-semibold">
                             {item.admin_response}
@@ -602,10 +797,82 @@ export default function FeaturesPage() {
                         </div>
                       )}
 
-                      {/* Footer Info */}
+                      {/* Admin inline Note Editor */}
+                      {isAdmin && isEditingThisNote && (
+                        <div className="p-3 bg-red-950/40 border border-red-500 space-y-2">
+                          <label className="text-[10px] font-mono text-red-400 uppercase font-bold">
+                            Edit AA Dev Note / Resolution:
+                          </label>
+                          <textarea
+                            value={noteDraft}
+                            onChange={(e) => setNoteDraft(e.target.value)}
+                            rows={3}
+                            placeholder="Type AA update here (e.g. Done. In progress. Tested and working.)..."
+                            className="w-full bg-black border border-red-400 p-2 text-xs font-mono text-white focus:outline-none"
+                          />
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => {
+                                setEditingNoteId(null);
+                                setNoteDraft("");
+                              }}
+                              className="px-3 py-1 border border-white/20 text-[10px] uppercase font-bold"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => handleSaveNote(item.id)}
+                              disabled={isSavingNote}
+                              className="px-4 py-1 bg-red-500 text-white text-[10px] uppercase font-bold hover:bg-red-400"
+                            >
+                              {isSavingNote ? "Saving..." : "Save AA Note"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Footer Info & Admin Actions Bar */}
                       <div className="pt-2 flex flex-wrap items-center justify-between gap-4 text-[10px] text-slate-500 font-mono uppercase tracking-widest border-t border-white/5">
-                        <span>SUBMITTED BY: {item.submitter_name}</span>
-                        <span>{new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                        <div className="flex items-center gap-4">
+                          <span>SUBMITTED BY: {item.submitter_name}</span>
+                          <span>{new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                        </div>
+
+                        {/* Admin Action Buttons */}
+                        {isAdmin && (
+                          <div className="flex flex-wrap items-center gap-2 pt-1">
+                            <span className="text-slate-400">SET STATUS:</span>
+                            <select
+                              value={item.status}
+                              onChange={(e) => handleStatusChange(item.id, e.target.value as Feature["status"])}
+                              className="bg-black border border-mca-cyan text-mca-cyan px-2 py-0.5 text-[10px] font-mono uppercase cursor-pointer"
+                            >
+                              <option value="under_review">UNDER REVIEW</option>
+                              <option value="in_progress">IN PROGRESS</option>
+                              <option value="planned">PLANNED</option>
+                              <option value="done">DONE</option>
+                            </select>
+
+                            {!item.admin_response && !isEditingThisNote && (
+                              <button
+                                onClick={() => {
+                                  setEditingNoteId(item.id);
+                                  setNoteDraft("");
+                                }}
+                                className="px-2 py-0.5 border border-red-500 text-red-400 hover:bg-red-500 hover:text-white transition-colors cursor-pointer text-[10px]"
+                              >
+                                + ADD AA NOTE
+                              </button>
+                            )}
+
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="px-2 py-0.5 border border-red-800 text-red-500 hover:bg-red-800 hover:text-white transition-colors cursor-pointer text-[10px]"
+                            >
+                              ✕ DELETE
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </article>
@@ -615,6 +882,68 @@ export default function FeaturesPage() {
           </div>
         )}
       </div>
+
+      {/* Admin Login Modal */}
+      {isAdminLoginOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="relative w-full max-w-md bg-[#0e0e0e] border-2 border-mca-cyan p-6 space-y-6">
+            <button
+              onClick={() => setIsAdminLoginOpen(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white font-mono text-lg p-2"
+            >
+              ✕
+            </button>
+            <div className="space-y-1">
+              <div className="text-[10px] font-mono text-mca-cyan uppercase tracking-widest font-bold">
+                RESTRICTED CONSOLE
+              </div>
+              <h2 className="text-xl font-bold font-display uppercase tracking-tight text-white">
+                Admin Unlock (AA)
+              </h2>
+              <p className="text-xs text-slate-400 font-sans">
+                Enter your admin passkey to reveal submitter email addresses, change request statuses, and publish AA dev notes.
+              </p>
+            </div>
+
+            <form onSubmit={handleAdminLogin} className="space-y-4">
+              {loginError && (
+                <div className="p-3 bg-red-950/80 border border-red-500 text-red-200 text-xs font-mono">
+                  [ERROR] {loginError}
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <label className="block text-xs uppercase tracking-wider font-bold text-slate-300">
+                  Admin Passkey
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Enter passkey..."
+                  value={loginPasskeyInput}
+                  onChange={(e) => setLoginPasskeyInput(e.target.value)}
+                  className="w-full bg-black border border-white/30 px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-mca-cyan font-mono"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAdminLoginOpen(false)}
+                  className="px-4 py-2 border border-white/20 text-slate-300 text-xs uppercase font-bold tracking-wider hover:border-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-mca-cyan text-black text-xs uppercase font-bold tracking-wider hover:bg-white transition-colors"
+                >
+                  Unlock Admin
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Submission Modal */}
       {isModalOpen && (

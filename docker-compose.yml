@@ -59,6 +59,7 @@ services:
     environment:
       - NODE_ENV=production
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - FEATURE_ADMIN_PASSKEY=${FEATURE_ADMIN_PASSKEY}
 
   images-server:
     image: nginx:alpine

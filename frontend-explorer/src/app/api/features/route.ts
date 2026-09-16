@@ -16,6 +16,21 @@ export interface FeatureItem {
   created_at: string;
 }
 
+const ADMIN_PASSKEY = process.env.FEATURE_ADMIN_PASSKEY;
+
+export function isAuthorizedAdmin(req: Request): boolean {
+  if (!ADMIN_PASSKEY) return false;
+  const headerKey = req.headers.get('x-admin-key');
+  if (headerKey && headerKey === ADMIN_PASSKEY) return true;
+  try {
+    const url = new URL(req.url);
+    const queryKey = url.searchParams.get('admin_key');
+    return queryKey === ADMIN_PASSKEY;
+  } catch {
+    return false;
+  }
+}
+
 export function getFeedbackFilePath(): string {
   // Docker mounted volume path
   const dockerPath = '/app/data/feedback/feature_requests.json';
@@ -60,25 +75,29 @@ export function writeFeatures(features: FeatureItem[]): void {
   fs.renameSync(tempPath, filePath);
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const features = readFeatures();
+    const isAdmin = isAuthorizedAdmin(req);
 
-    // Strip emails for public privacy
-    const sanitized = features.map(({ submitter_email, ...rest }) => rest);
+    // If admin, include email; otherwise strip for public privacy
+    const outputFeatures = isAdmin
+      ? features
+      : features.map(({ submitter_email, ...rest }) => rest);
 
     // Compute stats
     const stats = {
-      total: sanitized.length,
-      done: sanitized.filter(f => f.status === 'done').length,
-      in_progress: sanitized.filter(f => f.status === 'in_progress').length,
-      planned: sanitized.filter(f => f.status === 'planned').length,
-      under_review: sanitized.filter(f => f.status === 'under_review').length,
+      total: outputFeatures.length,
+      done: outputFeatures.filter(f => f.status === 'done').length,
+      in_progress: outputFeatures.filter(f => f.status === 'in_progress').length,
+      planned: outputFeatures.filter(f => f.status === 'planned').length,
+      under_review: outputFeatures.filter(f => f.status === 'under_review').length,
     };
 
     return NextResponse.json({
-      features: sanitized,
-      stats
+      features: outputFeatures,
+      stats,
+      is_admin: isAdmin
     });
   } catch (error: any) {
     console.error('GET /api/features error:', error);
@@ -138,6 +157,104 @@ export async function POST(req: Request) {
     }, { status: 201 });
   } catch (error: any) {
     console.error('POST /api/features error:', error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+// Admin update (status, AA dev response, title, etc.)
+export async function PATCH(req: Request) {
+  try {
+    if (!isAuthorizedAdmin(req)) {
+      return NextResponse.json({ error: 'Unauthorized: Invalid admin passkey' }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { id, status, admin_response, title, description, category, system } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Missing feature ID' }, { status: 400 });
+    }
+
+    const features = readFeatures();
+    const index = features.findIndex(f => f.id === id);
+    if (index === -1) {
+      return NextResponse.json({ error: 'Feature not found' }, { status: 404 });
+    }
+
+    const item = features[index];
+
+    if (status !== undefined) {
+      const validStatuses = ['done', 'in_progress', 'planned', 'under_review'];
+      if (validStatuses.includes(status)) {
+        item.status = status;
+      }
+    }
+
+    if (admin_response !== undefined) {
+      item.admin_response = admin_response;
+    }
+
+    if (title !== undefined && typeof title === 'string' && title.trim()) {
+      item.title = title.trim();
+    }
+
+    if (description !== undefined && typeof description === 'string' && description.trim()) {
+      item.description = description.trim();
+    }
+
+    if (category !== undefined && typeof category === 'string' && category.trim()) {
+      item.category = category.trim();
+    }
+
+    if (system !== undefined) {
+      const validSystems = ['lakehouse', 'metabase', 'pipeline', 'general'];
+      if (validSystems.includes(system)) {
+        item.system = system;
+      }
+    }
+
+    features[index] = item;
+    writeFeatures(features);
+
+    return NextResponse.json({
+      success: true,
+      item
+    });
+  } catch (error: any) {
+    console.error('PATCH /api/features error:', error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+// Admin delete feature
+export async function DELETE(req: Request) {
+  try {
+    if (!isAuthorizedAdmin(req)) {
+      return NextResponse.json({ error: 'Unauthorized: Invalid admin passkey' }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { id } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Missing feature ID' }, { status: 400 });
+    }
+
+    const features = readFeatures();
+    const filtered = features.filter(f => f.id !== id);
+
+    if (filtered.length === features.length) {
+      return NextResponse.json({ error: 'Feature not found' }, { status: 404 });
+    }
+
+    writeFeatures(filtered);
+
+    return NextResponse.json({
+      success: true,
+      id
+    });
+  } catch (error: any) {
+    console.error('DELETE /api/features error:', error);
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
