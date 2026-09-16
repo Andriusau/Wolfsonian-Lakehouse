@@ -291,7 +291,7 @@ export default function FeaturesPage() {
                 Submit desired features and changes for{" "}
                 <span className="text-white font-mono">lakehouse.wolfsonian.org</span> and{" "}
                 <span className="text-white font-mono">metabase.wolfsonian.org</span>. All entries are reviewed by
-                Andrius Aukstuolis (AA) with dev updates.
+                AA with live dev updates.
               </p>
             </div>
 

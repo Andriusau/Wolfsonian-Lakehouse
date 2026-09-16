@@ -750,7 +750,7 @@ export default function Home() {
                     Feature Requests &amp; Ideas
                   </h2>
                   <p className="text-xs font-sans text-slate-700 font-medium line-clamp-2">
-                    Submit desired features, vote on upcoming tools, and track live dev updates from Andrius (AA).
+                    Submit desired features, vote on upcoming tools, and track live dev updates from AA.
                   </p>
                 </div>
                 <div className="flex justify-end">
