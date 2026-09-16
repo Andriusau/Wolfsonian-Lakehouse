@@ -341,9 +341,13 @@ export default function Home() {
               if (expectOperator) {
                 sqlCondition += ` AND `;
               }
+              const exact = /^".*"$/.test(token);
               const e = token.replace(/(^"|"$)/g, '').replace(/'/g, "''").toLowerCase();
               const unaccented = e.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-              sqlCondition += `(search_text LIKE '%${unaccented}%' OR lower(field_identifier) LIKE '%${e}%' OR lower(location) LIKE '%${e}%' OR lower(storage_location) LIKE '%${e}%')`;
+              const regexTerm = unaccented.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              sqlCondition += exact
+                ? `(lower(field_identifier) = '${e}' OR lower(location) = '${e}' OR lower(storage_location) = '${e}' OR regexp_matches(lower(COALESCE(search_text, '')), '(^|[^a-z0-9])${regexTerm}([^a-z0-9]|$)'))`
+                : `(search_text LIKE '%${unaccented}%' OR lower(field_identifier) LIKE '%${e}%' OR lower(location) LIKE '%${e}%' OR lower(storage_location) LIKE '%${e}%')`;
               expectOperator = true;
             }
           }
