@@ -192,8 +192,8 @@ def normalize_creators_with_roles(val):
         
     val_str = str(val).replace('||', '|')
     agents = val_str.split('|')
-    clean_entries = []
-    seen = set()
+    from collections import OrderedDict
+    person_roles = OrderedDict()
     
     for agent in agents:
         agent = agent.strip()
@@ -202,6 +202,8 @@ def normalize_creators_with_roles(val):
         if len(parts) >= 4 and parts[0] == 'relators':
             role_code = parts[1].strip().lower()
             role_label = ROLE_DISPLAY_MAP.get(role_code)
+            if not role_label and role_code not in ['oth', 'cre', '']:
+                role_label = role_code.title()
             name = ':'.join(parts[3:]).strip()
         else:
             name = agent
@@ -210,10 +212,17 @@ def normalize_creators_with_roles(val):
         if not name:
             continue
             
-        entry = f"{name} ({role_label})" if role_label else name
-        if entry not in seen:
-            seen.add(entry)
-            clean_entries.append(entry)
+        if name not in person_roles:
+            person_roles[name] = []
+        if role_label and role_label not in person_roles[name]:
+            person_roles[name].append(role_label)
+            
+    clean_entries = []
+    for name, roles in person_roles.items():
+        if roles:
+            clean_entries.append(f"{name} ({', '.join(roles)})")
+        else:
+            clean_entries.append(name)
             
     return ' | '.join(clean_entries) if clean_entries else pd.NA
 
@@ -231,8 +240,12 @@ def extract_creator_roles(val):
         if len(parts) >= 4 and parts[0] == 'relators':
             role_code = parts[1].strip().lower()
             role_label = ROLE_DISPLAY_MAP.get(role_code)
+            if not role_label and role_code not in ['oth', 'cre', '']:
+                role_label = role_code.title()
             if role_label and role_label not in roles:
                 roles.append(role_label)
+                
+    return ' | '.join(roles) if roles else pd.NA
                 
     return ' | '.join(roles) if roles else pd.NA
 
