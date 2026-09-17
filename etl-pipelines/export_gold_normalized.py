@@ -108,50 +108,134 @@ def year_to_decade(year):
 
 
 # ---------------------------------------------------------------------------
-# CREATOR NORMALIZATION
-# Alma stores agents as "Last, First||role". Strip the role suffix.
-# Proficio stores free-text. Both become a clean display name.
+# CREATOR & ROLE NORMALIZATION
+# field_linked_agent is preserved with clean plain names for Metabase.
+# creators_with_roles provides human-readable Name (Role) for frontend badges.
+# creator_roles provides distinct roles for facet filtering.
 # ---------------------------------------------------------------------------
+ROLE_DISPLAY_MAP = {
+    'dsr': 'Designer',
+    'pbl': 'Publisher',
+    'ltg': 'Lithographer',
+    'art': 'Artist',
+    'mkr': 'Maker',
+    'arc': 'Architect',
+    'mfr': 'Manufacturer',
+    'pht': 'Photographer',
+    'prt': 'Printer',
+    'ill': 'Illustrator',
+    'aut': 'Author',
+    'edt': 'Editor',
+    'cov': 'Cover Designer',
+    'bkd': 'Book Designer',
+    'cmp': 'Composer',
+    'lyr': 'Lyricist',
+    'trl': 'Translator',
+    'eng': 'Engineer',
+    'egr': 'Engraver',
+    'etr': 'Etcher',
+    'prm': 'Printmaker',
+    'cur': 'Curator',
+    'cll': 'Calligrapher',
+    'ctg': 'Cartographer',
+    'cas': 'Caster',
+    'bnd': 'Binder',
+    'pop': 'Printer of Plates',
+    'pro': 'Producer',
+    'drm': 'Draftsman',
+    'ren': 'Renderer',
+    'adi': 'Art Director',
+    'inv': 'Inventor',
+    'wde': 'Wood Engraver',
+}
+
+CREATOR_ALIASES = {
+    'josef grof': 'József Gróf',
+    'josef gróf': 'József Gróf',
+    'wiener werkstaette': 'Wiener Werkstätte',
+    'wiener werkstatte': 'Wiener Werkstätte',
+    'wiener werkstätte': 'Wiener Werkstätte',
+}
+
+def clean_creator_name(raw_name):
+    name = raw_name.strip().rstrip('.,;')
+    lower_name = name.lower()
+    if lower_name in CREATOR_ALIASES:
+        name = CREATOR_ALIASES[lower_name]
+    return name
+
 def normalize_creator(val):
     if pd.isna(val) or str(val).strip() == '':
         return pd.NA
         
-    # Some older pipelines used '||', standard is '|'
     val_str = str(val).replace('||', '|')
     agents = val_str.split('|')
     clean_agents = []
     
-    # Add mapping dictionary for common name spelling variants (lowercase keys)
-    CREATOR_ALIASES = {
-        'josef grof': 'József Gróf',
-        'josef gróf': 'József Gróf',
-        'wiener werkstaette': 'Wiener Werkstätte',
-        'wiener werkstatte': 'Wiener Werkstätte',
-        'wiener werkstätte': 'Wiener Werkstätte',
-        # Add more mappings here as you find them!
-    }
-    
     for agent in agents:
         agent = agent.strip()
-        # Check for RDF mapping format "relators:role:person:Name"
         parts = agent.split(':')
-        if len(parts) >= 4 and parts[0] == 'relators' and parts[2] == 'person':
+        if len(parts) >= 4 and parts[0] == 'relators':
             name = ':'.join(parts[3:]).strip()
         else:
             name = agent
             
-        # Remove trailing punctuation common in MARC (period, comma)
-        name = name.rstrip('.,;')
-        
-        # Apply alias mapping if it exists
-        lower_name = name.lower()
-        if lower_name in CREATOR_ALIASES:
-            name = CREATOR_ALIASES[lower_name]
-            
-        if name:
+        name = clean_creator_name(name)
+        if name and name not in clean_agents:
             clean_agents.append(name)
             
     return ' | '.join(clean_agents) if clean_agents else pd.NA
+
+def normalize_creators_with_roles(val):
+    if pd.isna(val) or str(val).strip() == '':
+        return pd.NA
+        
+    val_str = str(val).replace('||', '|')
+    agents = val_str.split('|')
+    clean_entries = []
+    seen = set()
+    
+    for agent in agents:
+        agent = agent.strip()
+        parts = agent.split(':')
+        role_label = None
+        if len(parts) >= 4 and parts[0] == 'relators':
+            role_code = parts[1].strip().lower()
+            role_label = ROLE_DISPLAY_MAP.get(role_code)
+            name = ':'.join(parts[3:]).strip()
+        else:
+            name = agent
+            
+        name = clean_creator_name(name)
+        if not name:
+            continue
+            
+        entry = f"{name} ({role_label})" if role_label else name
+        if entry not in seen:
+            seen.add(entry)
+            clean_entries.append(entry)
+            
+    return ' | '.join(clean_entries) if clean_entries else pd.NA
+
+def extract_creator_roles(val):
+    if pd.isna(val) or str(val).strip() == '':
+        return pd.NA
+        
+    val_str = str(val).replace('||', '|')
+    agents = val_str.split('|')
+    roles = []
+    
+    for agent in agents:
+        agent = agent.strip()
+        parts = agent.split(':')
+        if len(parts) >= 4 and parts[0] == 'relators':
+            role_code = parts[1].strip().lower()
+            role_label = ROLE_DISPLAY_MAP.get(role_code)
+            if role_label and role_label not in roles:
+                roles.append(role_label)
+                
+    return ' | '.join(roles) if roles else pd.NA
+
 
 
 # ---------------------------------------------------------------------------
@@ -241,8 +325,10 @@ def main():
 
     # --- Creator ---
     if 'field_linked_agent' in df.columns:
+        df['creators_with_roles'] = df['field_linked_agent'].apply(normalize_creators_with_roles)
+        df['creator_roles'] = df['field_linked_agent'].apply(extract_creator_roles)
         df['field_linked_agent'] = df['field_linked_agent'].apply(normalize_creator)
-        logging.info('✅ Normalized field_linked_agent.')
+        logging.info('✅ Normalized field_linked_agent (clean for Metabase), derived creators_with_roles and creator_roles.')
 
     # --- Place Published ---
     if 'field_place_published' in df.columns:
@@ -299,7 +385,7 @@ def main():
         nfd_form = unicodedata.normalize('NFD', str(input_str))
         return ''.join([c for c in nfd_form if not unicodedata.combining(c)])
 
-    search_cols = ['title', 'field_identifier', 'field_collection_type', 'field_collection_note', 'field_credit_line', 'field_extent', 'field_physical_form', 'field_genre', 'field_description_long', 'field_linked_agent', 'field_subject', 'field_place_published', 'location', 'storage_location', 'source_system', 'Inscription', 'Style']
+    search_cols = ['title', 'field_identifier', 'field_collection_type', 'field_collection_note', 'field_credit_line', 'field_extent', 'field_physical_form', 'field_genre', 'field_description_long', 'field_linked_agent', 'creators_with_roles', 'creator_roles', 'field_subject', 'field_place_published', 'location', 'storage_location', 'source_system', 'Inscription', 'Style']
     search_cols = [c for c in search_cols if c in df.columns]
     
     df['search_text'] = df[search_cols].fillna('').astype(str).agg(' '.join, axis=1)
