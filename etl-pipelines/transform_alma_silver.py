@@ -7,8 +7,10 @@ import re
 from pathlib import Path
 
 # Setup paths
-RAW_ALMA = Path('/app/data/raw/alma/alma_raw_dump.parquet')
-SILVER_ALMA = Path('/app/data/silver/alma_silver.parquet')
+DATA_DIR = Path('/app/data') if Path('/app/data').exists() else Path('data')
+RAW_ALMA = DATA_DIR / 'raw/alma/alma_raw_dump.parquet'
+SILVER_ALMA = DATA_DIR / 'silver/alma_silver.parquet'
+RAW_ALMA_PHYS = DATA_DIR / 'raw/alma/alma_physical_dump.parquet'
 
 # Ensure directory exists
 SILVER_ALMA.parent.mkdir(parents=True, exist_ok=True)
@@ -65,7 +67,6 @@ def main():
     df['alma_source_type'] = '/raw/alma/bibliographic'
 
     # --- MERGE PHYSICAL ITEMS ---
-    RAW_ALMA_PHYS = Path('/app/data/raw/alma/alma_physical_dump.parquet')
     if RAW_ALMA_PHYS.exists():
         logging.info(f"📥 Loading raw Alma Physical data from {RAW_ALMA_PHYS}")
         try:
@@ -117,15 +118,107 @@ def main():
         
         df['field_edtf_date_created'] = df.apply(get_date, axis=1)
     
-    # Append all creators to field_linked_agent
+    relator_codes = {
+        'abridger': 'abr', 'actor': 'act', 'adapter': 'adp', 'addressee': 'rcp', 'analyst': 'anl', 
+        'animator': 'anm', 'annotator': 'ann', 'architect': 'arc', 'arranger': 'arr', 'art copyist': 'acp', 
+        'art director': 'adi', 'artist': 'art', 'artistic director': 'ard', 'assignee': 'asg', 
+        'author': 'aut', 'autographer': 'ato', 'binder': 'bnd', 'binding designer': 'bdd', 
+        'book designer': 'bkd', 'book producer': 'bkp', 'bookjacket designer': 'bjd', 'bookplate designer': 'bpd', 
+        'bookseller': 'bsl', 'calligrapher': 'cll', 'cartographer': 'ctg', 'caster': 'cas', 'censor': 'cns', 
+        'choreographer': 'chr', 'cinematographer': 'cng', 'client': 'cli', 'collector': 'col', 
+        'colorist': 'clr', 'commentator': 'cmm', 'compiler': 'com', 'composer': 'cmp', 'compositor': 'cmt', 
+        'conceptor': 'ccp', 'conductor': 'cnd', 'conservator': 'con', 'consultant': 'csl', 
+        'contributor': 'ctb', 'costume designer': 'cst', 'cover designer': 'cov', 'cover illustrator': 'ill', 
+        'creator': 'cre', 'curator': 'cur', 'dancer': 'dnc', 'delineator': 'dln', 'depicted': 'dpc', 
+        'designer': 'dsr', 'director': 'drt', 'distributor': 'dst', 'donor': 'dnr', 'draftsman': 'drm', 
+        'editor': 'edt', 'engineer': 'eng', 'engraver': 'egr', 'etcher': 'etr', 'expert': 'exp', 
+        'filmmaker': 'fmk', 'former owner': 'fmo', 'funder': 'fnd', 'graphic technician': 'grt', 
+        'honoree': 'hnr', 'host': 'hst', 'illuminator': 'ilu', 'illustrator': 'ill', 'inscriber': 'ins', 
+        'instrumentalist': 'itr', 'inventor': 'inv', 'issuing body': 'isb', 'judge': 'jud', 
+        'landscape architect': 'lsa', 'lead': 'led', 'lender': 'len', 'librettist': 'lbt', 
+        'lighting designer': 'lgd', 'lithographer': 'ltg', 'lyricist': 'lyr', 'maker': 'mkr', 
+        'manufacturer': 'mfr', 'metal-engraver': 'mte', 'musician': 'mus', 'narrator': 'nrt', 
+        'organizer': 'orm', 'originator': 'org', 'other': 'oth', 'owner': 'own', 'patron': 'pat', 
+        'performer': 'prf', 'photographer': 'pht', 'platemaker': 'plt', 'printer': 'prt', 
+        'printer of plates': 'pop', 'printmaker': 'prm', 'producer': 'pro', 'production company': 'prn', 
+        'production designer': 'prs', 'programmer': 'prg', 'publisher': 'pbl', 'publishing director': 'pbd', 
+        'recordist': 'rcd', 'redaktor': 'red', 'renderer': 'ren', 'reporter': 'rpt', 'researcher': 'res', 
+        'restorationist': 'rsr', 'reviewer': 'rev', 'scenarist': 'sce', 'translator': 'trl', 'wood-engraver': 'wde',
+        'ed': 'edt', 'comp': 'com', 'ill': 'ill'
+    }
+
+    def resolve_code(term, code=None, default_code='oth'):
+        if code and pd.notna(code):
+            c_clean = str(code).strip().lower()
+            if c_clean in relator_codes.values():
+                return c_clean
+        if term and pd.notna(term):
+            term_clean = re.sub(r'[^a-zA-Z\s]', '', str(term)).strip().lower()
+            for k, v in relator_codes.items():
+                if k in term_clean:
+                    return v
+        return default_code
+
+    # Append all creators to field_linked_agent with structured relator roles
     def merge_creators(row):
         creators = []
-        # Add primary and all alternative author fields mapped in the legacy notebook
-        for field in ['new_260_b', 'new_100_a', 'new_100_q', 'new_110_a', 'new_111_a', 'new_710_a', 'new_700_a', 'new_700_q']:
-            if field in row and pd.notna(row[field]):
-                val = str(row[field]).strip()
-                if val: creators.append(val)
-        return ' | '.join(creators) if creators else pd.NA
+        seen = set()
+
+        def add_agent(name, code):
+            if not name or pd.isna(name):
+                return
+            n = str(name).strip().rstrip('.,;')
+            if not n or n.lower() in ['[s.n.]', 's.n.', 's.n', 'unknown', 'publisher not identified', '[publisher not identified]']:
+                return
+            key = (n.lower(), code)
+            if key not in seen:
+                seen.add(key)
+                creators.append(f"relators:{code}:person:{n}")
+
+        # 1. Primary personal author (100)
+        if 'new_100_a' in row and pd.notna(row['new_100_a']) and str(row['new_100_a']).strip():
+            role = resolve_code(row.get('new_100_e'), row.get('new_100_4'), default_code='aut')
+            add_agent(row['new_100_a'], role)
+
+        # 2. Added personal author (700)
+        if 'new_700_a' in row and pd.notna(row['new_700_a']) and str(row['new_700_a']).strip():
+            names = [n.strip() for n in str(row['new_700_a']).split('|')]
+            terms = [t.strip() for t in str(row.get('new_700_e', '')).split('|')] if pd.notna(row.get('new_700_e')) else []
+            codes = [c.strip() for c in str(row.get('new_700_4', '')).split('|')] if pd.notna(row.get('new_700_4')) else []
+            for i, n in enumerate(names):
+                t = terms[i] if i < len(terms) else ''
+                c = codes[i] if i < len(codes) else ''
+                role = resolve_code(t, c, default_code='oth')
+                add_agent(n, role)
+
+        # 3. Corporate author (110)
+        if 'new_110_a' in row and pd.notna(row['new_110_a']) and str(row['new_110_a']).strip():
+            role = resolve_code(row.get('new_110_e'), row.get('new_110_4'), default_code='oth')
+            add_agent(row['new_110_a'], role)
+
+        # 4. Added corporate author (710)
+        if 'new_710_a' in row and pd.notna(row['new_710_a']) and str(row['new_710_a']).strip():
+            names = [n.strip() for n in str(row['new_710_a']).split('|')]
+            terms = [t.strip() for t in str(row.get('new_710_e', '')).split('|')] if pd.notna(row.get('new_710_e')) else []
+            codes = [c.strip() for c in str(row.get('new_710_4', '')).split('|')] if pd.notna(row.get('new_710_4')) else []
+            for i, n in enumerate(names):
+                t = terms[i] if i < len(terms) else ''
+                c = codes[i] if i < len(codes) else ''
+                role = resolve_code(t, c, default_code='oth')
+                add_agent(n, role)
+
+        # 5. Conference / Meeting author (111)
+        if 'new_111_a' in row and pd.notna(row['new_111_a']) and str(row['new_111_a']).strip():
+            for m in str(row['new_111_a']).split('|'):
+                add_agent(m, 'oth')
+
+        # 6. Publishers (260$b and 264$b)
+        for pub_field in ['new_260_b', 'new_264_b']:
+            if pub_field in row and pd.notna(row[pub_field]) and str(row[pub_field]).strip():
+                for p in str(row[pub_field]).split('|'):
+                    add_agent(p, 'pbl')
+
+        return '|'.join(creators) if creators else pd.NA
         
     df['field_linked_agent'] = df.apply(merge_creators, axis=1)
     
