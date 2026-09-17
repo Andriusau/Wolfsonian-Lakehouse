@@ -61,6 +61,8 @@ export function DuckDBProvider({ children }: { children: ReactNode }) {
               field_genre, 
               field_description_long, 
               field_linked_agent,
+              creators_with_roles,
+              creator_roles,
               field_subject,
               field_place_published,
               field_edtf_date_created,

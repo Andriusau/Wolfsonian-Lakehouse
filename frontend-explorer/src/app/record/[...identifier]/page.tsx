@@ -331,15 +331,26 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                                 String(val)
                               )
                             ) : key === 'field_linked_agent' ? (
-                              <span>
-                                {parseDelimited(val, '|').map((agent: any, j: number, arr: any[]) => (
-                                  <span key={j}>
-                                    <Link href={`/creator/${encodeURIComponent(agent)}`} className="hover:text-mca-yellow hover:underline" onClick={(e: any) => e.stopPropagation()}>
-                                      {agent}
-                                    </Link>
-                                    {j < arr.length - 1 ? ' | ' : ''}
-                                  </span>
-                                ))}
+                              <span className="inline-flex flex-wrap gap-x-2.5 gap-y-2 items-center">
+                                {parseDelimited(selectedRecord?.creators_with_roles || val, '|').map((item: any, j: number, arr: any[]) => {
+                                  const rawStr = String(item).trim();
+                                  const match = rawStr.match(/^(.*?)(?:\s*\(([^)]+)\))?$/);
+                                  const name = match ? match[1].trim() : rawStr;
+                                  const role = match && match[2] ? match[2].trim() : null;
+                                  return (
+                                    <span key={j} className="inline-flex items-center gap-1.5 flex-wrap">
+                                      <Link href={`/creator/${encodeURIComponent(name)}`} className="hover:text-mca-yellow hover:underline font-medium" onClick={(e: any) => e.stopPropagation()}>
+                                        {name}
+                                      </Link>
+                                      {role && (
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold tracking-wider uppercase bg-slate-800 text-sky-300 border border-slate-700 shadow-sm">
+                                          {role}
+                                        </span>
+                                      )}
+                                      {j < arr.length - 1 && <span className="text-slate-500/70 ml-0.5 mr-1">|</span>}
+                                    </span>
+                                  );
+                                })}
                               </span>
                             ) : key === 'field_subject' ? (
                               <span>

@@ -189,7 +189,7 @@ export default function Home() {
     setIsSavingAll(true);
     try {
       const dataQuery = `
-        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, field_subject, field_place_published, field_edtf_date_created
+        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, creators_with_roles, field_subject, field_place_published, field_edtf_date_created
         FROM catalog 
         ${activeWhereClause}
       `;
@@ -469,7 +469,7 @@ export default function Home() {
       }
 
       const dataQuery = `
-        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, field_subject, field_place_published, field_edtf_date_created
+        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, creators_with_roles, field_subject, field_place_published, field_edtf_date_created
         FROM catalog 
         ${whereClause}
         ${orderByClause} LIMIT ${limit} OFFSET ${offset}
@@ -531,7 +531,7 @@ export default function Home() {
     
     try {
       const dataQuery = `
-        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, field_subject, field_place_published, field_edtf_date_created 
+        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, creators_with_roles, field_subject, field_place_published, field_edtf_date_created 
         FROM catalog 
         WHERE has_image = true 
         USING SAMPLE 24
@@ -1208,18 +1208,25 @@ export default function Home() {
                       </p>
                       
                       <div className="flex flex-col space-y-1 pt-3 text-[10px] uppercase font-bold tracking-widest text-slate-500 border-t border-slate-200 mt-3">
-                        {item.field_linked_agent && (
+                        {(item.creators_with_roles || item.field_linked_agent) && (
                           <div className="flex space-x-2">
                             <span className="text-slate-800 w-20 shrink-0 font-bold">CREATOR</span>
-                              <span className="relative z-20 text-slate-700 font-medium truncate">
-                              {parseDelimited(item.field_linked_agent, '|').map((agent: any, i: number, arr: any[]) => (
-                                <span key={i}>
-                                  <Link href={`/creator/${encodeURIComponent(agent)}`} className="hover:text-mca-yellow hover:underline" onClick={(e: any) => e.stopPropagation()}>
-                                    {agent}
-                                  </Link>
-                                  {i < arr.length - 1 ? ' | ' : ''}
-                                </span>
-                              ))}
+                            <span className="relative z-20 text-slate-700 font-medium truncate">
+                              {parseDelimited(item.creators_with_roles || item.field_linked_agent, '|').map((agentItem: any, i: number, arr: any[]) => {
+                                const rawStr = String(agentItem).trim();
+                                const match = rawStr.match(/^(.*?)(?:\s*\(([^)]+)\))?$/);
+                                const name = match ? match[1].trim() : rawStr;
+                                const role = match && match[2] ? match[2].trim() : null;
+                                return (
+                                  <span key={i}>
+                                    <Link href={`/creator/${encodeURIComponent(name)}`} className="hover:text-mca-yellow hover:underline" onClick={(e: any) => e.stopPropagation()}>
+                                      {name}
+                                    </Link>
+                                    {role && <span className="text-[9px] text-sky-600 font-semibold ml-1 uppercase">({role})</span>}
+                                    {i < arr.length - 1 ? ' | ' : ''}
+                                  </span>
+                                );
+                              })}
                             </span>
                           </div>
                         )}
