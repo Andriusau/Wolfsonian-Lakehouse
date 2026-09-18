@@ -38,8 +38,17 @@ export function formatEDTFDate(dateStr: any): string {
 }
 
 
+export function getMediaFilenames(identifier: string | null | undefined): string[] {
+  if (!identifier) return [];
+  const parts = String(identifier)
+    .split(/[,;]/)
+    .map(part => part.trim())
+    .filter(Boolean);
+  return Array.from(new Set(parts.map(part => part.replace(/[^a-zA-Z0-9.-]/g, '_'))));
+}
+
 export function getMediaFilename(identifier: string | null | undefined): string {
   if (!identifier) return "";
-  const primaryId = String(identifier).split(';')[0].trim();
-  return primaryId.replace(/[^a-zA-Z0-9.-]/g, '_');
+  const filenames = getMediaFilenames(identifier);
+  return filenames[0] || "";
 }

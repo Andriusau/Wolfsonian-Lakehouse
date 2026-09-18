@@ -169,7 +169,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
             <div className="animate-spin h-16 w-16 border-4 border-white border-t-mca-cyan rounded-none mx-auto my-auto flex-shrink-0" />
           ) : selectedRecord ? (
             (() => {
-              const identifiers = (selectedRecord.field_identifier || "").split(';').map((i: string) => i.trim()).filter(Boolean);
+              const identifiers = (selectedRecord.field_identifier || "").split(/[,;]/).map((i: string) => i.trim()).filter(Boolean);
               if (identifiers.length === 0) return (
                 <div className="flex flex-col items-center justify-center text-slate-600 text-lg uppercase font-bold tracking-widest space-y-6 my-auto flex-shrink-0 px-6 text-center">
                   <span>[ NO IMAGE DATA FOUND ]</span>
