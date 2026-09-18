@@ -40,7 +40,8 @@ function SortableItem(props: { id: string; item: any }) {
     opacity: isDragging ? 0.8 : 1,
   };
 
-  const imageUrl = `https://lakehouse.wolfsonian.org/images/${getMediaFilename(props.item.field_identifier)}.jpg`;
+  const primaryId = (props.item.field_identifier || "").split(';')[0].trim();
+  const imageUrl = `https://lakehouse.wolfsonian.org/images/${getMediaFilename(primaryId)}.jpg`;
 
   return (
     <div

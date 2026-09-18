@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useDuckDB } from "@/providers/DuckDBProvider";
 import Link from "next/link";
-import { getMediaFilename, getMediaFilenames } from "../../utils/formatters";
+import { getMediaFilename } from "../../utils/formatters";
 
 type Challenge = {
     realArtifact: any;
@@ -19,8 +19,6 @@ export default function CuratorsChallengePage() {
     const [loading, setLoading] = useState(true);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [isRevealed, setIsRevealed] = useState(false);
-    const [candidateIndex, setCandidateIndex] = useState(0);
-    const [imageFailed, setImageFailed] = useState(false);
     
     // To track artifacts the user might want to save later
     const [likedArtifacts, setLikedArtifacts] = useState<any[]>([]);
@@ -31,8 +29,6 @@ export default function CuratorsChallengePage() {
         setScore(0);
         setSelectedAnswer(null);
         setIsRevealed(false);
-        setCandidateIndex(0);
-        setImageFailed(false);
         setLikedArtifacts([]);
         
         // Fetch 40 random artifacts with images and non-null titles
@@ -95,8 +91,6 @@ export default function CuratorsChallengePage() {
     const nextChallenge = () => {
         setSelectedAnswer(null);
         setIsRevealed(false);
-        setCandidateIndex(0);
-        setImageFailed(false);
         setCurrentIndex(prev => prev + 1);
     };
 
@@ -134,9 +128,6 @@ export default function CuratorsChallengePage() {
 
     const currentChallenge = challenges[currentIndex];
     const { realArtifact, options, correctAnswer } = currentChallenge;
-    const candidateFilenames = getMediaFilenames(realArtifact.field_identifier);
-    const activeFilename = candidateFilenames[candidateIndex] || candidateFilenames[0];
-    const activeImageSrc = activeFilename ? `/images/${activeFilename}.jpg` : "";
 
     return (
         <div className="min-h-screen bg-black flex flex-col">
@@ -157,26 +148,11 @@ export default function CuratorsChallengePage() {
                 {/* Image Section */}
                 <div className="w-full md:w-1/2 h-[40vh] md:h-[70vh] flex items-center justify-center relative">
                     <div className="w-full h-full bg-[#0a0a0a] border border-slate-200 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative p-4 flex items-center justify-center">
-                        {!imageFailed && activeImageSrc ? (
-                            <img 
-                                key={activeImageSrc}
-                                src={activeImageSrc}
-                                className="w-full h-full object-contain"
-                                alt="Mystery Artifact"
-                                onError={() => {
-                                    if (candidateIndex + 1 < candidateFilenames.length) {
-                                        setCandidateIndex(prev => prev + 1);
-                                    } else {
-                                        setImageFailed(true);
-                                    }
-                                }}
-                            />
-                        ) : (
-                            <div className="flex flex-col items-center justify-center text-slate-500 font-mono text-xs uppercase tracking-widest text-center p-6 space-y-2">
-                                <span className="text-4xl">🖼️</span>
-                                <span>[ Image Not Available ]</span>
-                            </div>
-                        )}
+                        <img 
+                            src={`/images/${getMediaFilename(realArtifact.field_identifier)}.jpg`}
+                            className="w-full h-full object-contain"
+                            alt="Mystery Artifact"
+                        />
                     </div>
                 </div>
 

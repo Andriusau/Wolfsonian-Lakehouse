@@ -216,17 +216,16 @@ export default function Chatbot() {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendMessage()}
-                placeholder={isReady ? "SEARCH FOR ART, SUBJECTS..." : "INITIALIZING DATABASE (YOU CAN STILL TYPE)..."}
-                disabled={isGenerating}
+                placeholder="SEARCH FOR ART, SUBJECTS..."
+                disabled={!isReady || isGenerating}
                 className="flex-1 bg-transparent border border-white/30 text-white p-2 text-sm placeholder-white/30 focus:outline-none focus:border-mca-cyan disabled:opacity-50"
               />
               <button 
                 onClick={sendMessage}
                 disabled={!isReady || isGenerating || !input.trim()}
-                title={!isReady ? "Database initializing..." : undefined}
                 className="bg-mca-cyan text-mca-black px-4 font-bold disabled:opacity-50 hover:bg-white transition-colors uppercase text-sm"
               >
-                {isGenerating ? "..." : "SEND"}
+                SEND
               </button>
             </div>
           </div>
