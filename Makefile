@@ -1,4 +1,4 @@
-.PHONY: start stop run-pipeline logs logs-frontend build-all frontend lakehouse metabase process-poster-stamps test-poster-stamps
+.PHONY: start stop run-pipeline logs logs-frontend logs-images build-all frontend lakehouse metabase process-poster-stamps test-poster-stamps process-images process-images-1080p
 
 # Start the full environment (Prefect, Metabase, NGINX frontend)
 start:
@@ -51,6 +51,24 @@ run-proficio-full:
 # Run the cleanup script to remove old reports
 cleanup-reports:
 	docker compose run --rm lakehouse python etl-pipelines/cleanup_reports.py
+
+# Reprocess all existing images to 1080p (1920px max dimension) detached in background
+process-images-1080p:
+	docker rm -f lakehouse-image-processor 2>/dev/null || true
+	docker compose run -d --name lakehouse-image-processor -e OVERWRITE_IMAGES=true -e MAX_IMAGE_SIZE=1920 lakehouse python etl-pipelines/process_images.py
+	@echo "✅ Started 1080p image processing in the background."
+	@echo "👉 Run 'make logs-images' to view live progress (Ctrl+C to exit viewing without stopping the job)."
+
+# Ingest images incrementally in the background
+process-images:
+	docker rm -f lakehouse-image-processor 2>/dev/null || true
+	docker compose run -d --name lakehouse-image-processor lakehouse python etl-pipelines/process_images.py
+	@echo "✅ Started image ingestion in the background."
+	@echo "👉 Run 'make logs-images' to view live progress (Ctrl+C to exit viewing without stopping the job)."
+
+# Tail live progress of the image processing job
+logs-images:
+	docker logs -f lakehouse-image-processor
 
 # ==========================================
 # ARCHIVE SCRIPTS

@@ -21,6 +21,10 @@ OUTPUT_DIR = Path('/app/data/gold/images')
 PARQUET_FILE = Path('/app/data/gold/unified_catalog_normalized.parquet')
 ERROR_REPORT_FILE = Path('/app/data/gold/image_corruptions_report.csv')
 
+# Resolution and Overwrite settings
+MAX_IMAGE_SIZE = int(os.environ.get('MAX_IMAGE_SIZE', '1920'))
+OVERWRITE_IMAGES = os.environ.get('OVERWRITE_IMAGES', 'false').lower() in ('true', '1', 'yes')
+
 FATAL_FILES_TO_SKIP = [
     # Add files here that cause libtiff infinite loop hangs
     'WOLF_library_XB1990.534_038.tif',
@@ -109,22 +113,22 @@ def process_single_row(row_data):
                                     
                                 dest_path = OUTPUT_DIR / dest_filename
                                 
-                                if dest_filename in existing_dest_images:
-                                    already_exists.append(dest_filename)
-                                    continue
-                                
-                                # Check for legacy dot-based Proficio name
-                                legacy_base = re.sub(r'[.\s,-]+', '.', part).strip('.')
-                                legacy_dest = f"{legacy_base}.jpg" if i == 0 else f"{legacy_base}_{i}.jpg"
-                                if legacy_dest in existing_dest_images:
-                                    try:
-                                        os.link(OUTPUT_DIR / legacy_dest, dest_path)
-                                        existing_dest_images.add(dest_filename)
+                                if not OVERWRITE_IMAGES:
+                                    if dest_filename in existing_dest_images:
                                         already_exists.append(dest_filename)
                                         continue
-                                    except Exception:
-                                        pass # Fall back to processing
-
+                                    
+                                    # Check for legacy dot-based Proficio name
+                                    legacy_base = re.sub(r'[.\s,-]+', '.', part).strip('.')
+                                    legacy_dest = f"{legacy_base}.jpg" if i == 0 else f"{legacy_base}_{i}.jpg"
+                                    if legacy_dest in existing_dest_images:
+                                        try:
+                                            os.link(OUTPUT_DIR / legacy_dest, dest_path)
+                                            existing_dest_images.add(dest_filename)
+                                            already_exists.append(dest_filename)
+                                            continue
+                                        except Exception:
+                                            pass # Fall back to processing
                                     
                                 if best_file.name in FATAL_FILES_TO_SKIP:
                                     errors.append(f"{best_file.name}: Skipped due to FATAL_FILES_TO_SKIP blocklist (infinite loop bug)")
@@ -134,7 +138,7 @@ def process_single_row(row_data):
                                 with Image.open(best_file) as img:
                                     img = ImageOps.exif_transpose(img)
                                     rgb_img = img.convert('RGB')
-                                    max_size = 1200
+                                    max_size = MAX_IMAGE_SIZE
                                     if max(rgb_img.size) > max_size:
                                         try:
                                             resample_method = Image.Resampling.LANCZOS
@@ -194,6 +198,9 @@ def main():
     print("Caching local processed images...")
     existing_dest_images.update(f.name for f in OUTPUT_DIR.glob('*.jpg'))
     print(f"  Cached {len(existing_dest_images)} processed images.")
+    print(f"  Target resolution max dimension: {MAX_IMAGE_SIZE}px")
+    if OVERWRITE_IMAGES:
+        print("  ⚠️ OVERWRITE_IMAGES is TRUE: existing images will be re-processed and upgraded to 1080p.")
     
     # 2. Iterate and locate image files using parallel threads
     copied_count = 0
