@@ -19,6 +19,9 @@
 - [Architecture & Tech Stack](#-architecture--tech-stack)
 - [Data Sources & Volumes](#-data-sources--volumes)
 - [Key Features](#-key-features)
+- [CLI & Operations (Makefile)](#-cli--operations-makefile)
+- [Pipeline DAG (Directed Acyclic Graph)](#-pipeline-dag-directed-acyclic-graph)
+- [The Frontend Explorer](#-the-frontend-explorer)
 - [Project Structure](#-project-structure)
 
 ---
@@ -97,12 +100,12 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 ## ⚡ Key Features
 
 * **Standalone FastAPI Microservice:** A dedicated Dockerized REST API (`api-server`) built with FastAPI that natively serves data from the `unified_catalog_normalized.parquet` directly to external systems. It includes full CORS configuration and is reverse-proxied securely through the Next.js frontend, enabling third-party applications to query the Lakehouse with zero latency.
-* **Incremental Delta Merges (Upserts):** To avoid expensive full table scans, the Proficio extractor utilizes a high-watermark tracker to selectively pull only records created or modified since the last run. The Silver layer then seamlessly merges (upserts) these deltas into a persistent master Parquet table, deduplicating on `field_identifier` (the Proficio catalog number) without duplicating data.
+* **Incremental Delta Merges (Upserts) & Deletion Tracking:** To avoid expensive full table scans, the Proficio extractor utilizes a high-watermark tracker to selectively pull only records created or modified since the last run. The Silver layer then seamlessly merges (upserts) these deltas into a persistent master Parquet table, deduplicating on `field_identifier`. Additionally, full snapshot runs (`make run-proficio-full` or `PROFICIO_FULL_EXTRACT=true`) automatically diff against the previous master to capture removed objects and archive them into `proficio_deleted_records.parquet` for institutional catalog audits.
 * **Metabase Serving Layer & Analytics (DuckDB):** The pipeline automatically generates a persistent DuckDB database powering an extensive suite of 18 separate SQL charts across 3 distinct dashboards (Lakehouse Analytics, Historical Metrics, and Image Completeness). Metabase easily connects to this DuckDB file for lightning-fast, zero-copy BI visualization, automatically picking up freshly updated Parquet files on every query.
 * **QA Quarantine (Dead Letter Queue):** Records that fail critical data quality checks (missing identifiers, empty titles) are automatically isolated into a `proficio_qa_failures.parquet` file via a dedicated microservice instead of breaking the pipeline. This allows data stewards to easily identify and fix dirty source data.
 * **Concurrent API Fetching:** The Islandora microservice utilizes a `ThreadPoolExecutor` and auto-discovery logic to fetch paginated API data rapidly, utilizing exponential backoff for network resilience.
 * **Unified Gold Catalog:** The pipeline dynamically bridges the massive schema gap between library systems (Alma) and museum systems (Proficio), automatically aligning and concatenating both into a single unified queryable table with a strict predetermined column hierarchy.
-* **Gold Normalization Layer:** A dedicated post-merge harmonization step (`export_gold_normalized.py`) standardizes vocabulary across both source systems — normalizing genre labels (e.g., `POSTER` → `Poster`), stripping MARC trailing punctuation from titles, cleaning creator names, and deriving `year_created` and `decade_created` columns for time-series analytics. It also generates a consolidated `search_text` column that systematically normalizes diacritics and merges 12+ text fields into a single blob, enabling instantaneous, accent-agnostic global text search on the frontend.
+* **Gold Normalization Layer:** A dedicated post-merge harmonization step (`export_gold_normalized.py`) standardizes vocabulary across both source systems — normalizing genre labels (e.g., `POSTER` → `Poster`), stripping MARC trailing punctuation from titles, cleaning creator names, and deriving `year_created` and `decade_created` columns for time-series analytics. It also preserves `Style` (from Proficio `Categ_3`) while seamlessly appending style movements (*Art Deco, Bauhaus, Modernism, Arts and Crafts*) into `field_subject`, and generates a consolidated `search_text` column that systematically normalizes diacritics and merges 12+ text fields into a single blob, enabling instantaneous, accent-agnostic global text search on the frontend.
 * **Creator Relator Standardization & Metabase Protection:** Standardizes MARC and Proficio agent roles into `relators:{code}:person:{name}` during Silver processing, and normalizes them in Gold using a non-breaking dual-column strategy:
   * `field_linked_agent`: Preserves 100% clean, unadorned display names (`Name | Name2`) to guarantee zero breaking changes to Metabase BI dashboards, prolific creator rankings, and SQL aggregations.
   * `creators_with_roles`: Enriches agents with human-readable, coalesced role titles (e.g., `Christopher Dresser (Designer, Author) | Coalbrookdale Co (Maker)`), exposing tens of thousands of cataloged roles (Designers, Publishers, Lithographers, Makers, Architects, Artists, Printers, etc.) directly to the frontend.
@@ -110,7 +113,7 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 * **Digital Gap Analysis:** The `missing_objects.parquet` output identifies which internal catalog records (Proficio museum objects) are absent from the public-facing Islandora digital archive (`digital.wolfsonian.org`), supporting prioritization of digitization and content migration efforts.
 * **Parallel Image Ingestion & Conversion:** Ingests raw `.tif`/`.tiff` catalog images from the mounted NFS share, converts them to JPEG, and optimizes them for the frontend. Using a memory-efficient `ThreadPoolExecutor` with 32 parallel workers, it concurrently reads and encodes images on the fly while streaming only required metadata to avoid Out-Of-Memory (OOM) crashes on large datasets. It utilizes dual-layer in-memory caching to skip already processed images in O(1) time.
 * **Automated Audio Ingestion:** Recursively scans the `Islandora_Audio` network drive to ingest, parse, and map `.mp3` and `.wav` audio files directly to unified catalog identifiers using high-performance, memory-optimized multi-threading.
-* **Storage Protection & Web Resizing:** Converts large ~10MB+ TIFFs into highly compressed JPEGs restricted to a maximum of 1200px on the longest side and saved at quality 80. This reduces file size by ~20x-50x (down to ~200KB per image), allowing the full ~56k image catalog to fit in less than 13GB of local disk space while drastically accelerating webpage loading times.
+* **Storage Protection & 1080p HD Web Resizing:** Converts large ~10MB+ TIFFs into web-optimized JPEGs standardized at 1080p high definition (up to 1920px on the longest side, configurable via `MAX_IMAGE_SIZE`) and saved at quality 80. This balances razor-sharp detail on retina displays and zoom lightboxes with small file footprints (~200–400KB per image). Background batch reprocessing and overwrite modes are supported natively via `make process-images-1080p` and `make process-images`.
 * **Cross-System Deduplication:** Dynamically reconciles identifiers between Library (Alma) and Museum (Proficio) catalogs, natively handling Alma's semicolon-separated multi-accession numbers to prioritize Museum records. A reporting script automatically generates exact collision matches for manual staff review on every pipeline run.
 * **Library Inventory Tracking:** Natively tracks the origin of all Alma library records through the ELT (`alma_source_type`), dynamically distinguishing purely metadata-based bibliographic records from those explicitly tracked with a physical item in inventory.
 * **Native Workflow Orchestration:** The pipeline execution is managed natively by Prefect. The core logic operates as a 24-node Directed Acyclic Graph (DAG) using direct function imports, which now seamlessly integrates external API data (like Google Analytics web traffic) alongside internal database extracts. This ensures stateful execution, robust exception handling, and highly granular task-level monitoring via the Prefect dashboard without relying on fragile sub-shells.
@@ -121,6 +124,26 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 * **Global SEO & Social Indexing:** Configured with robust Next.js OpenGraph tags, Twitter Cards, and dynamic XML sitemaps to ensure maximum indexing by Googlebot, while providing visually rich preview cards when specific artifacts or games are shared across social media and messaging apps.
 * **Interactive Feature Request & Changelog Tracker (`/features`):** A custom web application replacing the staff running Word document. Built directly into the Next.js frontend with persistent Docker volume storage (`./data/feedback`), it allows staff and researchers to submit proposals with their name, email, target system (Lakehouse vs Metabase), category, and detailed use cases. Includes community upvoting, status tracking, search filtering, and an authenticated administrative console (AA) for reviewing submitter emails, changing request statuses, and publishing inline dev updates.
 * **Automated AI Crawler Policy:** The frontend serves `/robots.txt` from a cached Next.js route that fetches the maintained AI crawler blocklist from [`ai-robots-txt`](https://github.com/ai-robots-txt/ai.robots.txt) once every 24 hours, appends the Lakehouse sitemap, and falls back to a local policy if GitHub is unavailable. This is a crawler instruction and does not replace server-side access controls.
+
+---
+
+## 🛠️ CLI & Operations (Makefile)
+
+The repository provides standardized `make` commands for managing microservices, running pipeline jobs, and executing maintenance workflows:
+
+| Command | Purpose |
+|---|---|
+| `make start` | Start the full distributed environment in detached mode (Prefect, Metabase, Frontend, Nginx). |
+| `make stop` | Safely stop and tear down all active Docker containers. |
+| `make build-all` | Rebuild images and start all services. |
+| `make run-pipeline` | Trigger an immediate manual run of the primary Prefect ELT pipeline. |
+| `make run-proficio-full` | Trigger a full Proficio extraction to capture deleted records and snapshot deltas. |
+| `make process-images` | Run background image ingestion and JPEG compression for new objects. |
+| `make process-images-1080p` | Reprocess all existing catalog images up to 1080p (1920px max dimension) in the background. |
+| `make logs-images` | Follow live progress of the detached image processor container (`Ctrl+C` exits safely). |
+| `make cleanup-reports` | Run routine maintenance script to purge older timestamped CSV collision reports. |
+| `make frontend` / `make lakehouse` / `make metabase` | Rebuild and restart a specific container service. |
+| `make logs` / `make logs-frontend` | Tail live container logs for the lakehouse worker or frontend. |
 
 ---
 
@@ -285,13 +308,19 @@ wolf-lakehouse/
 ├── data/                        # The Lakehouse Storage Volume
 │   ├── export/
 │   │   └── workbench_upload.csv
+│   ├── feedback/                # Persistent feature requests and roadmap entries
+│   │   └── feature_requests.json
 │   ├── gold/                    # Gold Layer: Clean outputs & QA failures
 │   │   ├── alma_workbench_export.csv
+│   │   ├── audio/               # Ingested and mapped digital audio files
 │   │   ├── comparison_proficio.parquet
 │   │   ├── duplicates_report_YYYYMMDD_HHMMSS.csv
 │   │   ├── ga4_metrics.parquet  # Extracted Google Analytics traffic data
-│   │   ├── images/              # Local storage for web-optimized JPEGs
+│   │   ├── image_audit_report.csv
+│   │   ├── image_corruptions_report.csv
+│   │   ├── images/              # Local storage for web-optimized 1080p JPEGs
 │   │   ├── missing_objects.parquet
+│   │   ├── proficio_deleted_records.parquet # Historical audit of deleted source records
 │   │   ├── proficio_qa_failures.parquet
 │   │   ├── snapshots/           # Historical time-series dashboard metrics
 │   │   ├── unified_catalog_normalized.parquet  # Harmonized analytics view
@@ -329,6 +358,7 @@ wolf-lakehouse/
 ├── etl-pipelines/               # Core Extraction & Transformation Microservices
 │   ├── add_has_image_col.py
 │   ├── build_duckdb_views.py
+│   ├── cleanup_reports.py       # Routine maintenance to purge historical report files
 │   ├── export_alma_to_workbench.py
 │   ├── export_comparison_alma.py    # Generates Alma vs Islandora report
 │   ├── export_comparison_proficio.py
@@ -344,13 +374,16 @@ wolf-lakehouse/
 │   ├── extract_google_analytics.py
 │   ├── extract_islandora_raw.py
 │   ├── extract_proficio_raw.py
+│   ├── get_metrics.py           # Automated README metrics synchronization
 │   ├── isolate_proficio_qa_failures.py
 │   ├── orchestrate_prefect.py   # Master Prefect Workflow
-│   ├── process_images.py        # Parallel NFS image ingestion & conversion
+│   ├── process_audio.py         # Parallel NFS audio file ingestion and mapping
+│   ├── process_images.py        # Parallel NFS image ingestion & 1080p conversion
 │   ├── requirements.txt         # Strictly pinned dependencies
 │   ├── snapshot_dashboard_metrics.py # Automated time-series tracking
 │   ├── transform_alma_raw.py
 │   ├── transform_alma_silver.py
+│   ├── transform_api_logs.py    # Parses FastAPI access logs into DuckDB
 │   └── transform_proficio_silver.py
 ├── log-alerter/                 # Custom Python microservice for SMTP error notifications
 ├── api-server/                  # FastAPI REST API serving Lakehouse Parquet data via REST
