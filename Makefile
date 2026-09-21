@@ -1,4 +1,4 @@
-.PHONY: start stop run-pipeline logs logs-frontend logs-images build-all frontend lakehouse metabase process-poster-stamps test-poster-stamps process-images process-images-1080p backup
+.PHONY: start stop run-pipeline logs logs-frontend logs-images build-all frontend lakehouse metabase process-poster-stamps test-poster-stamps process-images process-images-1080p backup test
 
 # Start the full environment (Prefect, Metabase, NGINX frontend)
 start:
@@ -55,6 +55,10 @@ cleanup-reports:
 # Back up mission-critical state (feedback, metabase DB, watermarks)
 backup:
 	docker compose run --rm lakehouse python etl-pipelines/backup_state.py
+
+# Run the automated test suite inside the lakehouse container
+test:
+	docker compose run --rm lakehouse python -m unittest discover -s tests -p "test_*.py" -v
 
 # Reprocess all existing images to 1080p (1920px max dimension) detached in background
 process-images-1080p:

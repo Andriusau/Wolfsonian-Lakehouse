@@ -27,8 +27,11 @@ DELETED_RECORDS = Path('/app/data/gold/proficio_deleted_records.parquet')
 # Gold Table (Missing objects, 24 columns)
 OUTPUT_PARQUET = Path('/app/data/gold/missing_objects.parquet')
 
-OUTPUT_PARQUET.parent.mkdir(parents=True, exist_ok=True)
-MASTER_SILVER.parent.mkdir(parents=True, exist_ok=True)
+try:
+    OUTPUT_PARQUET.parent.mkdir(parents=True, exist_ok=True)
+    MASTER_SILVER.parent.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
 
 # --- Logging Setup ---
 logger = logging.getLogger()
@@ -36,13 +39,15 @@ if logger.handlers:
     for handler in logger.handlers:
         logger.removeHandler(handler)
 
+log_handlers = [logging.StreamHandler()]
+log_file = Path('/app/data/transform.log')
+if log_file.parent.exists():
+    log_handlers.append(logging.FileHandler(str(log_file)))
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('/app/data/transform.log'),
-        logging.StreamHandler()
-    ]
+    handlers=log_handlers
 )
 logging.info("🚀 Transformer initialized.")
 
