@@ -1,4 +1,4 @@
-.PHONY: start stop run-pipeline logs logs-frontend logs-images build-all frontend lakehouse metabase process-poster-stamps test-poster-stamps process-images process-images-1080p
+.PHONY: start stop run-pipeline logs logs-frontend logs-images build-all frontend lakehouse metabase process-poster-stamps test-poster-stamps process-images process-images-1080p backup
 
 # Start the full environment (Prefect, Metabase, NGINX frontend)
 start:
@@ -51,6 +51,10 @@ run-proficio-full:
 # Run the cleanup script to remove old reports
 cleanup-reports:
 	docker compose run --rm lakehouse python etl-pipelines/cleanup_reports.py
+
+# Back up mission-critical state (feedback, metabase DB, watermarks)
+backup:
+	docker compose run --rm lakehouse python etl-pipelines/backup_state.py
 
 # Reprocess all existing images to 1080p (1920px max dimension) detached in background
 process-images-1080p:

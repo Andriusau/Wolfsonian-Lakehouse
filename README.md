@@ -142,8 +142,20 @@ The repository provides standardized `make` commands for managing microservices,
 | `make process-images-1080p` | Reprocess all existing catalog images up to 1080p (1920px max dimension) in the background. |
 | `make logs-images` | Follow live progress of the detached image processor container (`Ctrl+C` exits safely). |
 | `make cleanup-reports` | Run routine maintenance script to purge older timestamped CSV collision reports. |
+| `make backup` | Create compressed, timestamped snapshots of Metabase DB, feature requests, and watermarks into `data/backups/`. |
 | `make frontend` / `make lakehouse` / `make metabase` | Rebuild and restart a specific container service. |
 | `make logs` / `make logs-frontend` | Tail live container logs for the lakehouse worker or frontend. |
+
+### ⏰ Automated State Backups (Crontab)
+
+To schedule automatic nightly snapshots of the Metabase database, community feature requests, and delta watermarks, add this entry to your host crontab (`crontab -e`):
+
+```bash
+# Run automated Lakehouse state backup every night at 2:00 AM
+0 2 * * * cd /home/aaukstuo/wolf-lakehouse && make backup >> logs/backup.log 2>&1
+```
+
+State backups are automatically bundled, compressed into `data/backups/`, and pruned according to retention rules (14 days for Metabase DB tarballs, 30 days for user feedback JSON).
 
 ---
 
@@ -306,6 +318,9 @@ wolf-lakehouse/
 │   ├── Poster_Stamps_Metadata.xlsx
 │   └── Poster_Stamps/           # Source imagery directory (contents omitted)
 ├── data/                        # The Lakehouse Storage Volume
+│   ├── backups/                 # Compressed, rotating state archives
+│   │   ├── feedback/            # Timestamped JSON snapshots of user proposals
+│   │   └── system/              # Compressed tarballs of Metabase DB & watermarks
 │   ├── export/
 │   │   └── workbench_upload.csv
 │   ├── feedback/                # Persistent feature requests and roadmap entries
@@ -357,6 +372,7 @@ wolf-lakehouse/
 ├── nginx.conf                   # Nginx config for optimized media serving
 ├── etl-pipelines/               # Core Extraction & Transformation Microservices
 │   ├── add_has_image_col.py
+│   ├── backup_state.py          # Automated state backup & retention pruner
 │   ├── build_duckdb_views.py
 │   ├── cleanup_reports.py       # Routine maintenance to purge historical report files
 │   ├── export_alma_to_workbench.py

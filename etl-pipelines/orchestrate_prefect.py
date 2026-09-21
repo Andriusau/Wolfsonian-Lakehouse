@@ -30,6 +30,7 @@ import process_images
 import process_audio
 import transform_api_logs
 import get_metrics
+import backup_state
 
 # ==========================================
 # 1. BRONZE LAYER (Extraction)
@@ -175,6 +176,10 @@ def report_metrics():
 def update_readme_metrics_task():
     get_metrics.main()
 
+@task(name="Backup Lakehouse State")
+def backup_state_task():
+    backup_state.run_backup()
+
 @flow(name="Wolfsonian Lakehouse Pipeline")
 def lakehouse_flow():
     # 1. Extraction Phase
@@ -223,8 +228,11 @@ def lakehouse_flow():
     # 8. Update automated README metrics
     readme_fut = update_readme_metrics_task.submit(wait_for=[metrics_fut])
 
+    # 9. Backup mission-critical state (feedback, metabase, watermarks)
+    backup_fut = backup_state_task.submit(wait_for=[readme_fut])
+
     # Explicitly wait for terminal tasks to complete
-    readme_fut.wait()
+    backup_fut.wait()
 
 if __name__ == "__main__":
     lakehouse_flow()
