@@ -78,6 +78,7 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 * **AI/LLM Integration:** Google Gemini API (`@google/generative-ai`) with DuckDB-driven Hybrid RAG
 * **Data Pattern:** Medallion Architecture with Incremental Delta Merges (Upserts) and QA Quarantine.
 * **Monitoring & Alerting:** Uptime Kuma for service health, custom Python Log Alerter for SMTP error notifications, structured logging, and automated Google Analytics ingestion for frontend traffic monitoring.
+* **Testing & Quality Assurance:** Automated unit testing suite (`tests/`) covering data normalizers, creator/relator role coalescing, accession identifier parsing, and backup retention pruning.
 
 ---
 
@@ -124,6 +125,7 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 * **Global SEO & Social Indexing:** Configured with robust Next.js OpenGraph tags, Twitter Cards, and dynamic XML sitemaps to ensure maximum indexing by Googlebot, while providing visually rich preview cards when specific artifacts or games are shared across social media and messaging apps.
 * **Interactive Feature Request & Changelog Tracker (`/features`):** A custom web application replacing the staff running Word document. Built directly into the Next.js frontend with persistent Docker volume storage (`./data/feedback`), it allows staff and researchers to submit proposals with their name, email, target system (Lakehouse vs Metabase), category, and detailed use cases. Includes community upvoting, status tracking, search filtering, and an authenticated administrative console (AA) for reviewing submitter emails, changing request statuses, and publishing inline dev updates.
 * **Automated AI Crawler Policy:** The frontend serves `/robots.txt` from a cached Next.js route that fetches the maintained AI crawler blocklist from [`ai-robots-txt`](https://github.com/ai-robots-txt/ai.robots.txt) once every 24 hours, appends the Lakehouse sitemap, and falls back to a local policy if GitHub is unavailable. This is a crawler instruction and does not replace server-side access controls.
+* **Automated Data Normalization Test Suite:** A dedicated test framework executing 36 isolated unit tests against the Lakehouse's most sensitive data transformation algorithms. It rigorously verifies role coalescing, alias canonicalization (*e.g., Wiener Werkstätte*), date extraction edge cases, trailing MARC punctuation removal, and backup retention pruning with zero database dependencies in under 60 milliseconds.
 
 ---
 
@@ -143,6 +145,7 @@ The repository provides standardized `make` commands for managing microservices,
 | `make logs-images` | Follow live progress of the detached image processor container (`Ctrl+C` exits safely). |
 | `make cleanup-reports` | Run routine maintenance script to purge older timestamped CSV collision reports. |
 | `make backup` | Create compressed, timestamped snapshots of Metabase DB, feature requests, and watermarks into `data/backups/`. |
+| `make test` | Run the automated 36-test suite verifying data normalizers, creator roles, and backups. |
 | `make frontend` / `make lakehouse` / `make metabase` | Rebuild and restart a specific container service. |
 | `make logs` / `make logs-frontend` | Tail live container logs for the lakehouse worker or frontend. |
 
@@ -415,6 +418,11 @@ wolf-lakehouse/
 ├── logs/                        # Server log outputs
 ├── metabase-plugins/            # Custom jar files for Metabase compatibility
 │   └── duckdb.metabase-driver.jar
+├── tests/                       # Automated unit testing suite (36 tests)
+│   ├── conftest.py              # Test discovery and path configuration
+│   ├── test_backup_state.py     # State backup creation & retention pruning tests
+│   ├── test_gold_normalizers.py # Normalization, role parsing, and date tests
+│   └── test_silver_normalizers.py # Accession number and identifier tests
 └── README.md                    # Project Documentation
 ```
 
