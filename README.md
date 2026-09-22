@@ -115,6 +115,7 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 * **Parallel Image Ingestion & Conversion:** Ingests raw `.tif`/`.tiff` catalog images from the mounted NFS share, converts them to JPEG, and optimizes them for the frontend. Using a memory-efficient `ThreadPoolExecutor` with 32 parallel workers, it concurrently reads and encodes images on the fly while streaming only required metadata to avoid Out-Of-Memory (OOM) crashes on large datasets. It utilizes dual-layer in-memory caching to skip already processed images in O(1) time.
 * **Automated Audio Ingestion:** Recursively scans the `Islandora_Audio` network drive to ingest, parse, and map `.mp3` and `.wav` audio files directly to unified catalog identifiers using high-performance, memory-optimized multi-threading.
 * **Storage Protection & 1080p HD Web Resizing:** Converts large ~10MB+ TIFFs into web-optimized JPEGs standardized at 1080p high definition (up to 1920px on the longest side, configurable via `MAX_IMAGE_SIZE`) and saved at quality 80. This balances razor-sharp detail on retina displays and zoom lightboxes with small file footprints (~200–400KB per image). Background batch reprocessing and overwrite modes are supported natively via `make process-images-1080p` and `make process-images`.
+* **Legacy Islandora Library Rollup & Plate Harmonization:** Resolves the digitization gap for multi-plate books, architectural portfolios, and sketchbooks where legacy photographers created separate subfolders for each plate scan (e.g., `XC2011.08.2.179.1` through `.35`). A dedicated curatorial audit tool (`generate_islandora_rollup_report.py`) cross-references catalog accession numbers, ranges, and titles into a verified Excel audit report (`islandora_library_children_to_parents_review.xlsx`). A standalone, collision-safe migration tool (`process_images_cleanup.py`) rolls up high-confidence child folders into natural numerical page sequences (`parent_1.jpg`, `parent_2.jpg`), creates zero-cost hardlink aliases for direct plate retrieval (`child.jpg`), and syncs Parquet catalog image counts.
 * **Cross-System Deduplication:** Dynamically reconciles identifiers between Library (Alma) and Museum (Proficio) catalogs, natively handling Alma's semicolon-separated multi-accession numbers to prioritize Museum records. A reporting script automatically generates exact collision matches for manual staff review on every pipeline run.
 * **Library Inventory Tracking:** Natively tracks the origin of all Alma library records through the ELT (`alma_source_type`), dynamically distinguishing purely metadata-based bibliographic records from those explicitly tracked with a physical item in inventory.
 * **Native Workflow Orchestration:** The pipeline execution is managed natively by Prefect. The core logic operates as a 25-node Directed Acyclic Graph (DAG) using direct function imports, which now seamlessly integrates external API data (like Google Analytics web traffic) alongside internal database extracts. This ensures stateful execution, robust exception handling, and highly granular task-level monitoring via the Prefect dashboard without relying on fragile sub-shells.
@@ -142,6 +143,8 @@ The repository provides standardized `make` commands for managing microservices,
 | `make run-proficio-full` | Trigger a full Proficio extraction to capture deleted records and snapshot deltas. |
 | `make process-images` | Run background image ingestion and JPEG compression for new objects. |
 | `make process-images-1080p` | Reprocess all existing catalog images up to 1080p (1920px max dimension) in the background. |
+| `make process-images-cleanup` | Run the standalone legacy Islandora image rollup in the background to attach child plates to parent catalog records. |
+| `make process-images-cleanup-dry-run` | Safely preview legacy Islandora image rollup operations without writing files. |
 | `make logs-images` | Follow live progress of the detached image processor container (`Ctrl+C` exits safely). |
 | `make cleanup-reports` | Run routine maintenance script to purge older timestamped CSV collision reports. |
 | `make backup` | Create compressed, timestamped snapshots of Metabase DB, feature requests, and watermarks into `data/backups/`. |
@@ -397,11 +400,13 @@ wolf-lakehouse/
 │   ├── extract_google_analytics.py
 │   ├── extract_islandora_raw.py
 │   ├── extract_proficio_raw.py
+│   ├── generate_islandora_rollup_report.py # Generates cross-system curatorial image audit report
 │   ├── get_metrics.py           # Automated README metrics synchronization
 │   ├── isolate_proficio_qa_failures.py
 │   ├── orchestrate_prefect.py   # Master Prefect Workflow
 │   ├── process_audio.py         # Parallel NFS audio file ingestion and mapping
 │   ├── process_images.py        # Parallel NFS image ingestion & 1080p conversion
+│   ├── process_images_cleanup.py # Standalone legacy Islandora child plate rollup migration
 │   ├── requirements.txt         # Strictly pinned dependencies
 │   ├── snapshot_dashboard_metrics.py # Automated time-series tracking
 │   ├── transform_alma_raw.py
