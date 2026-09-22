@@ -1,4 +1,4 @@
-.PHONY: start stop run-pipeline logs logs-frontend logs-images build-all frontend lakehouse metabase process-poster-stamps test-poster-stamps process-images process-images-1080p backup test
+.PHONY: start stop run-pipeline logs logs-frontend logs-images build-all frontend lakehouse metabase process-poster-stamps test-poster-stamps process-images process-images-1080p process-images-cleanup process-images-cleanup-dry-run backup test
 
 # Start the full environment (Prefect, Metabase, NGINX frontend)
 start:
@@ -77,6 +77,17 @@ process-images:
 # Tail live progress of the image processing job
 logs-images:
 	docker logs -f lakehouse-image-processor
+
+# Run legacy Islandora image rollup cleanup in background
+process-images-cleanup:
+	docker rm -f lakehouse-image-cleanup 2>/dev/null || true
+	docker compose run -d --name lakehouse-image-cleanup lakehouse python etl-pipelines/process_images_cleanup.py
+	@echo "✅ Started image cleanup rollup in background."
+	@echo "👉 Run 'docker logs -f lakehouse-image-cleanup' to view live progress."
+
+# Dry run mode to preview rollup without writing files
+process-images-cleanup-dry-run:
+	docker compose run --rm -e DRY_RUN=true lakehouse python etl-pipelines/process_images_cleanup.py
 
 # ==========================================
 # ARCHIVE SCRIPTS
