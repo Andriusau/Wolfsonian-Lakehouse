@@ -7,6 +7,12 @@ import Link from "next/link";
 import { useDuckDB } from "@/providers/DuckDBProvider";
 import { useCollection } from "../hooks/useCollection";
 import { parseDelimited, formatEDTFDate, getMediaFilename } from "../utils/formatters";
+import { 
+  getAvailableFields, 
+  loadSavedFieldIds, 
+  saveSelectedFieldIds, 
+  getDefaultFieldIds 
+} from "../utils/exportFields";
 import Image from "next/image";
 
 export default function Home() {
@@ -153,6 +159,59 @@ export default function Home() {
   // Collection State
   const { collection, isLoaded, addItem, removeItem, clearCollection, isInCollection, addItems, exportCsv, exportPdf } = useCollection();
   const [isCollectionModalOpen, setIsCollectionModalOpen] = useState(false);
+  
+  // Dynamic Export Field Selector State
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'csv' | 'pdf'>('csv');
+  const [selectedExportFields, setSelectedExportFields] = useState<string[]>([]);
+
+  const handleOpenExportModal = (format: 'csv' | 'pdf') => {
+    setExportFormat(format);
+    setSelectedExportFields(loadSavedFieldIds(format));
+    setIsExportModalOpen(true);
+  };
+
+  const handleSwitchExportFormat = (format: 'csv' | 'pdf') => {
+    setExportFormat(format);
+    setSelectedExportFields(loadSavedFieldIds(format));
+  };
+
+  const handleToggleExportField = (fieldId: string) => {
+    setSelectedExportFields(prev => {
+      const next = prev.includes(fieldId)
+        ? prev.filter(f => f !== fieldId)
+        : [...prev, fieldId];
+      saveSelectedFieldIds(exportFormat, next);
+      return next;
+    });
+  };
+
+  const handleSelectAllExportFields = () => {
+    const all = getAvailableFields(exportFormat).map(f => f.id);
+    setSelectedExportFields(all);
+    saveSelectedFieldIds(exportFormat, all);
+  };
+
+  const handleDeselectAllExportFields = () => {
+    const minFields = exportFormat === 'csv' ? ['field_identifier'] : ['title'];
+    setSelectedExportFields(minFields);
+    saveSelectedFieldIds(exportFormat, minFields);
+  };
+
+  const handleResetExportDefaults = () => {
+    const defaults = getDefaultFieldIds(exportFormat);
+    setSelectedExportFields(defaults);
+    saveSelectedFieldIds(exportFormat, defaults);
+  };
+
+  const handleRunExport = () => {
+    if (exportFormat === 'csv') {
+      exportCsv(selectedExportFields);
+    } else {
+      exportPdf(selectedExportFields);
+    }
+    setIsExportModalOpen(false);
+  };
 
   const [activeWhereClause, setActiveWhereClause] = useState<string>("WHERE 1=1");
   const [isSavingAll, setIsSavingAll] = useState(false);
@@ -469,7 +528,7 @@ export default function Home() {
       }
 
       const dataQuery = `
-        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, creators_with_roles, field_subject, field_place_published, field_edtf_date_created
+        SELECT id, title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, creators_with_roles, field_subject, field_place_published, field_edtf_date_created, decade_created, year_created, Style, Inscription
         FROM catalog 
         ${whereClause}
         ${orderByClause} LIMIT ${limit} OFFSET ${offset}
@@ -1417,13 +1476,13 @@ export default function Home() {
                     {isCopied ? '[✓] COPIED!' : '[🔗] SHARE COLLECTION'}
                   </button>
                   <button 
-                    onClick={exportCsv}
+                    onClick={() => handleOpenExportModal('csv')}
                     className="bg-mca-yellow text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-mca-yellow hover:bg-transparent hover:text-mca-yellow transition-colors text-sm"
                   >
                     [⬇] EXPORT CSV
                   </button>
                   <button 
-                    onClick={exportPdf}
+                    onClick={() => handleOpenExportModal('pdf')}
                     className="bg-white text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-white hover:bg-transparent hover:text-white transition-colors text-sm"
                   >
                     [📄] PDF CURATED LIST
@@ -1508,7 +1567,151 @@ export default function Home() {
         </div>
       )}
 
-      
+      {/* Dynamic Export Fields Modal */}
+      {isExportModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm font-mono animate-in fade-in duration-200">
+          <div className="bg-mca-black border-2 border-white text-white max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl relative">
+            
+            {/* Header */}
+            <div className="p-6 border-b-2 border-white/20 flex items-start justify-between bg-mca-dark/80">
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-widest text-mca-cyan block mb-1">
+                  Custom Export Configuration
+                </span>
+                <h3 className="text-xl md:text-2xl font-black font-display uppercase tracking-tight text-white">
+                  SELECT EXPORT FIELDS
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Choose which fields from the catalog grid to include in your export.
+                </p>
+              </div>
+              <button 
+                onClick={() => setIsExportModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 text-sm font-bold border border-transparent hover:border-white/20 transition-colors"
+              >
+                [✕]
+              </button>
+            </div>
+
+            {/* Format Selector Tabs */}
+            <div className="flex border-b border-white/20 bg-mca-black">
+              <button
+                onClick={() => handleSwitchExportFormat('csv')}
+                className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${
+                  exportFormat === 'csv'
+                    ? 'border-mca-yellow text-mca-yellow bg-mca-yellow/10'
+                    : 'border-transparent text-slate-400 hover:text-white'
+                }`}
+              >
+                [⬇] CSV Spreadsheet (.csv)
+              </button>
+              <button
+                onClick={() => handleSwitchExportFormat('pdf')}
+                className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${
+                  exportFormat === 'pdf'
+                    ? 'border-mca-cyan text-mca-cyan bg-mca-cyan/10'
+                    : 'border-transparent text-slate-400 hover:text-white'
+                }`}
+              >
+                [📄] PDF Curated List (.pdf)
+              </button>
+            </div>
+
+            {/* Selection Toolbar */}
+            <div className="px-6 py-3 border-b border-white/10 bg-mca-dark/50 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="text-slate-400 text-[11px] font-bold">
+                <span className="text-white font-mono">{selectedExportFields.length}</span> of {getAvailableFields(exportFormat).length} fields selected
+              </span>
+              <div className="flex space-x-2 text-[10px] font-bold">
+                <button
+                  onClick={handleSelectAllExportFields}
+                  className="px-2.5 py-1 border border-white/20 hover:border-white text-slate-300 hover:text-white transition-colors uppercase"
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={handleDeselectAllExportFields}
+                  className="px-2.5 py-1 border border-white/20 hover:border-white text-slate-300 hover:text-white transition-colors uppercase"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={handleResetExportDefaults}
+                  className="px-2.5 py-1 border border-white/20 hover:border-white text-slate-300 hover:text-white transition-colors uppercase"
+                >
+                  Reset Defaults
+                </button>
+              </div>
+            </div>
+
+            {/* Field Checkboxes Grid */}
+            <div className="p-6 overflow-y-auto max-h-[50vh] space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {getAvailableFields(exportFormat).map((field) => {
+                  const isChecked = selectedExportFields.includes(field.id);
+                  return (
+                    <label
+                      key={field.id}
+                      onClick={() => handleToggleExportField(field.id)}
+                      className={`flex items-start space-x-3 p-3 border cursor-pointer transition-all select-none ${
+                        isChecked
+                          ? exportFormat === 'csv'
+                            ? 'border-mca-yellow/80 bg-mca-yellow/10 text-white'
+                            : 'border-mca-cyan/80 bg-mca-cyan/10 text-white'
+                          : 'border-white/10 bg-mca-dark/40 text-slate-400 hover:border-white/30 hover:text-slate-200'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => {}} // Handled by label click
+                        className="mt-0.5 accent-mca-cyan shrink-0 cursor-pointer"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-xs font-bold truncate">{field.label}</span>
+                          <span className="text-[9px] uppercase px-1 py-0.5 border border-white/15 text-slate-400 shrink-0 font-mono">
+                            {field.gridLabel}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-slate-500 font-mono block mt-0.5 truncate">
+                          {field.id}
+                        </span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Footer with action buttons */}
+            <div className="p-6 border-t-2 border-white/20 bg-mca-dark/80 flex items-center justify-between gap-4">
+              <button
+                onClick={() => setIsExportModalOpen(false)}
+                className="px-5 py-2.5 border border-white/20 text-slate-300 hover:text-white hover:border-white text-xs font-bold uppercase tracking-wider transition-colors"
+              >
+                Cancel
+              </button>
+              
+              <button
+                onClick={handleRunExport}
+                disabled={selectedExportFields.length === 0}
+                className={`px-6 py-2.5 font-black uppercase tracking-widest text-xs transition-colors border-2 ${
+                  exportFormat === 'csv'
+                    ? 'bg-mca-yellow text-mca-black border-mca-yellow hover:bg-transparent hover:text-mca-yellow'
+                    : 'bg-mca-cyan text-mca-black border-mca-cyan hover:bg-transparent hover:text-mca-cyan'
+                } ${selectedExportFields.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {exportFormat === 'csv'
+                  ? `[⬇] DOWNLOAD CSV (${collection.length} ITEMS)`
+                  : `[📄] GENERATE PDF (${collection.length} ITEMS)`}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

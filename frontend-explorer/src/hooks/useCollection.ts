@@ -88,15 +88,32 @@ export function useCollection() {
     }
   };
 
-  const exportCsv = () => {
+  const exportCsv = (customFields?: string[]) => {
     if (collection.length === 0) return;
     
-    const exportHeaders = [
+    const defaultHeaders = [
       "field_identifier", "spreadsheet_thumbnail", "title", "field_collection_type", "field_genre",
-      "field_description_long", "field_linked_agent", "field_subject", 
-      "field_place_published", "field_edtf_date_created", "decade_created", 
-      "field_extent", "field_collection_note", "source_system", "id", "image_url", "location", "storage_location"
+      "field_description_long", "creators_with_roles", "field_subject", 
+      "field_place_published", "field_edtf_date_created", 
+      "field_extent", "field_credit_line", "field_collection_note", "image_url", "location"
     ];
+    
+    let exportHeaders = (customFields && customFields.length > 0) ? customFields : defaultHeaders;
+    
+    // If not passed explicitly, attempt to load saved preferences from localStorage
+    if (!customFields && typeof window !== "undefined") {
+      try {
+        const saved = window.localStorage.getItem("wolfsonian_export_fields_csv");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            exportHeaders = parsed;
+          }
+        }
+      } catch (e) {
+        console.error("Error reading saved CSV fields", e);
+      }
+    }
     
     const csvRows = [];
     
@@ -117,9 +134,11 @@ export function useCollection() {
           // This formula renders the actual image inside a cell in Google Sheets and newer Excel versions!
           val = imageUrl ? `=IMAGE("${imageUrl}")` : "";
         } else if (header === "location") {
-          val = row["location"] || row["sortable4"];
-        } else if (header === "Storage_Location") {
-          val = row["Storage_Location"] || row["storage_location"];
+          val = row["location"] || row["sortable4"] || "";
+        } else if (header === "creators_with_roles") {
+          val = row["creators_with_roles"] || row["field_linked_agent"] || "";
+        } else if (header === "Storage_Location" || header === "storage_location") {
+          val = row["Storage_Location"] || row["storage_location"] || "";
         } else {
           val = row[header];
         }
@@ -145,9 +164,16 @@ export function useCollection() {
     document.body.removeChild(link);
   };
 
-  const exportPdf = () => {
+  const exportPdf = (customFields?: string[]) => {
     if (collection.length === 0) return;
-    // Open the new /exhibit-catalog route which handles the print formatting
+    if (customFields && customFields.length > 0 && typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem("wolfsonian_export_fields_pdf", JSON.stringify(customFields));
+      } catch (e) {
+        console.error("Failed to save PDF fields to localStorage", e);
+      }
+    }
+    // Open the /exhibit-catalog route which handles the print formatting
     window.open('/exhibit-catalog', '_blank');
   };
 
