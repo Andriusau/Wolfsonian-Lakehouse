@@ -94,8 +94,9 @@ export function useCollection() {
     const defaultHeaders = [
       "field_identifier", "spreadsheet_thumbnail", "title", "field_collection_type", "field_genre",
       "field_description_long", "creators_with_roles", "field_subject", 
-      "field_place_published", "field_edtf_date_created", 
-      "field_extent", "field_credit_line", "field_collection_note", "image_url", "location"
+      "field_place_published", "field_edtf_date_created", "decade_created",
+      "field_extent", "field_credit_line", "field_collection_note", "image_url", "location", "storage_location",
+      "Style", "Inscription"
     ];
     
     let exportHeaders = (customFields && customFields.length > 0) ? customFields : defaultHeaders;

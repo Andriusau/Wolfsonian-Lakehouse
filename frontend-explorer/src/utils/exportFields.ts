@@ -62,7 +62,7 @@ export const GRID_EXPORT_FIELDS: ExportFieldDef[] = [
     gridLabel: "COLLECTION TYPE",
     category: "core",
     defaultCsv: true,
-    defaultPdf: false,
+    defaultPdf: true,
   },
   {
     id: "creators_with_roles",
@@ -78,6 +78,14 @@ export const GRID_EXPORT_FIELDS: ExportFieldDef[] = [
     id: "field_edtf_date_created",
     label: "Date Created",
     gridLabel: "DATE",
+    category: "details",
+    defaultCsv: true,
+    defaultPdf: true,
+  },
+  {
+    id: "decade_created",
+    label: "Decade Created",
+    gridLabel: "DECADE",
     category: "details",
     defaultCsv: true,
     defaultPdf: true,
@@ -130,7 +138,7 @@ export const GRID_EXPORT_FIELDS: ExportFieldDef[] = [
     gridLabel: "SUBJECT",
     category: "classification",
     defaultCsv: true,
-    defaultPdf: false,
+    defaultPdf: true,
   },
   {
     id: "field_place_published",
@@ -138,7 +146,7 @@ export const GRID_EXPORT_FIELDS: ExportFieldDef[] = [
     gridLabel: "PLACE",
     category: "classification",
     defaultCsv: true,
-    defaultPdf: false,
+    defaultPdf: true,
   },
   {
     id: "field_collection_note",
@@ -146,7 +154,43 @@ export const GRID_EXPORT_FIELDS: ExportFieldDef[] = [
     gridLabel: "NOTE",
     category: "classification",
     defaultCsv: true,
-    defaultPdf: false,
+    defaultPdf: true,
+  },
+
+  // Style & Inscriptions
+  {
+    id: "Style",
+    label: "Style / Movement",
+    gridLabel: "STYLE",
+    category: "classification",
+    defaultCsv: true,
+    defaultPdf: true,
+  },
+  {
+    id: "Inscription",
+    label: "Inscriptions / Markings",
+    gridLabel: "INSCRIPTION",
+    category: "details",
+    defaultCsv: true,
+    defaultPdf: true,
+  },
+
+  // Physical Location & Storage
+  {
+    id: "location",
+    label: "Location",
+    gridLabel: "LOCATION",
+    category: "details",
+    defaultCsv: true,
+    defaultPdf: true,
+  },
+  {
+    id: "storage_location",
+    label: "Storage Location",
+    gridLabel: "STORAGE LOC",
+    category: "details",
+    defaultCsv: true,
+    defaultPdf: true,
   },
 ];
 

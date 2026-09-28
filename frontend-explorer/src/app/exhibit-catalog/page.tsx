@@ -257,6 +257,13 @@ export default function ExhibitCatalog() {
                     </div>
                   )}
 
+                  {isVisible("decade_created") && item.decade_created && (
+                    <div>
+                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Decade Created</span>
+                      <span className="text-sm">{item.decade_created}s</span>
+                    </div>
+                  )}
+
                   {isVisible("field_extent") && item.field_extent && (
                     <div>
                       <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Dimensions / Extent</span>
@@ -303,6 +310,34 @@ export default function ExhibitCatalog() {
                     <div>
                       <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Note / Exhibition History</span>
                       <span className="text-sm text-gray-600">{item.field_collection_note}</span>
+                    </div>
+                  )}
+
+                  {isVisible("Style") && item.Style && (
+                    <div>
+                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Style / Movement</span>
+                      <span className="text-sm">{item.Style}</span>
+                    </div>
+                  )}
+
+                  {isVisible("Inscription") && item.Inscription && (
+                    <div>
+                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Inscriptions / Markings</span>
+                      <span className="text-sm">{item.Inscription}</span>
+                    </div>
+                  )}
+
+                  {isVisible("location") && item.location && (
+                    <div>
+                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Location</span>
+                      <span className="text-sm">{item.location}</span>
+                    </div>
+                  )}
+
+                  {isVisible("storage_location") && item.storage_location && (
+                    <div>
+                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Storage Location</span>
+                      <span className="text-sm">{item.storage_location}</span>
                     </div>
                   )}
                 </div>
