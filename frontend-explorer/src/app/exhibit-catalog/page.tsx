@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getMediaFilename } from "@/utils/formatters";
+import { getMediaFilename, formatLocation } from "@/utils/formatters";
 import { 
   getAvailableFields, 
   loadSavedFieldIds, 
@@ -330,7 +330,7 @@ export default function ExhibitCatalog() {
                   {isVisible("location") && item.location && (
                     <div>
                       <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Location</span>
-                      <span className="text-sm">{item.location}</span>
+                      <span className="text-sm">{formatLocation(item.location)}</span>
                     </div>
                   )}
 

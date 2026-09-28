@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDuckDB } from "@/providers/DuckDBProvider";
 import { useCollection } from "../../../hooks/useCollection";
-import { parseDelimited, formatEDTFDate } from "../../../utils/formatters";
+import { parseDelimited, formatEDTFDate, formatLocation } from "../../../utils/formatters";
 import ImageReader from "../../../components/ImageReader";
 import AudioReader from "../../../components/AudioReader";
 import { getMediaFilename } from "../../../utils/formatters";
@@ -330,6 +330,8 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                               ) : (
                                 String(val)
                               )
+                            ) : key === 'location' ? (
+                              formatLocation(val as string)
                             ) : key === 'field_linked_agent' ? (
                               <span className="inline-flex flex-wrap gap-x-2.5 gap-y-2 items-center">
                                 {parseDelimited(selectedRecord?.creators_with_roles || val, '|').map((item: any, j: number, arr: any[]) => {

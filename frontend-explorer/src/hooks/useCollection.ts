@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getMediaFilename } from '@/utils/formatters';
+import { getMediaFilename, formatLocation } from '@/utils/formatters';
 import { usePathname } from "next/navigation";
 
 export function useCollection() {
@@ -135,7 +135,7 @@ export function useCollection() {
           // This formula renders the actual image inside a cell in Google Sheets and newer Excel versions!
           val = imageUrl ? `=IMAGE("${imageUrl}")` : "";
         } else if (header === "location") {
-          val = row["location"] || row["sortable4"] || "";
+          val = formatLocation(row["location"] || row["sortable4"] || "");
         } else if (header === "creators_with_roles") {
           val = row["creators_with_roles"] || row["field_linked_agent"] || "";
         } else if (header === "Storage_Location" || header === "storage_location") {

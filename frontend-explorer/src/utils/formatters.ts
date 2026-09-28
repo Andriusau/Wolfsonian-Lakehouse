@@ -43,3 +43,31 @@ export function getMediaFilename(identifier: string | null | undefined): string 
   const primaryId = String(identifier).split(';')[0].trim();
   return primaryId.replace(/[^a-zA-Z0-9.-]/g, '_');
 }
+
+export const LIBRARY_LOCATION_NAMES: Record<string, string> = {
+  'RAR': 'Rare',
+  'RARO': 'Rare Oversized',
+  'RARDO': 'Rare Double Oversized',
+  'WOR': "World's Fairs",
+  'WORO': "World's Fairs Oversized",
+  'WORDO': "World's Fairs Double Oversized",
+  'OLY': 'Olympics',
+  'OLYO': 'Olympics Oversized',
+  'OLYDO': 'Olympics Double Oversized',
+  'PER': 'Periodicals',
+  'PERDO': 'Periodicals Double Oversized',
+  'SBH': 'Subject Headings',
+  'SBHO': 'Subject Headings Oversized',
+  'SBHDO': 'Subject Headings Double Oversized',
+  'WOL': 'Ephemera',
+  'VEE': 'Veeze',
+  'RUP': 'Rupprecht',
+  'GEOBP': 'George B. Post',
+  'CCC': 'CCC',
+};
+
+export function formatLocation(rawLocation?: any): string {
+  if (!rawLocation) return '';
+  const trimmed = String(rawLocation).trim();
+  return LIBRARY_LOCATION_NAMES[trimmed] || trimmed;
+}
