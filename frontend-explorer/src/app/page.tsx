@@ -15,6 +15,19 @@ import {
 } from "../utils/exportFields";
 import Image from "next/image";
 
+const getPaginationRange = (current: number, total: number): (number | string)[] => {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  if (current <= 4) {
+    return [1, 2, 3, 4, 5, '...', total];
+  }
+  if (current >= total - 3) {
+    return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+  }
+  return [1, '...', current - 1, current, current + 1, '...', total];
+};
+
 export default function Home() {
   const { isReady, runQuery, error } = useDuckDB();
   const getInitialState = (key: string, defaultValue: any) => {
@@ -57,10 +70,37 @@ export default function Home() {
   const [filteredCount, setFilteredCount] = useState(() => getInitialState('mca_search_filteredCount', 0));
   const [debugInfo, setDebugInfo] = useState<string>("");
 
-  // Infinite Scroll State
+  // Infinite Scroll & Pagination State
   const [page, setPage] = useState(() => getInitialState('mca_search_page', 1));
   const [isAppending, setIsAppending] = useState(false);
+  const [isPaging, setIsPaging] = useState(false);
+  const [scrollMode, setScrollMode] = useState<'infinite' | 'paged'>(() => getInitialState('mca_scroll_mode', 'infinite'));
+  const [jumpPageInput, setJumpPageInput] = useState<string>("");
   const loaderRef = useRef<HTMLDivElement>(null);
+  const resultsGridRef = useRef<HTMLDivElement>(null);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCount / (scrollMode === 'paged' ? 100 : 48)));
+  const pageNumbers = getPaginationRange(page, totalPages);
+
+  const goToPage = (newPage: number) => {
+    const maxPage = Math.max(1, Math.ceil(filteredCount / (scrollMode === 'paged' ? 100 : 48)));
+    if (newPage < 1 || newPage > maxPage || newPage === page) return;
+    setPage(newPage);
+    handleSearch(newPage, scrollMode);
+    if (resultsGridRef.current) {
+      resultsGridRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const handleScrollModeChange = (newMode: 'infinite' | 'paged') => {
+    if (newMode === scrollMode) return;
+    setScrollMode(newMode);
+    setPage(1);
+    handleSearch(1, newMode);
+    if (resultsGridRef.current) {
+      resultsGridRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   // Modal State
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
@@ -218,7 +258,7 @@ export default function Home() {
 
   const executeNewSearch = () => {
     setPage(1);
-    handleSearch(1);
+    handleSearch(1, scrollMode);
   };
 
   const handleResetFilters = () => {
@@ -286,11 +326,12 @@ export default function Home() {
         window.sessionStorage.setItem('mca_search_totalCount', JSON.stringify(totalCount));
         window.sessionStorage.setItem('mca_search_filteredCount', JSON.stringify(filteredCount));
         window.sessionStorage.setItem('mca_uploaded_ids', JSON.stringify(uploadedIdentifiers));
+        window.sessionStorage.setItem('mca_scroll_mode', JSON.stringify(scrollMode));
       } catch (e) {
         console.error("Error saving to sessionStorage", e);
       }
     }
-  }, [searchTerm, selectedSystem, selectedGenre, hasImageOnly, hasAudioOnly, selectedCreator, selectedSubject, selectedPlace, minYear, maxYear, selectedDecade, page, results, totalCount, filteredCount, uploadedIdentifiers]);
+  }, [searchTerm, selectedSystem, selectedGenre, hasImageOnly, hasAudioOnly, selectedCreator, selectedSubject, selectedPlace, minYear, maxYear, selectedDecade, page, results, totalCount, filteredCount, uploadedIdentifiers, scrollMode]);
 
   const isInitialUploadMount = useRef(true);
   useEffect(() => {
@@ -308,12 +349,12 @@ export default function Home() {
         const hasCollectionInUrl = typeof window !== 'undefined' && window.location.search.includes('collection=');
         if (initialResultsLength.current === 0 || hasCollectionInUrl) {
           setPage(1);
-          handleSearch(1);
+          handleSearch(1, scrollMode);
         }
         fetchResponsiveFacets();
       } else {
         setPage(1);
-        handleSearch(1);
+        handleSearch(1, scrollMode);
         // fetchResponsiveFacets is now automatically called inside handleSearch
       }
     }
@@ -326,24 +367,26 @@ export default function Home() {
       isInitialPageMount.current = false;
       return;
     }
-    if (page > 1) {
-      handleSearch(page);
+    if (scrollMode === 'infinite' && page > 1) {
+      handleSearch(page, 'infinite');
     }
-  }, [page]);
+  }, [page, scrollMode]);
 
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
+    if (scrollMode !== 'infinite') return;
     const target = entries[0];
     if (target.isIntersecting && !loading && !isAppending && results.length > 0 && results.length < filteredCount) {
       setPage((prev: number) => prev + 1);
     }
-  }, [loading, isAppending, results.length, filteredCount]);
+  }, [scrollMode, loading, isAppending, results.length, filteredCount]);
 
   useEffect(() => {
+    if (scrollMode !== 'infinite') return;
     const option = { root: null, rootMargin: "400px", threshold: 0 };
     const observer = new IntersectionObserver(handleObserver, option);
     if (loaderRef.current) observer.observe(loaderRef.current);
     return () => observer.disconnect();
-  }, [handleObserver]);
+  }, [scrollMode, handleObserver]);
 
   const buildWhereClause = useCallback((overrides: any = {}) => {
     const state = {
@@ -479,21 +522,23 @@ export default function Home() {
     }
   }, [isReady, buildWhereClause, runQuery]);
 
-  const handleSearch = async (targetPage: number = page) => {
+  const handleSearch = async (targetPage: number = page, targetMode: 'infinite' | 'paged' = scrollMode) => {
     if (!isReady) return;
     
     if (targetPage === 1) {
       setLoading(true);
       fetchResponsiveFacets();
-    } else {
+    } else if (targetMode === 'infinite') {
       setIsAppending(true);
+    } else {
+      setIsPaging(true);
     }
     
     try {
       const whereClause = buildWhereClause();
       setActiveWhereClause(whereClause);
       
-      const limit = 48;
+      const limit = targetMode === 'paged' ? 100 : 48;
       const offset = (targetPage - 1) * limit;
 
       let orderByClause = `ORDER BY has_image DESC, field_identifier ASC`;
@@ -544,7 +589,7 @@ export default function Home() {
       ]);
       
       if (data) {
-        if (targetPage === 1) {
+        if (targetMode === 'paged' || targetPage === 1) {
           setResults(data);
         } else {
           setResults(prev => [...prev, ...data]);
@@ -571,6 +616,7 @@ export default function Home() {
     
     setLoading(false);
     setIsAppending(false);
+    setIsPaging(false);
   };
 
   const handleSurpriseMe = async () => {
@@ -1174,11 +1220,66 @@ export default function Home() {
               </button>
             </div>
           )}
-          <div className="flex flex-col md:flex-row md:justify-between items-start md:items-end gap-4 mb-6 border-b border-white/20 pb-4">
+          <div ref={resultsGridRef} id="results-grid-header" className="flex flex-col md:flex-row md:justify-between items-start md:items-end gap-4 mb-6 border-b border-white/20 pb-4">
             <h2 className="text-white font-bold tracking-widest text-sm uppercase">
               RESULTS GRID
             </h2>
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Scroll Mode Toggle */}
+              <div className="flex items-center border border-white/20 divide-x divide-white/20 text-[10px] font-bold tracking-wider uppercase bg-mca-black">
+                <button 
+                  type="button"
+                  onClick={() => handleScrollModeChange('infinite')}
+                  className={`px-3 py-1.5 transition-colors ${
+                    scrollMode === 'infinite' 
+                      ? 'bg-white text-mca-black font-extrabold shadow-sm' 
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                  title="Continuous infinite scrolling (loads 48 records at a time)"
+                >
+                  ∞ CONTINUOUS
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => handleScrollModeChange('paged')}
+                  className={`px-3 py-1.5 transition-colors ${
+                    scrollMode === 'paged' 
+                      ? 'bg-mca-cyan text-mca-black font-extrabold shadow-sm' 
+                      : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  }`}
+                  title="Defined scrolling (100 objects per page with pagination)"
+                >
+                  📄 100 / PAGE
+                </button>
+              </div>
+
+              {/* Quick Top Page Nav for Paged Mode */}
+              {scrollMode === 'paged' && totalPages > 1 && (
+                <div className="flex items-center space-x-1 border border-white/20 bg-mca-black px-2 py-1 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => goToPage(page - 1)}
+                    disabled={page <= 1 || isPaging}
+                    className="px-1.5 py-0.5 text-slate-300 hover:text-white disabled:opacity-20 transition-colors font-bold"
+                    title="Previous Page"
+                  >
+                    ◀
+                  </button>
+                  <span className="px-1.5 text-slate-400 font-mono text-[10px]">
+                    <span className="text-mca-cyan font-bold">{page}</span> / {totalPages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => goToPage(page + 1)}
+                    disabled={page >= totalPages || isPaging}
+                    className="px-1.5 py-0.5 text-slate-300 hover:text-white disabled:opacity-20 transition-colors font-bold"
+                    title="Next Page"
+                  >
+                    ▶
+                  </button>
+                </div>
+              )}
+
               {results.length > 0 && (
                 <button 
                   onClick={handleSaveAllResults}
@@ -1202,7 +1303,7 @@ export default function Home() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 border-l border-t border-white/20">
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 border-l border-t border-white/20 transition-opacity duration-150 ${isPaging ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
               {results.map((item, idx) => (
                 <article 
                   key={idx} 
@@ -1377,7 +1478,7 @@ export default function Home() {
           )}
 
           {/* Infinite Scroll Loader */}
-          {results.length > 0 && results.length < filteredCount && (
+          {scrollMode === 'infinite' && results.length > 0 && results.length < filteredCount && (
             <div ref={loaderRef} className="py-12 flex justify-center items-center w-full border-t border-white/20 col-span-full">
               {isAppending ? (
                 <div className="flex flex-col items-center space-y-4">
@@ -1390,10 +1491,133 @@ export default function Home() {
             </div>
           )}
 
-          {results.length > 0 && results.length >= filteredCount && (
+          {scrollMode === 'infinite' && results.length > 0 && results.length >= filteredCount && (
             <div className="py-12 text-center border-t border-white/20 text-[10px] text-slate-500 font-bold tracking-widest uppercase col-span-full">
               END OF CATALOG REACHED ({results.length} MATCHES)
             </div>
+          )}
+
+          {/* Defined Scroll Pagination Controls */}
+          {scrollMode === 'paged' && results.length > 0 && (
+            <nav aria-label="Catalog search pagination" className="py-8 border-t border-white/20 flex flex-col lg:flex-row items-center justify-between gap-6 px-4 bg-mca-black col-span-full">
+              {/* Page indicator & summary */}
+              <div className="flex flex-col sm:flex-row items-center gap-2 text-xs text-center sm:text-left">
+                <span className="font-bold text-white tracking-widest uppercase">
+                  PAGE <span className="text-mca-cyan font-extrabold">{page}</span> OF <span className="text-mca-cyan font-extrabold">{totalPages}</span>
+                </span>
+                <span className="text-slate-500 font-mono text-[11px]">
+                  (SHOWING {((page - 1) * 100 + 1).toLocaleString()}–{Math.min(page * 100, filteredCount).toLocaleString()} OF {filteredCount.toLocaleString()} OBJECTS)
+                </span>
+              </div>
+
+              {/* Center: First / Prev / Numeric Buttons / Next / Last */}
+              <div className="flex flex-wrap items-center justify-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => goToPage(1)}
+                  disabled={page <= 1 || isPaging}
+                  title="First Page"
+                  className="px-2.5 py-1.5 border border-white/20 text-xs font-bold text-slate-300 hover:text-white hover:border-white disabled:opacity-20 disabled:hover:text-slate-300 disabled:hover:border-white/20 transition-colors uppercase"
+                >
+                  ⏮ FIRST
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => goToPage(page - 1)}
+                  disabled={page <= 1 || isPaging}
+                  title="Previous Page"
+                  className="px-3 py-1.5 border border-white/20 text-xs font-bold text-slate-300 hover:text-white hover:border-white disabled:opacity-20 disabled:hover:text-slate-300 disabled:hover:border-white/20 transition-colors uppercase flex items-center gap-1"
+                >
+                  ◀ PREV
+                </button>
+
+                {pageNumbers.map((p, i) => {
+                  if (p === '...') {
+                    return (
+                      <span key={`ellipsis-${i}`} className="px-2 py-1 text-slate-600 font-bold select-none text-xs">
+                        ...
+                      </span>
+                    );
+                  }
+                  const pageNum = p as number;
+                  const isActive = pageNum === page;
+                  return (
+                    <button
+                      key={pageNum}
+                      type="button"
+                      onClick={() => goToPage(pageNum)}
+                      disabled={isPaging}
+                      aria-current={isActive ? "page" : undefined}
+                      className={`min-w-[36px] px-2.5 py-1.5 text-xs font-bold border transition-colors ${
+                        isActive
+                          ? 'bg-mca-cyan text-mca-black border-mca-cyan font-black'
+                          : 'border-white/20 text-slate-300 hover:border-white hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  type="button"
+                  onClick={() => goToPage(page + 1)}
+                  disabled={page >= totalPages || isPaging}
+                  title="Next Page"
+                  className="px-3 py-1.5 border border-white/20 text-xs font-bold text-slate-300 hover:text-white hover:border-white disabled:opacity-20 disabled:hover:text-slate-300 disabled:hover:border-white/20 transition-colors uppercase flex items-center gap-1"
+                >
+                  NEXT ▶
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => goToPage(totalPages)}
+                  disabled={page >= totalPages || isPaging}
+                  title="Last Page"
+                  className="px-2.5 py-1.5 border border-white/20 text-xs font-bold text-slate-300 hover:text-white hover:border-white disabled:opacity-20 disabled:hover:text-slate-300 disabled:hover:border-white/20 transition-colors uppercase"
+                >
+                  LAST ⏭
+                </button>
+              </div>
+
+              {/* Right: Direct Page Jump */}
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-slate-500 uppercase font-bold text-[10px] tracking-wider whitespace-nowrap">JUMP TO:</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={totalPages}
+                  value={jumpPageInput}
+                  onChange={(e) => setJumpPageInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const val = parseInt(jumpPageInput, 10);
+                      if (!isNaN(val) && val >= 1 && val <= totalPages) {
+                        goToPage(val);
+                        setJumpPageInput('');
+                      }
+                    }
+                  }}
+                  placeholder={page.toString()}
+                  className="w-16 px-2 py-1.5 bg-mca-dark border border-white/20 text-white text-xs font-mono text-center focus:outline-none focus:border-mca-cyan"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const val = parseInt(jumpPageInput, 10);
+                    if (!isNaN(val) && val >= 1 && val <= totalPages) {
+                      goToPage(val);
+                      setJumpPageInput('');
+                    }
+                  }}
+                  disabled={!jumpPageInput || isNaN(parseInt(jumpPageInput, 10)) || parseInt(jumpPageInput, 10) < 1 || parseInt(jumpPageInput, 10) > totalPages || isPaging}
+                  className="px-3 py-1.5 border border-mca-cyan text-mca-cyan text-xs font-bold uppercase hover:bg-mca-cyan hover:text-mca-black disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-mca-cyan transition-colors"
+                >
+                  GO
+                </button>
+              </div>
+            </nav>
           )}
         </main>
 
