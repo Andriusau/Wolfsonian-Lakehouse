@@ -294,7 +294,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                         field_genre: "Genre",
                         Style: "Style",
                         exhibit_title: "Exhibition Title",
-                        exhibit_label: "Exhibit Label",
+                        exhibit_label: "Exhibition Label",
                         field_description_long: "Description",
                         field_linked_agent: "Creator",
                         field_subject: "Subjects",

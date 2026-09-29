@@ -329,7 +329,7 @@ export default function ExhibitCatalog() {
 
                   {isVisible("exhibit_label") && item.exhibit_label && (
                     <div>
-                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Exhibit Label</span>
+                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Exhibition Label</span>
                       <span className="text-sm">{item.exhibit_label}</span>
                     </div>
                   )}
