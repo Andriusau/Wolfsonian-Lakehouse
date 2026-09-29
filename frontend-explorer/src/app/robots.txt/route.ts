@@ -26,7 +26,14 @@ export async function GET() {
     }
 
     const upstreamRobots = await response.text();
-    const robots = `${upstreamRobots.trim()}\n\nSitemap: ${SITEMAP_URL}\n`;
+    const customRules = `
+User-agent: Baiduspider
+Disallow: /
+
+User-agent: Sogou web spider
+Disallow: /
+`;
+    const robots = `${upstreamRobots.trim()}\n${customRules}\nSitemap: ${SITEMAP_URL}\n`;
 
     return new Response(robots, {
       headers: {

@@ -1,7 +1,8 @@
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Query, Request, Response, status
 import time
 import json
 import os
+import ipaddress
 from datetime import datetime
 import duckdb
 from pydantic import BaseModel
@@ -32,26 +33,95 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Blocked subnets / networks
+BLOCKED_NETWORKS = [
+    ipaddress.ip_network("220.181.108.0/24"),  # Baiduspider / Baidu crawling network
+    ipaddress.ip_network("116.179.32.0/20"),   # China Unicom automated scraping network
+]
+
+# Sensitive / exploit probes that should be immediately dropped with 403 Forbidden
+BLOCKED_PATH_KEYWORDS = [
+    ".env",
+    "/pods",
+    "/status/config",
+    "/provisioning/contact-points",
+    "/validate/code",
+    "/auto_login",
+    "/wp-login",
+    "/.git",
+]
+
+# User-Agents of aggressive rogue spiders that ignore robots.txt
+BLOCKED_USER_AGENTS = [
+    "baiduspider",
+    "sogou",
+    "bytespider",
+    "yisouspider",
+]
+
+def extract_client_ip(request: Request) -> Optional[str]:
+    forwarded_for = request.headers.get("x-forwarded-for")
+    real_ip = request.headers.get("x-real-ip")
+    if forwarded_for:
+        raw = forwarded_for.split(',')[0].strip()
+    elif real_ip:
+        raw = real_ip.strip()
+    elif request.client:
+        raw = request.client.host
+    else:
+        raw = None
+    
+    # Strip port if present in IPv4 (e.g., 220.181.108.105:27298)
+    if raw and ":" in raw and not raw.startswith("[") and raw.count(":") == 1:
+        raw = raw.split(":")[0]
+    return raw
+
+def is_ip_blocked(client_ip: Optional[str]) -> bool:
+    if not client_ip:
+        return False
+    try:
+        ip_obj = ipaddress.ip_address(client_ip)
+        for net in BLOCKED_NETWORKS:
+            if ip_obj in net:
+                return True
+    except ValueError:
+        pass
+    return False
+
+def is_user_agent_blocked(user_agent: Optional[str]) -> bool:
+    if not user_agent:
+        return False
+    ua_lower = user_agent.lower()
+    return any(bot in ua_lower for bot in BLOCKED_USER_AGENTS)
+
+def is_malicious_path(path: str) -> bool:
+    path_lower = path.lower()
+    return any(keyword in path_lower for keyword in BLOCKED_PATH_KEYWORDS)
+
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
+async def security_and_logging_middleware(request: Request, call_next):
     start_time = time.time()
-    response = await call_next(request)
+    client_ip = extract_client_ip(request)
+    user_agent = request.headers.get("user-agent")
+
+    # 1. Enforce IP Blocklist (Baidu, scraper farms)
+    if is_ip_blocked(client_ip):
+        response = Response(content="Forbidden", status_code=status.HTTP_403_FORBIDDEN)
+    # 2. Enforce User-Agent Blocklist (Baiduspider, Sogou, Bytespider)
+    elif is_user_agent_blocked(user_agent):
+        response = Response(content="Forbidden", status_code=status.HTTP_403_FORBIDDEN)
+    # 3. Enforce Exploit / Honeypot Block (.env theft, k8s pods, auth bypass probes)
+    elif is_malicious_path(request.url.path):
+        response = Response(content="Forbidden", status_code=status.HTTP_403_FORBIDDEN)
+    else:
+        response = await call_next(request)
+
     process_time_ms = (time.time() - start_time) * 1000
 
     # Ensure logs directory exists
     log_dir = "/app/logs"
     os.makedirs(log_dir, exist_ok=True)
     
-    forwarded_for = request.headers.get("x-forwarded-for")
-    real_ip = request.headers.get("x-real-ip")
-    if forwarded_for:
-        client_ip = forwarded_for.split(',')[0].strip()
-    elif real_ip:
-        client_ip = real_ip
-    else:
-        client_ip = request.client.host if request.client else None
-
-    # Filter out health checks if desired, but good to log everything
     log_data = {
         "timestamp": datetime.utcnow().isoformat(),
         "endpoint": request.url.path,
@@ -66,11 +136,21 @@ async def log_requests(request: Request, call_next):
     try:
         with open(log_file_path, "a") as f:
             f.write(json.dumps(log_data) + "\n")
-    except Exception as e:
+    except Exception:
         # Silently fail if log can't be written so API doesn't crash
         pass
         
     return response
+
+@app.get("/robots.txt", include_in_schema=False)
+def get_robots_txt():
+    """
+    Explicitly instruct all web crawlers and spiders not to crawl this API server.
+    """
+    return Response(
+        content="User-agent: *\nDisallow: /\n",
+        media_type="text/plain"
+    )
 
 PARQUET_PATH = "/app/data/gold/unified_catalog_normalized.parquet"
 
