@@ -282,10 +282,19 @@ def main():
             'sortable4': 'location',
             'categ_8': 'storage_location',
             'categ_6': 'Inscription',
-            'categ_3': 'Style'
+            'categ_3': 'Style',
+            'categ_12': 'exhibit_label'
         }
         df_deltas = df_deltas.rename(columns=rename_map)
         
+        if 'exhibit_label' in df_deltas.columns:
+            df_deltas['exhibit_label'] = df_deltas['exhibit_label'].fillna('').astype(str).str.strip()
+            df_deltas.loc[df_deltas['exhibit_label'].isin(['', 'nan', 'None']), 'exhibit_label'] = pd.NA
+
+        if 'exhibit_title' in df_deltas.columns:
+            df_deltas['exhibit_title'] = df_deltas['exhibit_title'].fillna('').astype(str).str.strip()
+            df_deltas.loc[df_deltas['exhibit_title'].isin(['', 'nan', 'None']), 'exhibit_title'] = pd.NA
+
         if 'field_genre' in df_deltas.columns:
             df_deltas['field_genre'] = df_deltas['field_genre'].astype(str).str.upper()
         

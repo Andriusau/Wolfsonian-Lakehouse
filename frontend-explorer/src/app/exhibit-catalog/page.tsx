@@ -327,6 +327,20 @@ export default function ExhibitCatalog() {
                     </div>
                   )}
 
+                  {isVisible("exhibit_label") && item.exhibit_label && (
+                    <div>
+                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Origin Exhibit Label</span>
+                      <span className="text-sm">{item.exhibit_label}</span>
+                    </div>
+                  )}
+
+                  {isVisible("exhibit_title") && item.exhibit_title && (
+                    <div>
+                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Exhibition Title</span>
+                      <span className="text-sm">{item.exhibit_title}</span>
+                    </div>
+                  )}
+
                   {isVisible("location") && item.location && (
                     <div>
                       <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Location</span>

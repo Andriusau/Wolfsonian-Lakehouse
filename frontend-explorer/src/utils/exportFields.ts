@@ -174,6 +174,22 @@ export const GRID_EXPORT_FIELDS: ExportFieldDef[] = [
     defaultCsv: true,
     defaultPdf: true,
   },
+  {
+    id: "exhibit_label",
+    label: "Origin Exhibit Label",
+    gridLabel: "EXHIBIT LABEL",
+    category: "details",
+    defaultCsv: true,
+    defaultPdf: true,
+  },
+  {
+    id: "exhibit_title",
+    label: "Exhibition Title",
+    gridLabel: "EXHIBIT TITLE",
+    category: "classification",
+    defaultCsv: true,
+    defaultPdf: true,
+  },
 
   // Physical Location & Storage
   {

@@ -97,7 +97,7 @@ export function useCollection() {
       "field_description_long", "creators_with_roles", "field_subject", 
       "field_place_published", "field_edtf_date_created", "decade_created",
       "field_extent", "field_credit_line", "field_collection_note", "image_url", "location", "storage_location",
-      "Style", "Inscription"
+      "Style", "Inscription", "exhibit_label", "exhibit_title"
     ];
     
     let exportHeaders = (customFields && customFields.length > 0) ? customFields : defaultHeaders;

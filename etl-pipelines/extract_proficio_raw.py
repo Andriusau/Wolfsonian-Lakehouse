@@ -70,12 +70,19 @@ def raw_data_dump(table_name, incremental_dir):
         last_watermark = None
         logging.info("🔁 Full Proficio extract requested by PROFICIO_FULL_EXTRACT.")
 
+    if table_name == 'objects':
+        base_query = "SELECT objects.*, EXHIBT.EXHIBT_DSC AS exhibit_title FROM objects LEFT JOIN EXHIBT ON objects.exhibt_id = EXHIBT.exhibt_id"
+        where_clause = f"WHERE objects.change_dte > '{last_watermark}' OR objects.add_dte > '{last_watermark}'"
+    else:
+        base_query = f"SELECT * FROM {table_name}"
+        where_clause = f"WHERE change_dte > '{last_watermark}' OR add_dte > '{last_watermark}'"
+
     if last_watermark:
         logging.info(f"💧 Incremental Extract: Fetching records modified since {last_watermark}")
-        query = f"SELECT * FROM {table_name} WHERE change_dte > '{last_watermark}' OR add_dte > '{last_watermark}'"
+        query = f"{base_query} {where_clause}"
     else:
         logging.info("💧 Full Extract: No watermark found, fetching all records")
-        query = f"SELECT * FROM {table_name}"
+        query = base_query
 
     try:
         with engine.connect() as conn:

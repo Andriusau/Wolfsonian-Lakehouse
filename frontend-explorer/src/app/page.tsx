@@ -590,7 +590,7 @@ export default function Home() {
       }
 
       const dataQuery = `
-        SELECT id, title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, creators_with_roles, field_subject, field_place_published, field_edtf_date_created, decade_created, year_created, Style, Inscription
+        SELECT id, title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, creators_with_roles, field_subject, field_place_published, field_edtf_date_created, decade_created, year_created, Style, Inscription, exhibit_label, exhibit_title
         FROM catalog 
         ${whereClause}
         ${orderByClause} LIMIT ${limit} OFFSET ${offset}

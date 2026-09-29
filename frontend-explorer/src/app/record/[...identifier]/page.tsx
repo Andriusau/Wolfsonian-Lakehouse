@@ -276,7 +276,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                   {Object.entries(selectedRecord)
                     .filter(([key, val]) => val !== null && val !== "" && !["has_image", "title", "year_created", "source_system", "id", "image_count", "has_audio", "audio_count", "search_text", "alma_identifier"].includes(key))
                     .sort(([keyA], [keyB]) => {
-                      const orderedFields = ["field_identifier", "field_collection_type", "field_extent", "field_genre", "Inscription", "Style", "field_description_long", "field_linked_agent", "field_subject", "field_place_published", "field_edtf_date_created", "decade_created", "field_physical_form", "field_collection_note", "field_credit_line", "location", "storage_location"];
+                      const orderedFields = ["field_identifier", "field_collection_type", "field_extent", "field_genre", "Inscription", "Style", "exhibit_title", "exhibit_label", "field_description_long", "field_linked_agent", "field_subject", "field_place_published", "field_edtf_date_created", "decade_created", "field_physical_form", "field_collection_note", "field_credit_line", "location", "storage_location"];
                       const idxA = orderedFields.indexOf(keyA);
                       const idxB = orderedFields.indexOf(keyB);
                       if (idxA !== -1 && idxB !== -1) return idxA - idxB;
@@ -293,6 +293,8 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                         field_extent: "Dimensions",
                         field_genre: "Genre",
                         Style: "Style",
+                        exhibit_title: "Exhibition Title",
+                        exhibit_label: "Origin Exhibit Label",
                         field_description_long: "Description",
                         field_linked_agent: "Creator",
                         field_subject: "Subjects",
