@@ -176,7 +176,7 @@ export const GRID_EXPORT_FIELDS: ExportFieldDef[] = [
   },
   {
     id: "exhibit_label",
-    label: "Origin Exhibit Label",
+    label: "Exhibit Label",
     gridLabel: "EXHIBIT LABEL",
     category: "details",
     defaultCsv: true,
