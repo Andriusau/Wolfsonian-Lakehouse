@@ -197,8 +197,25 @@ export default function Home() {
   };
 
   // Collection State
-  const { collection, isLoaded, addItem, removeItem, clearCollection, isInCollection, addItems, exportCsv, exportPdf } = useCollection();
+  const { collection, isLoaded, addItem, removeItem, clearCollection, isInCollection, addItems, exportCsv, exportPdf, exportImagesZip } = useCollection();
   const [isCollectionModalOpen, setIsCollectionModalOpen] = useState(false);
+  const [isDownloadImagesModalOpen, setIsDownloadImagesModalOpen] = useState(false);
+  const [isDownloadingImages, setIsDownloadingImages] = useState(false);
+  const [imageDownloadProgress, setImageDownloadProgress] = useState<{ current: number; total: number; currentAccession?: string }>({ current: 0, total: 0 });
+
+  const handleConfirmDownloadImages = async () => {
+    setIsDownloadingImages(true);
+    try {
+      await exportImagesZip((progress) => {
+        setImageDownloadProgress(progress);
+      });
+      setIsDownloadImagesModalOpen(false);
+    } catch (err) {
+      console.error("Failed to export images:", err);
+    } finally {
+      setIsDownloadingImages(false);
+    }
+  };
   
   // Dynamic Export Field Selector State
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -1712,6 +1729,16 @@ export default function Home() {
                     [📄] PDF CURATED LIST
                   </button>
                   <button 
+                    onClick={() => {
+                      const count = collection.filter((c: any) => c.has_image !== false && c.field_identifier).length;
+                      setImageDownloadProgress({ current: 0, total: count });
+                      setIsDownloadImagesModalOpen(true);
+                    }}
+                    className="bg-white text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-white hover:bg-transparent hover:text-white transition-colors text-sm"
+                  >
+                    [🖼] DOWNLOAD IMAGES
+                  </button>
+                  <button 
                     onClick={clearCollection}
                     className="bg-transparent text-red-500 font-black uppercase tracking-widest px-6 py-3 border-2 border-red-500 hover:bg-red-500 hover:text-white transition-colors text-sm"
                   >
@@ -1787,6 +1814,98 @@ export default function Home() {
                 ))}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Download Images Confirmation Modal */}
+      {isDownloadImagesModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm font-mono animate-in fade-in duration-200">
+          <div className="bg-mca-black border-2 border-white text-white max-w-lg w-full flex flex-col shadow-2xl relative">
+            <div className="p-6 border-b-2 border-white/20 flex items-start justify-between bg-mca-dark/80">
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-widest text-mca-cyan block mb-1">
+                  Bulk Image Export
+                </span>
+                <h3 className="text-xl md:text-2xl font-black font-display uppercase tracking-tight text-white">
+                  DOWNLOAD COLLECTION IMAGES
+                </h3>
+              </div>
+              {!isDownloadingImages && (
+                <button 
+                  onClick={() => setIsDownloadImagesModalOpen(false)}
+                  className="text-slate-400 hover:text-white p-1 text-sm font-bold border border-transparent hover:border-white/20 transition-colors"
+                >
+                  [✕]
+                </button>
+              )}
+            </div>
+
+            <div className="p-6 space-y-4 text-xs">
+              <p className="text-sm font-bold text-white">
+                Are you sure you want to download all images in your collection?
+              </p>
+              
+              <div className="bg-mca-dark border border-white/20 p-4 space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Total Saved Records:</span>
+                  <span className="font-bold text-white">{collection.length}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Records with Images:</span>
+                  <span className="font-bold text-mca-cyan">
+                    {collection.filter((c: any) => c.has_image !== false && c.field_identifier).length}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Image Selection:</span>
+                  <span className="text-slate-300">First picture only</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Filename Format:</span>
+                  <span className="font-mono text-mca-yellow">&lt;accession_number&gt;.jpg</span>
+                </div>
+              </div>
+
+              {isDownloadingImages && (
+                <div className="space-y-2 pt-2">
+                  <div className="flex justify-between text-[11px] font-bold">
+                    <span className="text-mca-cyan animate-pulse">
+                      PACKING: {imageDownloadProgress.currentAccession || 'IMAGES'}...
+                    </span>
+                    <span>{imageDownloadProgress.current} / {imageDownloadProgress.total}</span>
+                  </div>
+                  <div className="w-full bg-white/10 h-3 border border-white/20 overflow-hidden">
+                    <div 
+                      className="bg-mca-cyan h-full transition-all duration-150"
+                      style={{ 
+                        width: `${imageDownloadProgress.total > 0 ? (imageDownloadProgress.current / imageDownloadProgress.total) * 100 : 0}%` 
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t-2 border-white/20 bg-mca-dark flex justify-end space-x-4">
+              <button
+                disabled={isDownloadingImages}
+                onClick={() => setIsDownloadImagesModalOpen(false)}
+                className="px-5 py-2.5 border border-white/30 text-white font-bold uppercase tracking-wider hover:bg-white hover:text-mca-black transition-colors text-xs disabled:opacity-40"
+              >
+                [✕] CANCEL
+              </button>
+              <button
+                disabled={isDownloadingImages || collection.filter((c: any) => c.has_image !== false && c.field_identifier).length === 0}
+                onClick={handleConfirmDownloadImages}
+                className="px-6 py-2.5 bg-mca-cyan text-mca-black font-black uppercase tracking-wider border-2 border-mca-cyan hover:bg-transparent hover:text-mca-cyan transition-colors text-xs disabled:opacity-40"
+              >
+                {isDownloadingImages 
+                  ? `[⏳] PACKING (${imageDownloadProgress.current}/${imageDownloadProgress.total})...` 
+                  : `[✓] YES, DOWNLOAD ALL (${collection.filter((c: any) => c.has_image !== false && c.field_identifier).length})`
+                }
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getMediaFilename, formatLocation } from '@/utils/formatters';
+import { createStoreZipBlob, sanitizeAccessionFilename, type ZipFileInput } from '@/utils/zip';
 import { usePathname } from "next/navigation";
 
 export function useCollection() {
@@ -178,6 +179,84 @@ export function useCollection() {
     window.open('/exhibit-catalog', '_blank');
   };
 
+  const exportImagesZip = async (
+    onProgress?: (progress: { current: number; total: number; currentAccession?: string }) => void
+  ): Promise<{ successCount: number; failedCount: number }> => {
+    if (collection.length === 0) return { successCount: 0, failedCount: 0 };
+
+    const itemsWithImages = collection.filter((item) => item.has_image !== false && item.field_identifier);
+    if (itemsWithImages.length === 0) {
+      return { successCount: 0, failedCount: 0 };
+    }
+
+    const files: ZipFileInput[] = [];
+    const usedNames = new Set<string>();
+    let successCount = 0;
+    let failedCount = 0;
+
+    for (let i = 0; i < itemsWithImages.length; i++) {
+      const item = itemsWithImages[i];
+      const accession = sanitizeAccessionFilename(item.field_identifier);
+      
+      let fileName = `${accession}.jpg`;
+      let counter = 1;
+      while (usedNames.has(fileName)) {
+        fileName = `${accession}_${counter}.jpg`;
+        counter++;
+      }
+      usedNames.add(fileName);
+
+      onProgress?.({
+        current: i,
+        total: itemsWithImages.length,
+        currentAccession: accession,
+      });
+
+      try {
+        const primaryId = (item.field_identifier || "").split(";")[0].trim();
+        const mediaFilename = getMediaFilename(primaryId);
+        const res = await fetch(`/images/${mediaFilename}.jpg`);
+        if (res.ok) {
+          const arrayBuffer = await res.arrayBuffer();
+          files.push({
+            name: fileName,
+            data: new Uint8Array(arrayBuffer),
+          });
+          successCount++;
+        } else {
+          failedCount++;
+        }
+      } catch (err) {
+        console.error(`Failed to fetch image for ${item.field_identifier}:`, err);
+        failedCount++;
+      }
+
+      onProgress?.({
+        current: i + 1,
+        total: itemsWithImages.length,
+        currentAccession: accession,
+      });
+    }
+
+    if (files.length > 0) {
+      const zipBlob = createStoreZipBlob(files);
+      const downloadUrl = URL.createObjectURL(zipBlob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      const now = new Date();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const dd = String(now.getDate()).padStart(2, "0");
+      const yyyy = now.getFullYear();
+      link.download = `Wolfsonian_Saved_Images_${mm}${dd}${yyyy}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 5000);
+    }
+
+    return { successCount, failedCount };
+  };
+
   return {
     collection,
     isLoaded,
@@ -187,6 +266,7 @@ export function useCollection() {
     isInCollection,
     addItems,
     exportCsv,
-    exportPdf
+    exportPdf,
+    exportImagesZip
   };
 }
