@@ -71,7 +71,29 @@ def raw_data_dump(table_name, incremental_dir):
         logging.info("🔁 Full Proficio extract requested by PROFICIO_FULL_EXTRACT.")
 
     if table_name == 'objects':
-        base_query = "SELECT objects.*, EXHIBT.EXHIBT_DSC AS exhibit_title FROM objects LEFT JOIN EXHIBT ON objects.exhibt_id = EXHIBT.exhibt_id"
+        base_query = """
+            SELECT objects.*, 
+                   CASE 
+                       WHEN EXHIBT.START_DTE IS NOT NULL AND LTRIM(RTRIM(CAST(EXHIBT.START_DTE AS VARCHAR(50)))) <> '' 
+                       THEN CONCAT(
+                           EXHIBT.EXHIBT_DSC, 
+                           ' (', 
+                           LTRIM(RTRIM(CAST(EXHIBT.START_DTE AS VARCHAR(50)))), 
+                           CASE 
+                               WHEN EXHIBT.END_DTE IS NOT NULL AND LTRIM(RTRIM(CAST(EXHIBT.END_DTE AS VARCHAR(50)))) <> '' 
+                               THEN CONCAT(' - ', LTRIM(RTRIM(CAST(EXHIBT.END_DTE AS VARCHAR(50))))) 
+                               ELSE '' 
+                           END, 
+                           ')'
+                       )
+                       ELSE EXHIBT.EXHIBT_DSC 
+                   END AS exhibit_title 
+            FROM objects 
+            LEFT JOIN EXHIBT 
+              ON objects.exhibt_id = EXHIBT.exhibt_id 
+             AND LTRIM(RTRIM(COALESCE(objects.exhibt_id, ''))) <> '' 
+             AND LTRIM(RTRIM(COALESCE(EXHIBT.exhibt_id, ''))) <> ''
+        """.strip()
         where_clause = f"WHERE objects.change_dte > '{last_watermark}' OR objects.add_dte > '{last_watermark}'"
     else:
         base_query = f"SELECT * FROM {table_name}"
