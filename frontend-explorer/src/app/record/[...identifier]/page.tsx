@@ -252,7 +252,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                       OPEN IN NEW TAB
                     </Link>
                   </div>
-                  <h2 className="text-3xl md:text-5xl font-black font-display uppercase tracking-tight leading-tight break-words">
+                  <h2 className="text-3xl md:text-5xl font-black font-display tracking-tight leading-tight break-words">
                     {selectedRecord.title || selectedRecord.field_identifier || '[UNTITLED OBJECT]'}
                   </h2>
                   
@@ -431,7 +431,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                             />
                           </div>
                           <div className="p-3 bg-mca-black border-t-2 border-white/20">
-                            <h4 className="font-bold text-xs uppercase leading-snug line-clamp-2 group-hover:text-mca-cyan transition-colors">
+                            <h4 className="font-bold text-xs leading-snug line-clamp-2 group-hover:text-mca-cyan transition-colors">
                               {rel.title || rel.field_identifier || '[UNTITLED OBJECT]'}
                             </h4>
                           </div>

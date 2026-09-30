@@ -184,7 +184,7 @@ export default function CreatorPage({ params }: { params: Promise<{ name: string
                         <span className="text-slate-500">{item.field_identifier}</span>
                       </div>
                       
-                      <h3 className="font-bold text-sm leading-tight text-white uppercase group-hover:text-mca-cyan transition-colors">
+                      <h3 className="font-bold text-sm leading-tight text-white group-hover:text-mca-cyan transition-colors">
                         <Link href={`/record/${encodeURIComponent(item.field_identifier)}`} onClick={(e) => e.stopPropagation()} className="hover:text-mca-cyan">
                           {item.title || item.field_identifier || '[UNTITLED OBJECT]'}
                         </Link>

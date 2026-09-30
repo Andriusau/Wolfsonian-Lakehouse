@@ -1367,7 +1367,7 @@ export default function Home() {
                         <span className="text-slate-500">{item.field_identifier}</span>
                       </div>
                       
-                      <h3 className="relative z-20 font-bold text-sm leading-tight text-white uppercase group-hover:text-mca-cyan transition-colors">
+                      <h3 className="relative z-20 font-bold text-sm leading-tight text-white group-hover:text-mca-cyan transition-colors">
                         <Link
                           href={`/record/${encodeURIComponent(item.field_identifier)}`}
                           onClick={(e) => {
@@ -1801,7 +1801,7 @@ export default function Home() {
                         }}
                       >
                         <div className="text-[9px] text-mca-cyan font-bold mb-1 truncate">{item.field_identifier}</div>
-                        <h3 className="font-bold text-xs uppercase leading-snug line-clamp-2 group-hover/title:text-mca-cyan transition-colors">{item.title || item.field_identifier || '[UNTITLED OBJECT]'}</h3>
+                        <h3 className="font-bold text-xs leading-snug line-clamp-2 group-hover/title:text-mca-cyan transition-colors">{item.title || item.field_identifier || '[UNTITLED OBJECT]'}</h3>
                       </div>
                       <button 
                         onClick={() => removeItem(item.field_identifier)}

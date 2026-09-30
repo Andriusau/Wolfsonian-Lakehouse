@@ -226,7 +226,7 @@ export default function MerchMockupPage({ params }: { params: Promise<{ identifi
                   <label className="text-[10px] text-mca-cyan font-bold tracking-widest uppercase">
                     SOURCE ARTIFACT
                   </label>
-                  <h3 className="text-lg font-bold text-white uppercase leading-tight">
+                  <h3 className="text-lg font-bold text-white leading-tight">
                     {record.title || record.field_identifier}
                   </h3>
                   <div className="text-xs text-slate-400 font-sans space-y-1">
