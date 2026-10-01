@@ -470,7 +470,7 @@ export default function Home() {
               expectOperator = true;
             }
           }
-        } else {
+        } else if (state.term.includes(',')) {
           const terms = state.term.split(',').map((t: string) => t.trim()).filter((t: string) => t.length > 0);
           if (terms.length > 0) {
             const termConditions = terms.map((term: string) => {
@@ -479,6 +479,18 @@ export default function Home() {
               return `(search_text LIKE '%${unaccented}%' OR lower(field_identifier) LIKE '%${escapedSearch}%' OR lower(location) LIKE '%${escapedSearch}%' OR lower(storage_location) LIKE '%${escapedSearch}%')`;
             });
             sqlCondition = termConditions.join(' OR ');
+          }
+        } else {
+          // Standard space-separated query (e.g. "Olympic Kimono" or "Kimono Olympic"):
+          // Tokens default to AND so all words must match anywhere across the record!
+          const tokens = state.term.match(/\S+/g) || [];
+          if (tokens.length > 0) {
+            const termConditions = tokens.map((token: string) => {
+              const escapedSearch = token.replace(/'/g, "''").toLowerCase();
+              const unaccented = escapedSearch.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              return `(search_text LIKE '%${unaccented}%' OR lower(field_identifier) LIKE '%${escapedSearch}%' OR lower(location) LIKE '%${escapedSearch}%' OR lower(storage_location) LIKE '%${escapedSearch}%')`;
+            });
+            sqlCondition = termConditions.join(' AND ');
           }
         }
         if (sqlCondition) {
@@ -562,7 +574,9 @@ export default function Home() {
       if (searchTerm) {
           const termsToScore = (/\b(AND|OR|NOT)\b/i.test(searchTerm) || searchTerm.includes('"'))
               ? (searchTerm.match(/(".*?"|\bAND\b|\bOR\b|\bNOT\b|\S+)/ig) || []).filter((t: string) => !/\b(AND|OR|NOT)\b/i.test(t))
-              : searchTerm.split(',').map((t: string) => t.trim()).filter((t: string) => t.length > 0);
+              : searchTerm.includes(',')
+              ? searchTerm.split(',').map((t: string) => t.trim()).filter((t: string) => t.length > 0)
+              : (searchTerm.match(/\S+/g) || []);
               
           if (termsToScore.length > 0) {
               const exactMatchScore = termsToScore.map((term: string) => {
