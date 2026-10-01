@@ -274,7 +274,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
 
                 <div className="space-y-8 mt-8">
                   {Object.entries(selectedRecord)
-                    .filter(([key, val]) => val !== null && val !== "" && !["has_image", "title", "year_created", "source_system", "id", "image_count", "has_audio", "audio_count", "search_text", "alma_identifier", "exhibit_label", "Style"].includes(key))
+                    .filter(([key, val]) => val !== null && val !== "" && String(val).trim() !== "<NA>" && String(val).trim() !== "NA" && String(val).trim() !== "nan" && !["has_image", "title", "year_created", "source_system", "id", "image_count", "has_audio", "audio_count", "search_text", "alma_identifier", "exhibit_label", "Style", "decade_created", "creators_with_roles", "creator_roles"].includes(key))
                     .sort(([keyA], [keyB]) => {
                       const orderedFields = [
                         "field_linked_agent",
@@ -292,8 +292,7 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                         "location",
                         "storage_location",
                         "exhibit_title",
-                        "field_collection_note",
-                        "decade_created"
+                        "field_collection_note"
                       ];
                       const idxA = orderedFields.indexOf(keyA);
                       const idxB = orderedFields.indexOf(keyB);
@@ -319,7 +318,6 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                         location: "Location",
                         storage_location: "Storage Location",
                         exhibit_title: "Exhibition Title",
-                        decade_created: "Decade Created",
                         field_collection_note: "Collection Note",
                       };
                       return (
