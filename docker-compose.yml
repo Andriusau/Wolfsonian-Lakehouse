@@ -51,6 +51,7 @@ services:
       - ./metabase-plugins:/plugins
   frontend:
     build: ./frontend-explorer
+    restart: unless-stopped
     ports:
       - "3000:3000"
     volumes:
@@ -58,11 +59,13 @@ services:
       - ./data/feedback:/app/data/feedback
     environment:
       - NODE_ENV=production
+      - NODE_OPTIONS=--require /app/preload-server.js --dns-result-order=ipv4first
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - FEATURE_ADMIN_PASSKEY=${FEATURE_ADMIN_PASSKEY}
 
   images-server:
     image: nginx:alpine
+    restart: unless-stopped
     ports:
       - "8080:80"
     volumes:
