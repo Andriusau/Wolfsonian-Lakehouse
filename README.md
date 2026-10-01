@@ -106,7 +106,7 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 * **QA Quarantine (Dead Letter Queue):** Records that fail critical data quality checks (missing identifiers, empty titles) are automatically isolated into a `proficio_qa_failures.parquet` file via a dedicated microservice instead of breaking the pipeline. This allows data stewards to easily identify and fix dirty source data.
 * **Concurrent API Fetching:** The Islandora microservice utilizes a `ThreadPoolExecutor` and auto-discovery logic to fetch paginated API data rapidly, utilizing exponential backoff for network resilience.
 * **Unified Gold Catalog:** The pipeline dynamically bridges the massive schema gap between library systems (Alma) and museum systems (Proficio), automatically aligning and concatenating both into a single unified queryable table with a strict predetermined column hierarchy.
-* **Gold Normalization Layer:** A dedicated post-merge harmonization step (`export_gold_normalized.py`) standardizes vocabulary across both source systems — normalizing genre labels (e.g., `POSTER` → `Poster`), stripping MARC trailing punctuation from titles, cleaning creator names, and deriving `year_created` and `decade_created` columns for time-series analytics. It also preserves `Style` (from Proficio `Categ_3`) while seamlessly appending style movements (*Art Deco, Bauhaus, Modernism, Arts and Crafts*) into `field_subject`, and generates a consolidated `search_text` column that systematically normalizes diacritics and merges 12+ text fields into a single blob, enabling instantaneous, accent-agnostic global text search on the frontend.
+* **Gold Normalization Layer:** A dedicated post-merge harmonization step (`export_gold_normalized.py`) standardizes vocabulary across both source systems — normalizing genre labels (e.g., `POSTER` → `Poster`), stripping MARC trailing punctuation from titles, cleaning creator names, and deriving `year_created` and `decade_created` columns for time-series analytics. It also seamlessly unifies stylistic movements (*Art Deco, Bauhaus, Modernism, Arts and Crafts*) from Proficio `Categ_3` directly into `field_subject` (Subjects)—eliminating redundant, sparse fields while preserving complete faceted discovery—and generates a consolidated `search_text` column that systematically normalizes diacritics and merges 12+ text fields into a single blob, enabling instantaneous, accent-agnostic global text search on the frontend.
 * **Creator Relator Standardization & Metabase Protection:** Standardizes MARC and Proficio agent roles into `relators:{code}:person:{name}` during Silver processing, and normalizes them in Gold using a non-breaking dual-column strategy:
   * `field_linked_agent`: Preserves 100% clean, unadorned display names (`Name | Name2`) to guarantee zero breaking changes to Metabase BI dashboards, prolific creator rankings, and SQL aggregations.
   * `creators_with_roles`: Enriches agents with human-readable, coalesced role titles (e.g., `Christopher Dresser (Designer, Author) | Coalbrookdale Co (Maker)`), exposing tens of thousands of cataloged roles (Designers, Publishers, Lithographers, Makers, Architects, Artists, Printers, etc.) directly to the frontend.
@@ -129,6 +129,7 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 * **Interactive Feature Request & Changelog Tracker (`/features`):** A custom web application replacing the staff running Word document. Built directly into the Next.js frontend with persistent Docker volume storage (`./data/feedback`), it allows staff and researchers to submit proposals with their name, email, target system (Lakehouse vs Metabase), category, and detailed use cases. Includes community upvoting, status tracking, search filtering, and an authenticated administrative console (AA) for reviewing submitter emails, changing request statuses, and publishing inline dev updates.
 * **Automated AI Crawler Policy:** The frontend serves `/robots.txt` from a cached Next.js route that fetches the maintained AI crawler blocklist from [`ai-robots-txt`](https://github.com/ai-robots-txt/ai.robots.txt) once every 24 hours, appends the Lakehouse sitemap, and falls back to a local policy if GitHub is unavailable. This is a crawler instruction and does not replace server-side access controls.
 * **Automated Data Normalization Test Suite:** A dedicated test framework executing 36 isolated unit tests against the Lakehouse's most sensitive data transformation algorithms. It rigorously verifies role coalescing, alias canonicalization (*e.g., Wiener Werkstätte*), date extraction edge cases, trailing MARC punctuation removal, and backup retention pruning with zero database dependencies in under 60 milliseconds.
+* **Reverse Proxy & Gateway Resilience (IIS ARR Keep-Alive Tuning):** To prevent intermittent `502 - Bad Gateway` drops caused by Microsoft IIS Application Request Routing (ARR) connection pooling and idle socket reuse across the campus network, the frontend architecture hooks Node's HTTP server via `preload-server.js` and Next.js start flags (`--keepAliveTimeout 120000` / `headersTimeout 125000`). This matches upstream proxy connection lifecycles, while NGINX media streaming and Docker containers enforce continuous auto-recovery (`restart: unless-stopped`).
 
 ---
 
@@ -294,10 +295,10 @@ graph TD
 * **Semantic Discovery:** When viewing a record, the engine instantly queries DuckDB for 4 randomized, related records that share the same Subject, Genre, or Creator, encouraging users to discover related content.
 * **Dynamic Creator & Subject Dossiers:** Automatically generates dedicated landing pages that aggregate and display all cataloged works by a specific artist, designer, author, or subject. Clickable hyperlinks are integrated across the search grid and standalone record pages for seamless navigation.
 * **Creator Role Badges & Contributor Disambiguation:** Resolves the classic museum "tombstone" dilemma by resurrecting specific cataloged creator roles (*Designer, Publisher, Lithographer, Maker, Architect, Artist, Photographer, Printer, Illustrator, etc.*). The frontend dynamically renders each contributor as a clickable link to their portfolio accompanied by custom, stylish badge pills (e.g., `[Christopher Dresser] [DESIGNER]`), distinguishing concept designers from printers and publishers without cluttering metadata tables with empty rows.
-* **Clean Metadata Records & Human-Readable Locations:** Dedicated standalone pages automatically map internal database fields to user-friendly labels (e.g., Accession Number) and hide redundant system data to provide a pristine viewing experience. Library storage and shelf codes (e.g., `FL3_STACKS_OVRSZ`, `1ST_REF_LIBR_OVR`) are dynamically translated into verified, human-friendly names (e.g., *"3rd Floor Library Stacks Oversized"*, *"Subject Headings Double Oversized"*) across record views, PDF catalogs, and CSV exports.
+* **Curatorial Metadata Hierarchy & Nomenclature:** Dedicated standalone record views adhere strictly to curatorial sequence guidelines—prioritizing essential tombstone metadata (Title & Record #, Creator, Date Created, Geographic Origin, Material, Dimensions, Description, Credit Line, Genre, Collection, Subjects, Inscription, Accession Number, Location, Storage Location, and Exhibition Title). Standardizes geographic place naming to **Geographic Origin** (matching `objects.wolfsonian.org`), translates raw library storage codes (e.g., `FL3_STACKS_OVRSZ`) into verified human-readable locations (*"3rd Floor Library Stacks Oversized"*), and seamlessly aggregates stylistic movements (*Art Deco, Bauhaus, Modernism*) into Subjects (`field_subject`) to prevent sparse or split metadata.
 * **Integrated Library Catalog Links:** Automatically transforms accession numbers for library records into dynamic outbound links, seamlessly routing users to the exact full display page in the FIU Primo Catalog (using the hidden Alma MMS ID).
 * **Dual-Mode Browsing (Continuous Scroll vs. 100 / Page):** Users can seamlessly toggle between the default continuous infinite scroll (loading 48 records at a time) and a **100 Objects / Page** defined pagination mode requested by curatorial researchers. In paged mode, DuckDB queries records via `LIMIT 100 OFFSET` with zero-latency client-side execution, a bottom brutalist pagination bar (First/Prev/Page numbers/Next/Last and direct jump), a top mini-pager in the results header, and `sessionStorage` mode persistence.
-* **Responsive Faceted Search:** Replaced static filter dropdowns with an intelligent, context-aware engine. Whenever a user applies a filter or types a keyword, all other dropdowns (Creators, Subjects, Places, Genres) and the interactive decade timeline instantly recalculate in real-time to strictly display options valid for the current result set.
+* **Responsive Faceted Search:** Replaced static filter dropdowns with an intelligent, context-aware engine. Whenever a user applies a filter or types a keyword, all other dropdowns (Creators, Subjects, Geographic Origins, Genres) and the interactive decade timeline instantly recalculate in real-time to strictly display options valid for the current result set.
 * **Interactive Image Reader:** A sleek, minimalist single-image viewer for multi-image records (like multi-page books or varied 3D views). It features keyboard navigation, Next/Prev controls, and a dynamic thumbnail strip that replaces endless scrolling with a focused reading experience. It includes an interactive full-screen lightbox toggle, allowing the entire component—complete with thumbnails and controls—to fluidly expand for an immersive viewing experience.
 * **Integrated Audio Player:** A custom audio player embedded into record pages featuring automatic multi-track discovery and synchronized track selectors for seamless playback of digitized historical recordings.
 * **Smart Fallback Identifiers:** Seamlessly handles untitled items by safely falling back to their Accession Number, ensuring every record remains identifiable.
@@ -308,10 +309,10 @@ graph TD
 * **Batch Collection Curation:** Staff and researchers can execute complex search queries (or bulk CSV filters) and instantly save up to 1,000 matching results to their personal "Saved Collection" with a single click, completely eliminating manual curation bottlenecks.
 * **Browser-Native Staff Collections:** Staff can curate custom lists of catalog records directly within their browser memory (`localStorage`), allowing them to build research sets without ever needing to log in or create an account. It features advanced BigInt serialization to safely handle DuckDB WASM's 64-bit integer properties natively within the browser caching system.
 * **Shareable Collection Links:** Users can instantly generate a custom serverless URL containing their curated item IDs, allowing them to share curated galleries with colleagues with zero backend architecture. 
-* **CSV Export Engine & Dynamic Field Selector:** With a single click, users can instantly export their curated collections into a formatted spreadsheet. Curators can selectively customize which of the 18 catalog metadata fields and image preview columns to include using a modal field selector with saved browser preferences. The export natively injects `=IMAGE("url")` formulas to instantly render high-res thumbnail previews directly inside Google Sheets and Excel cells alongside the metadata.
+* **CSV Export Engine & Dynamic Field Selector:** With a single click, users can instantly export their curated collections into a formatted spreadsheet. Curators can selectively customize which of the 19 catalog metadata fields and image preview columns to include using a modal field selector with saved browser preferences. The export natively injects `=IMAGE("url")` formulas to instantly render high-res thumbnail previews directly inside Google Sheets and Excel cells alongside the metadata.
 * **PDF Curated List & Catalog Customizer:** Leveraging the browser's native print engine and a dedicated Tailwind print stylesheet, users can instantly export their saved collection as a beautifully formatted PDF exhibit catalog—complete with cover pages, metadata, and embedded images—without relying on heavy third-party PDF libraries. Users can customize which metadata fields appear on the printed sheets via the dynamic field selector.
 * **Bulk Image ZIP Export (by Accession Number):** Allows curators and researchers to export the primary photograph for all records in their saved collection into a single, organized `.zip` archive. Images are titled strictly by their canonical accession number (e.g., `1990.1.12.jpg` or `XC1992.12.jpg`). Built with a lightweight, zero-dependency browser ZIP generator (PKZIP `STORE` mode), it features an explicit confirmation modal with record counts and a real-time progress bar tracking each image as it is packed.
-* **Exhibition History & Label Display:** Curators and researchers can inspect both historical curatorial label text (`Exhibition Label`, from Proficio `CATEG_12`) and linked museum exhibition titles/dates (`Exhibition Title`, from `EXHIBT_DSC`) across standalone record views, printable PDF catalogs, and custom CSV exports.
+* **Exhibition History & Label Integration:** Curators and researchers can inspect linked museum exhibition titles and dates (`Exhibition Title`, from `EXHIBT_DSC`) rendered directly on standalone record pages. Historical curatorial label text (`Exhibition Label`, from Proficio `CATEG_12`) is indexed for full-text search and is selectively selectable on-demand for customized CSV spreadsheets and printable PDF exhibition catalogs.
 * **One-Click Image Downloads:** High-visibility download buttons integrated directly into the image reader, allowing staff to quickly save web-optimized JPEGs for their work.
 * **Digitization Requests:** Context-aware action buttons that allow researchers to formally request digitization workflows for archival objects that currently lack photography.
 * **Print-on-Demand Merch Integration:** Context-aware action buttons on eligible records (such as posters and flat artworks) dynamically route users to a custom merchandise view (`/merch/[identifier]`). This allows users to seamlessly order custom prints, apparel, and souvenirs of public-domain museum artifacts directly via an automated print-on-demand fulfillment pipeline.
@@ -341,8 +342,10 @@ wolf-lakehouse/
 │   │   └── feature_requests.json
 │   ├── gold/                    # Gold Layer: Clean outputs & QA failures
 │   │   ├── alma_workbench_export.csv
+│   │   ├── api_metrics.parquet  # Extracted FastAPI access logs and analytics
 │   │   ├── audio/               # Ingested and mapped digital audio files
-│   │   ├── comparison_proficio.parquet
+│   │   ├── comparison_alma.parquet      # Cross-system Alma vs Islandora comparison
+│   │   ├── comparison_proficio.parquet  # Cross-system Proficio vs Islandora comparison
 │   │   ├── duplicates_report_YYYYMMDD_HHMMSS.csv
 │   │   ├── ga4_metrics.parquet  # Extracted Google Analytics traffic data
 │   │   ├── image_audit_report.csv
@@ -351,6 +354,7 @@ wolf-lakehouse/
 │   │   ├── missing_objects.parquet
 │   │   ├── proficio_deleted_records.parquet # Historical audit of deleted source records
 │   │   ├── proficio_qa_failures.parquet
+│   │   ├── rediscovery_subjects_summary.parquet # Extracted subject vocabulary
 │   │   ├── snapshots/           # Historical time-series dashboard metrics
 │   │   ├── unified_catalog_normalized.parquet  # Harmonized analytics view
 │   │   └── unified_catalog.parquet
@@ -382,6 +386,7 @@ wolf-lakehouse/
 ├── Dockerfile                   # Builds the Python 3.10 environment + ODBC/Kerberos
 ├── Dockerfile.metabase          # Custom Ubuntu image for Metabase DuckDB support
 ├── ga4_credentials.json         # Google Analytics Data API Service Account
+├── islandora_library_children_to_parents_review.xlsx # Curatorial audit report for legacy plate rollups
 ├── Makefile                     # Standardized execution entrypoint commands
 ├── nginx.conf                   # Nginx config for optimized media serving
 ├── etl-pipelines/               # Core Extraction & Transformation Microservices
@@ -425,6 +430,8 @@ wolf-lakehouse/
 ├── frontend-explorer/           # Next.js web application for data exploration
 │   ├── src/                     # Source code (Next.js App router, components, hooks)
 │   ├── public/                  # Static icons and assets
+│   ├── preload-server.js        # Node HTTP socket & keep-alive timeout configuration for reverse proxy
+│   ├── Dockerfile               # Next.js container build instructions
 │   ├── package.json             # NPM dependencies & build scripts
 │   ├── postcss.config.mjs       # PostCSS config
 │   └── next.config.ts           # Next.js build configuration
@@ -436,6 +443,7 @@ wolf-lakehouse/
 │   ├── test_backup_state.py     # State backup creation & retention pruning tests
 │   ├── test_gold_normalizers.py # Normalization, role parsing, and date tests
 │   └── test_silver_normalizers.py # Accession number and identifier tests
+├── uptime-kuma-data/            # Persistent SQLite database for Uptime Kuma monitoring
 └── README.md                    # Project Documentation
 ```
 
