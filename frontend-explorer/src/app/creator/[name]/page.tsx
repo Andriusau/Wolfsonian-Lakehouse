@@ -218,7 +218,7 @@ export default function CreatorPage({ params }: { params: Promise<{ name: string
                         )}
                         {item.field_place_published && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-800 w-20 shrink-0 font-bold">PLACE</span>
+                            <span className="text-slate-800 w-24 shrink-0 font-bold">GEO ORIGIN</span>
                             <span className="text-slate-700 font-medium truncate">{item.field_place_published}</span>
                           </div>
                         )}

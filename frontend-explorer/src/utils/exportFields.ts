@@ -142,8 +142,8 @@ export const GRID_EXPORT_FIELDS: ExportFieldDef[] = [
   },
   {
     id: "field_place_published",
-    label: "Place Published",
-    gridLabel: "PLACE",
+    label: "Geographic Origin",
+    gridLabel: "GEOGRAPHIC ORIGIN",
     category: "classification",
     defaultCsv: true,
     defaultPdf: true,
@@ -157,15 +157,7 @@ export const GRID_EXPORT_FIELDS: ExportFieldDef[] = [
     defaultPdf: true,
   },
 
-  // Style & Inscriptions
-  {
-    id: "Style",
-    label: "Style / Movement",
-    gridLabel: "STYLE",
-    category: "classification",
-    defaultCsv: true,
-    defaultPdf: true,
-  },
+  // Inscriptions
   {
     id: "Inscription",
     label: "Inscriptions / Markings",

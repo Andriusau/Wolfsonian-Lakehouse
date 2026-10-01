@@ -305,7 +305,7 @@ export default function Home() {
     setIsSavingAll(true);
     try {
       const dataQuery = `
-        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, creators_with_roles, field_subject, field_place_published, field_edtf_date_created
+        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, creators_with_roles, field_subject, field_place_published, field_edtf_date_created, Style, Inscription, exhibit_label, exhibit_title
         FROM catalog 
         ${activeWhereClause}
       `;
@@ -653,7 +653,7 @@ export default function Home() {
     
     try {
       const dataQuery = `
-        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, creators_with_roles, field_subject, field_place_published, field_edtf_date_created 
+        SELECT title, field_identifier, field_collection_type, field_collection_note, field_credit_line, field_extent, field_physical_form, field_genre, field_description_long, location, storage_location, source_system, has_image, image_count, field_linked_agent, creators_with_roles, field_subject, field_place_published, field_edtf_date_created, Inscription, exhibit_label, exhibit_title 
         FROM catalog 
         WHERE has_image = true 
         USING SAMPLE 24
@@ -1069,13 +1069,13 @@ export default function Home() {
                 </div>
 
                 <div className="flex flex-col space-y-2">
-                  <label className="text-[11px] text-slate-600 font-bold tracking-wider">PLACE PUBLISHED</label>
+                  <label className="text-[11px] text-slate-600 font-bold tracking-wider">GEOGRAPHIC ORIGIN</label>
                   <select 
                     value={selectedPlace}
                     onChange={(e) => setSelectedPlace(e.target.value)}
                     className="bg-mca-black border border-white/20 text-white text-xs px-3 py-2 uppercase outline-none focus:border-mca-cyan truncate"
                   >
-                    <option value="ALL">ALL PLACES</option>
+                    <option value="ALL">ALL GEOGRAPHIC ORIGINS</option>
                     {topPlaces.map((p, i) => <option key={i} value={p}>{p}</option>)}
                   </select>
                 </div>
@@ -1415,7 +1415,7 @@ export default function Home() {
                         )}
                         {item.field_place_published && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-800 w-20 shrink-0 font-bold">PLACE</span>
+                            <span className="text-slate-800 w-24 shrink-0 font-bold">GEO ORIGIN</span>
                             <span className="text-slate-700 font-medium truncate">{item.field_place_published}</span>
                           </div>
                         )}

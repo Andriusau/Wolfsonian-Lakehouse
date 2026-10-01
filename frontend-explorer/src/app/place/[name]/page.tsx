@@ -103,7 +103,7 @@ export default function CreatorPage({ params }: { params: Promise<{ name: string
         {/* Dossier Header */}
         <header className="space-y-6">
           <div className="text-[11px] uppercase tracking-widest text-mca-cyan font-bold font-mono">
-            PLACE DOSSIER INDEX
+            GEOGRAPHIC ORIGIN DOSSIER INDEX
           </div>
           
           <h1 className="text-[10vw] md:text-[6vw] font-black font-display uppercase tracking-tighter leading-[0.85] text-white break-words">
@@ -113,7 +113,7 @@ export default function CreatorPage({ params }: { params: Promise<{ name: string
           <div className="h-1 bg-white w-full mt-4" />
           
           <p className="text-slate-400 text-sm md:text-base font-sans max-w-2xl font-light leading-relaxed">
-            Displaying all known archival records associated with this place.
+            Displaying all known archival records associated with this geographic origin.
           </p>
         </header>
 
@@ -218,7 +218,7 @@ export default function CreatorPage({ params }: { params: Promise<{ name: string
                         )}
                         {item.field_place_published && (
                           <div className="flex space-x-2">
-                            <span className="text-slate-800 w-20 shrink-0 font-bold">PLACE</span>
+                            <span className="text-slate-800 w-24 shrink-0 font-bold">GEO ORIGIN</span>
                             <span className="text-slate-700 font-medium truncate">{item.field_place_published}</span>
                           </div>
                         )}

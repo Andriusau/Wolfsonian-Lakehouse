@@ -274,9 +274,27 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
 
                 <div className="space-y-8 mt-8">
                   {Object.entries(selectedRecord)
-                    .filter(([key, val]) => val !== null && val !== "" && !["has_image", "title", "year_created", "source_system", "id", "image_count", "has_audio", "audio_count", "search_text", "alma_identifier"].includes(key))
+                    .filter(([key, val]) => val !== null && val !== "" && !["has_image", "title", "year_created", "source_system", "id", "image_count", "has_audio", "audio_count", "search_text", "alma_identifier", "exhibit_label", "Style"].includes(key))
                     .sort(([keyA], [keyB]) => {
-                      const orderedFields = ["field_identifier", "field_collection_type", "field_extent", "field_genre", "Inscription", "Style", "exhibit_title", "exhibit_label", "field_description_long", "field_linked_agent", "field_subject", "field_place_published", "field_edtf_date_created", "decade_created", "field_physical_form", "field_collection_note", "field_credit_line", "location", "storage_location"];
+                      const orderedFields = [
+                        "field_linked_agent",
+                        "field_edtf_date_created",
+                        "field_place_published",
+                        "field_physical_form",
+                        "field_extent",
+                        "field_description_long",
+                        "field_credit_line",
+                        "field_genre",
+                        "field_collection_type",
+                        "field_subject",
+                        "Inscription",
+                        "field_identifier",
+                        "location",
+                        "storage_location",
+                        "exhibit_title",
+                        "field_collection_note",
+                        "decade_created"
+                      ];
                       const idxA = orderedFields.indexOf(keyA);
                       const idxB = orderedFields.indexOf(keyB);
                       if (idxA !== -1 && idxB !== -1) return idxA - idxB;
@@ -286,25 +304,23 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
                     })
                     .map(([key, val], i) => {
                       const fieldLabels: Record<string, string> = {
-                        field_identifier: "Accession Number",
+                        field_linked_agent: "Creator",
+                        field_edtf_date_created: "Date Created",
+                        field_place_published: "Geographic Origin",
+                        field_physical_form: "Material",
+                        field_extent: "Dimensions",
+                        field_description_long: "Description",
+                        field_credit_line: "Credit Line",
+                        field_genre: "Genre",
                         field_collection_type: "Collection",
+                        field_subject: "Subjects",
+                        Inscription: "Inscription",
+                        field_identifier: "Accession Number",
                         location: "Location",
                         storage_location: "Storage Location",
-                        field_extent: "Dimensions",
-                        field_genre: "Genre",
-                        Style: "Style",
                         exhibit_title: "Exhibition Title",
-                        exhibit_label: "Exhibition Label",
-                        field_description_long: "Description",
-                        field_linked_agent: "Creator",
-                        field_subject: "Subjects",
-                        field_place_published: "Place Published",
-                        field_edtf_date_created: "Date Created",
                         decade_created: "Decade Created",
-                        field_credit_line: "Credit Line",
-                        field_physical_form: "Material",
                         field_collection_note: "Collection Note",
-                        Inscription: "Inscription",
                       };
                       return (
                         <div key={i} className="flex flex-col space-y-2 group">

@@ -301,7 +301,7 @@ export default function ExhibitCatalog() {
 
                   {isVisible("field_place_published") && item.field_place_published && (
                     <div>
-                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Place Published</span>
+                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Geographic Origin</span>
                       <span className="text-sm">{item.field_place_published}</span>
                     </div>
                   )}
@@ -313,12 +313,6 @@ export default function ExhibitCatalog() {
                     </div>
                   )}
 
-                  {isVisible("Style") && item.Style && (
-                    <div>
-                      <span className="text-xs font-bold uppercase text-gray-400 tracking-wider block">Style / Movement</span>
-                      <span className="text-sm">{item.Style}</span>
-                    </div>
-                  )}
 
                   {isVisible("Inscription") && item.Inscription && (
                     <div>
