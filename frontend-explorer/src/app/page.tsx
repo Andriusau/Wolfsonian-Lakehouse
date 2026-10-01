@@ -69,6 +69,9 @@ export default function Home() {
   const [totalCount, setTotalCount] = useState(() => getInitialState('mca_search_totalCount', 0));
   const [filteredCount, setFilteredCount] = useState(() => getInitialState('mca_search_filteredCount', 0));
   const [debugInfo, setDebugInfo] = useState<string>("");
+  const [searchDuration, setSearchDuration] = useState<string>("0.03");
+  const [searchPulse, setSearchPulse] = useState(false);
+  const pulseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Infinite Scroll & Pagination State
   const [page, setPage] = useState(() => getInitialState('mca_search_page', 1));
@@ -554,6 +557,7 @@ export default function Home() {
   const handleSearch = async (targetPage: number = page, targetMode: 'infinite' | 'paged' = scrollMode) => {
     if (!isReady) return;
     
+    const startTime = performance.now();
     if (targetPage === 1) {
       setLoading(true);
       fetchResponsiveFacets();
@@ -634,6 +638,16 @@ export default function Home() {
         setTotalCount(Number(globalCountData[0].total));
       }
       
+      const elapsed = Math.max(0.01, (performance.now() - startTime) / 1000);
+      setSearchDuration(elapsed.toFixed(2));
+      if (targetPage === 1) {
+        setSearchPulse(true);
+        if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current);
+        pulseTimeoutRef.current = setTimeout(() => {
+          setSearchPulse(false);
+        }, 2200);
+      }
+      
       setDebugInfo(JSON.stringify({
         dataLength: data?.length,
         countData: countData,
@@ -653,6 +667,7 @@ export default function Home() {
   const handleSurpriseMe = async () => {
     if (!isReady) return;
     setLoading(true);
+    const startTime = performance.now();
     setSearchTerm("");
     setSelectedSystem("ALL");
     setSelectedGenre("ALL");
@@ -677,6 +692,13 @@ export default function Home() {
         setResults(data);
         setFilteredCount(24);
       }
+      const elapsed = Math.max(0.01, (performance.now() - startTime) / 1000);
+      setSearchDuration(elapsed.toFixed(2));
+      setSearchPulse(true);
+      if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current);
+      pulseTimeoutRef.current = setTimeout(() => {
+        setSearchPulse(false);
+      }, 2200);
     } catch (error: any) {
       console.error(error);
       setDebugInfo((prev: string) => prev + `\nSurprise Error: ${error?.message || error}`);
@@ -964,27 +986,62 @@ export default function Home() {
               </div>
             </div>
             
-            <button 
-              onClick={executeNewSearch}
-              disabled={!isReady}
-              className="bg-white hover:bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-10 py-4 rounded-none border-2 border-white hover:border-mca-cyan transition-all duration-200 cursor-pointer disabled:opacity-30 shrink-0 text-sm active:translate-y-1"
-            >
-              SEARCH COLLECTION
-            </button>
-            <button 
-              onClick={handleSurpriseMe}
-              disabled={!isReady}
-              className="bg-mca-yellow hover:bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-8 py-4 rounded-none border-2 border-mca-yellow hover:border-mca-cyan transition-all duration-200 cursor-pointer disabled:opacity-30 shrink-0 text-sm active:translate-y-1"
-            >
-              SURPRISE ME
-            </button>
-            <button 
-              onClick={handleResetFilters}
-              disabled={!isReady}
-              className="bg-mca-black hover:bg-red-500 text-white hover:text-black font-black uppercase tracking-widest px-8 py-4 rounded-none border-2 border-slate-600 hover:border-red-500 transition-all duration-200 cursor-pointer disabled:opacity-30 shrink-0 text-sm active:translate-y-1"
-            >
-              [X] CLEAR FILTERS
-            </button>
+            <div className="flex flex-col gap-2 shrink-0 w-full md:w-auto">
+              <div className="flex flex-wrap md:flex-nowrap gap-3 items-center">
+                <button 
+                  onClick={executeNewSearch}
+                  disabled={!isReady || loading}
+                  className="bg-white hover:bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-8 py-4 rounded-none border-2 border-white hover:border-mca-cyan transition-all duration-200 cursor-pointer disabled:opacity-30 shrink-0 text-sm active:translate-y-1 flex-1 md:flex-initial text-center"
+                >
+                  {loading ? "SEARCHING..." : "SEARCH COLLECTION"}
+                </button>
+                <button 
+                  onClick={handleSurpriseMe}
+                  disabled={!isReady || loading}
+                  className="bg-mca-yellow hover:bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-6 py-4 rounded-none border-2 border-mca-yellow hover:border-mca-cyan transition-all duration-200 cursor-pointer disabled:opacity-30 shrink-0 text-sm active:translate-y-1"
+                >
+                  SURPRISE ME
+                </button>
+                <button 
+                  onClick={handleResetFilters}
+                  disabled={!isReady}
+                  className="bg-mca-black hover:bg-red-500 text-white hover:text-black font-black uppercase tracking-widest px-6 py-4 rounded-none border-2 border-slate-600 hover:border-red-500 transition-all duration-200 cursor-pointer disabled:opacity-30 shrink-0 text-sm active:translate-y-1"
+                >
+                  [X] CLEAR FILTERS
+                </button>
+              </div>
+
+              {/* Instant Search Status Signal right by search buttons */}
+              <div 
+                className={`font-mono text-xs uppercase tracking-widest px-3.5 py-2 border transition-all duration-300 flex items-center justify-between gap-3 ${
+                  loading
+                    ? 'bg-mca-cyan/20 border-mca-cyan text-white animate-pulse'
+                    : searchPulse
+                    ? 'bg-mca-cyan/30 border-mca-cyan text-white shadow-[0_0_15px_rgba(0,240,255,0.45)] ring-1 ring-mca-cyan scale-[1.01]'
+                    : 'bg-mca-black border-white/20 text-slate-400'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {loading ? (
+                    <>
+                      <span className="inline-block w-2 h-2 rounded-full bg-mca-cyan animate-ping" />
+                      <span className="font-bold text-mca-cyan">SCANNING CATALOG...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-emerald-400 font-bold">✓</span>
+                      <span className={searchPulse ? "text-white font-bold" : "text-slate-300"}>
+                        SEARCH COMPLETE
+                      </span>
+                    </>
+                  )}
+                </div>
+                <div className="font-bold text-mca-cyan text-right">
+                  {isReady ? filteredCount.toLocaleString() : '---'} RECORDS
+                  <span className="text-slate-400 font-normal ml-1">({searchDuration}s)</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Filtering Dashboard - MCA Bold Box Style */}
@@ -1320,9 +1377,31 @@ export default function Home() {
                   {isSavingAll ? "[ SAVING... ]" : "[ SAVE ALL RESULTS TO COLLECTION ]"}
                 </button>
               )}
-              <div className="text-mca-cyan font-mono text-xs uppercase tracking-widest bg-mca-cyan/10 px-3 py-1.5 border border-mca-cyan/20">
-                <span className="font-bold text-white mr-2">{isReady ? filteredCount.toLocaleString() : '---'}</span> 
-                MATCHES FOUND
+              <div 
+                className={`font-mono text-xs uppercase tracking-widest px-3.5 py-1.5 border transition-all duration-300 flex items-center gap-2 ${
+                  loading 
+                    ? 'bg-mca-cyan/20 border-mca-cyan text-mca-cyan animate-pulse' 
+                    : searchPulse
+                    ? 'bg-mca-cyan/30 border-mca-cyan text-white shadow-[0_0_15px_rgba(0,240,255,0.45)] scale-[1.02]' 
+                    : 'bg-mca-cyan/10 border-mca-cyan/30 text-mca-cyan'
+                }`}
+              >
+                {loading ? (
+                  <>
+                    <span className="inline-block w-2 h-2 rounded-full bg-mca-cyan animate-ping" />
+                    <span className="font-bold text-white">SEARCHING...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-emerald-400 font-bold">✓</span>
+                    <span>
+                      SEARCH COMPLETE — <strong className="text-white font-bold">{isReady ? filteredCount.toLocaleString() : '---'} RECORDS</strong>
+                    </span>
+                    <span className="text-mca-cyan/70 text-[10px]">
+                      ({searchDuration}s)
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
