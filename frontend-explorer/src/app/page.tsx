@@ -114,6 +114,7 @@ export default function Home() {
 
   const [sharedCollectionIds, setSharedCollectionIds] = useState<string[]>([]);
   const [isCopied, setIsCopied] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
 
   const [uploadedIdentifiers, setUploadedIdentifiers] = useState<string[]>(() => getInitialState('mca_uploaded_ids', []));
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -362,11 +363,52 @@ export default function Home() {
     executeNewSearch();
   }, [uploadedIdentifiers]);
 
+  const isInitialSharedMount = useRef(true);
+
+  // Load shared collection if ?c=... or ?collection=... is present in the URL
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.location.search.includes('collection_cleared')) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const shortCode = urlParams.get('c');
+    const directParam = urlParams.get('collection');
+
+    if (shortCode) {
+      fetch(`/api/share?c=${encodeURIComponent(shortCode)}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data && Array.isArray(data.items) && data.items.length > 0) {
+            setSharedCollectionIds(data.items);
+          }
+        })
+        .catch(err => console.error("Error loading shared collection from code:", err));
+    } else if (directParam) {
+      const ids = directParam.split('|').map(s => s.trim()).filter(Boolean);
+      if (ids.length > 0) {
+        setSharedCollectionIds(ids);
+      }
+    }
+  }, []);
+
+  // Trigger search when sharedCollectionIds resolves
+  useEffect(() => {
+    if (isInitialSharedMount.current) {
+      isInitialSharedMount.current = false;
+      return;
+    }
+    if (isReady && sharedCollectionIds.length > 0) {
+      setPage(1);
+      handleSearch(1, scrollMode);
+    }
+  }, [sharedCollectionIds, isReady]);
+
   useEffect(() => {
     if (isReady) {
       if (isInitialMount.current) {
         isInitialMount.current = false;
-        const hasCollectionInUrl = typeof window !== 'undefined' && window.location.search.includes('collection=');
+        const hasCollectionInUrl = typeof window !== 'undefined' && 
+          (window.location.search.includes('collection=') || window.location.search.includes('c='));
         if (initialResultsLength.current === 0 || hasCollectionInUrl) {
           setPage(1);
           handleSearch(1, scrollMode);
@@ -1297,6 +1339,7 @@ export default function Home() {
                   if (typeof window !== 'undefined') {
                     const url = new URL(window.location.href);
                     url.searchParams.delete('collection');
+                    url.searchParams.delete('c');
                     url.searchParams.set('collection_cleared', 'true');
                     window.history.pushState({}, '', url);
                   }
@@ -1776,38 +1819,65 @@ export default function Home() {
               {collection.length > 0 && (
                 <>
                   <button 
-                    onClick={() => {
+                    disabled={isSharing}
+                    onClick={async () => {
                       if (typeof window !== 'undefined') {
-                        const url = new URL(window.location.origin);
-                        url.searchParams.set('collection', collection.map(c => c.field_identifier).join('|'));
-                        url.searchParams.delete('collection_cleared');
-                        const textToCopy = url.toString();
-                        
-                        const fallbackCopy = () => {
-                          const textArea = document.createElement("textarea");
-                          textArea.value = textToCopy;
-                          textArea.style.position = "fixed";
-                          textArea.style.left = "-999999px";
-                          document.body.appendChild(textArea);
-                          textArea.focus();
-                          textArea.select();
-                          try { document.execCommand('copy'); } catch (err) {}
-                          document.body.removeChild(textArea);
-                        };
+                        setIsSharing(true);
+                        try {
+                          const items = collection.map(c => c.field_identifier).filter(Boolean);
+                          let textToCopy = "";
+                          
+                          try {
+                            const res = await fetch('/api/share', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ items }),
+                            });
+                            if (res.ok) {
+                              const data = await res.json();
+                              const url = new URL(window.location.origin);
+                              url.searchParams.set('c', data.code);
+                              textToCopy = url.toString();
+                            }
+                          } catch (apiErr) {
+                            console.error("API share failed, falling back to query param", apiErr);
+                          }
+                          
+                          if (!textToCopy) {
+                            const url = new URL(window.location.origin);
+                            url.searchParams.set('collection', items.join('|'));
+                            url.searchParams.delete('collection_cleared');
+                            textToCopy = url.toString();
+                          }
+                          
+                          const fallbackCopy = () => {
+                            const textArea = document.createElement("textarea");
+                            textArea.value = textToCopy;
+                            textArea.style.position = "fixed";
+                            textArea.style.left = "-999999px";
+                            document.body.appendChild(textArea);
+                            textArea.focus();
+                            textArea.select();
+                            try { document.execCommand('copy'); } catch (err) {}
+                            document.body.removeChild(textArea);
+                          };
 
-                        if (navigator.clipboard && window.isSecureContext) {
-                          navigator.clipboard.writeText(textToCopy).catch(() => fallbackCopy());
-                        } else {
-                          fallbackCopy();
+                          if (navigator.clipboard && window.isSecureContext) {
+                            await navigator.clipboard.writeText(textToCopy).catch(() => fallbackCopy());
+                          } else {
+                            fallbackCopy();
+                          }
+                          
+                          setIsCopied(true);
+                          setTimeout(() => setIsCopied(false), 2000);
+                        } finally {
+                          setIsSharing(false);
                         }
-                        
-                        setIsCopied(true);
-                        setTimeout(() => setIsCopied(false), 2000);
                       }
                     }}
-                    className="bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-mca-cyan hover:bg-transparent hover:text-mca-cyan transition-colors text-sm"
+                    className="bg-mca-cyan text-mca-black font-black uppercase tracking-widest px-6 py-3 border-2 border-mca-cyan hover:bg-transparent hover:text-mca-cyan transition-colors text-sm disabled:opacity-50"
                   >
-                    {isCopied ? '[✓] COPIED!' : '[🔗] SHARE COLLECTION'}
+                    {isSharing ? '[...] GENERATING LINK' : isCopied ? '[✓] COPIED!' : '[🔗] SHARE COLLECTION'}
                   </button>
                   <button 
                     onClick={() => handleOpenExportModal('csv')}

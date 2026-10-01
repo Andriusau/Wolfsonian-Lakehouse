@@ -57,6 +57,7 @@ services:
     volumes:
       - ./data/gold:/app/public/data:ro
       - ./data/feedback:/app/data/feedback
+      - ./data/shares:/app/data/shares
     environment:
       - NODE_ENV=production
       - NODE_OPTIONS=--require /app/preload-server.js --dns-result-order=ipv4first
