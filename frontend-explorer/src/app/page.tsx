@@ -511,7 +511,7 @@ export default function Home() {
               const regexTerm = unaccented.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
               sqlCondition += exact
                 ? `(lower(field_identifier) = '${e}' OR lower(location) = '${e}' OR lower(storage_location) = '${e}' OR regexp_matches(lower(COALESCE(search_text, '')), '(^|[^a-z0-9])${regexTerm}([^a-z0-9]|$)'))`
-                : `(search_text LIKE '%${unaccented}%' OR lower(field_identifier) LIKE '%${e}%' OR lower(location) LIKE '%${e}%' OR lower(storage_location) LIKE '%${e}%')`;
+                : `(regexp_matches(lower(COALESCE(search_text, '')), '(^|[^a-z0-9])${regexTerm}') OR lower(field_identifier) LIKE '%${e}%' OR lower(location) LIKE '%${e}%' OR lower(storage_location) LIKE '%${e}%')`;
               expectOperator = true;
             }
           }
@@ -521,7 +521,8 @@ export default function Home() {
             const termConditions = terms.map((term: string) => {
               const escapedSearch = term.replace(/'/g, "''").toLowerCase();
               const unaccented = escapedSearch.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-              return `(search_text LIKE '%${unaccented}%' OR lower(field_identifier) LIKE '%${escapedSearch}%' OR lower(location) LIKE '%${escapedSearch}%' OR lower(storage_location) LIKE '%${escapedSearch}%')`;
+              const regexTerm = unaccented.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              return `(regexp_matches(lower(COALESCE(search_text, '')), '(^|[^a-z0-9])${regexTerm}') OR lower(field_identifier) LIKE '%${escapedSearch}%' OR lower(location) LIKE '%${escapedSearch}%' OR lower(storage_location) LIKE '%${escapedSearch}%')`;
             });
             sqlCondition = termConditions.join(' OR ');
           }
@@ -533,7 +534,8 @@ export default function Home() {
             const termConditions = tokens.map((token: string) => {
               const escapedSearch = token.replace(/'/g, "''").toLowerCase();
               const unaccented = escapedSearch.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-              return `(search_text LIKE '%${unaccented}%' OR lower(field_identifier) LIKE '%${escapedSearch}%' OR lower(location) LIKE '%${escapedSearch}%' OR lower(storage_location) LIKE '%${escapedSearch}%')`;
+              const regexTerm = unaccented.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              return `(regexp_matches(lower(COALESCE(search_text, '')), '(^|[^a-z0-9])${regexTerm}') OR lower(field_identifier) LIKE '%${escapedSearch}%' OR lower(location) LIKE '%${escapedSearch}%' OR lower(storage_location) LIKE '%${escapedSearch}%')`;
             });
             sqlCondition = termConditions.join(' AND ');
           }
@@ -627,6 +629,8 @@ export default function Home() {
           if (termsToScore.length > 0) {
               const exactMatchScore = termsToScore.map((term: string) => {
                   const escapedTerm = term.replace(/(^"|"$)/g, '').replace(/'/g, "''").toLowerCase();
+                  const unaccented = escapedTerm.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                  const regexTerm = unaccented.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                   return `(
                       (CASE WHEN lower(field_identifier) = '${escapedTerm}' THEN 1000 ELSE 0 END) +
                       (CASE WHEN lower(field_identifier) LIKE '%${escapedTerm}%' THEN 2 ELSE 0 END) +
@@ -634,14 +638,16 @@ export default function Home() {
                       (CASE WHEN lower(storage_location) = '${escapedTerm}' THEN 8 ELSE 0 END) +
                       (CASE WHEN lower(location) LIKE '%${escapedTerm}%' THEN 2 ELSE 0 END) +
                       (CASE WHEN lower(storage_location) LIKE '%${escapedTerm}%' THEN 2 ELSE 0 END) +
-                      (CASE WHEN lower(title) LIKE '%${escapedTerm}%' THEN 5 ELSE 0 END) +
-                      (CASE WHEN lower(field_genre) LIKE '%${escapedTerm}%' THEN 4.5 ELSE 0 END) +
-                      (CASE WHEN lower(field_linked_agent) LIKE '%${escapedTerm}%' THEN 4 ELSE 0 END) +
-                      (CASE WHEN lower(field_subject) LIKE '%${escapedTerm}%' THEN 3 ELSE 0 END) +
-                      (CASE WHEN lower(search_text) LIKE '%${escapedTerm}%' THEN 1 ELSE 0 END) +
-                      (CASE WHEN lower(field_place_published) LIKE '%${escapedTerm}%' THEN 1 ELSE 0 END) +
-                      (CASE WHEN lower(field_physical_form) LIKE '%${escapedTerm}%' THEN 1 ELSE 0 END) +
-                      (CASE WHEN lower(field_credit_line) LIKE '%${escapedTerm}%' THEN 0.5 ELSE 0 END)
+                      (CASE WHEN regexp_matches(lower(COALESCE(title, '')), '(^|[^a-z0-9])${regexTerm}([^a-z0-9]|$)') THEN 15 ELSE 0 END) +
+                      (CASE WHEN regexp_matches(lower(COALESCE(title, '')), '(^|[^a-z0-9])${regexTerm}') THEN 5 ELSE 0 END) +
+                      (CASE WHEN regexp_matches(lower(COALESCE(field_genre, '')), '(^|[^a-z0-9])${regexTerm}') THEN 4.5 ELSE 0 END) +
+                      (CASE WHEN regexp_matches(lower(COALESCE(field_linked_agent, '')), '(^|[^a-z0-9])${regexTerm}') THEN 4 ELSE 0 END) +
+                      (CASE WHEN regexp_matches(lower(COALESCE(field_subject, '')), '(^|[^a-z0-9])${regexTerm}') THEN 3 ELSE 0 END) +
+                      (CASE WHEN regexp_matches(lower(COALESCE(search_text, '')), '(^|[^a-z0-9])${regexTerm}([^a-z0-9]|$)') THEN 5 ELSE 0 END) +
+                      (CASE WHEN regexp_matches(lower(COALESCE(search_text, '')), '(^|[^a-z0-9])${regexTerm}') THEN 1 ELSE 0 END) +
+                      (CASE WHEN regexp_matches(lower(COALESCE(field_place_published, '')), '(^|[^a-z0-9])${regexTerm}') THEN 1 ELSE 0 END) +
+                      (CASE WHEN regexp_matches(lower(COALESCE(field_physical_form, '')), '(^|[^a-z0-9])${regexTerm}') THEN 1 ELSE 0 END) +
+                      (CASE WHEN regexp_matches(lower(COALESCE(field_credit_line, '')), '(^|[^a-z0-9])${regexTerm}') THEN 0.5 ELSE 0 END)
                   )`;
               }).join(' + ');
               const qualityBoost = `(CASE WHEN has_image THEN 10 ELSE 0 END)`;
