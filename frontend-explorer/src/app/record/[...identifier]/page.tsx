@@ -25,10 +25,21 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
   const [relatedRecords, setRelatedRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
-  const { collection, isInCollection, addItem, removeItem } = useCollection();
+  const [downloadingCsv, setDownloadingCsv] = useState(false);
+  const { collection, isInCollection, addItem, removeItem, exportSingleRecordCsv } = useCollection();
 
   const [prevRecordId, setPrevRecordId] = useState<string | null>(null);
   const [nextRecordId, setNextRecordId] = useState<string | null>(null);
+
+  const handleExportCsv = () => {
+    if (!selectedRecord) return;
+    setDownloadingCsv(true);
+    try {
+      exportSingleRecordCsv(selectedRecord);
+    } finally {
+      setTimeout(() => setDownloadingCsv(false), 1200);
+    }
+  };
 
   useEffect(() => {
     if (isReady) {
@@ -233,24 +244,51 @@ export default function RecordPage({ params }: { params: Promise<{ identifier: s
             ) : selectedRecord ? (
               <>
                 <header className="space-y-4 border-b-4 border-white pb-6">
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-wrap justify-between items-center gap-3">
                     <div className="text-mca-cyan text-xs font-bold tracking-widest uppercase">
                       // RECORD: {selectedRecord.field_identifier}
                     </div>
-                    <button 
-                      onClick={() => isInCollection(selectedRecord.field_identifier) ? removeItem(selectedRecord.field_identifier) : addItem(selectedRecord)}
-                      className={`text-xs px-4 py-2 uppercase font-bold tracking-widest border-2 transition-colors ${isInCollection(selectedRecord.field_identifier) ? 'bg-mca-cyan border-mca-cyan text-mca-black hover:bg-mca-black hover:text-mca-cyan' : 'bg-mca-black border-white text-white hover:bg-white hover:text-mca-black'}`}
-                    >
-                      {isInCollection(selectedRecord.field_identifier) ? '[-] REMOVE FROM COLLECTION' : '[+] ADD TO COLLECTION'}
-                    </button>
-                    <Link
-                      href={`/record/${encodeURIComponent(identifier)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs px-4 py-2 uppercase font-bold tracking-widest border-2 border-white/40 text-white/70 hover:border-mca-cyan hover:text-mca-cyan transition-colors"
-                    >
-                      OPEN IN NEW TAB
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button 
+                        onClick={handleExportCsv}
+                        title="Download this record as a CSV spreadsheet (compatible with Excel & Google Sheets)"
+                        className={`text-xs px-3 py-2 uppercase font-bold tracking-widest border-2 transition-colors inline-flex items-center gap-1.5 ${
+                          downloadingCsv 
+                            ? 'bg-emerald-500 border-emerald-500 text-black' 
+                            : 'bg-mca-black border-white/40 text-white/90 hover:border-mca-cyan hover:text-mca-cyan'
+                        }`}
+                      >
+                        {downloadingCsv ? (
+                          <>
+                            <span className="font-bold">✓</span>
+                            <span>EXPORTED</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            <span>EXPORT CSV</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button 
+                        onClick={() => isInCollection(selectedRecord.field_identifier) ? removeItem(selectedRecord.field_identifier) : addItem(selectedRecord)}
+                        className={`text-xs px-4 py-2 uppercase font-bold tracking-widest border-2 transition-colors ${isInCollection(selectedRecord.field_identifier) ? 'bg-mca-cyan border-mca-cyan text-mca-black hover:bg-mca-black hover:text-mca-cyan' : 'bg-mca-black border-white text-white hover:bg-white hover:text-mca-black'}`}
+                      >
+                        {isInCollection(selectedRecord.field_identifier) ? '[-] REMOVE FROM COLLECTION' : '[+] ADD TO COLLECTION'}
+                      </button>
+
+                      <Link
+                        href={`/record/${encodeURIComponent(identifier)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs px-3 py-2 uppercase font-bold tracking-widest border-2 border-white/40 text-white/70 hover:border-mca-cyan hover:text-mca-cyan transition-colors"
+                      >
+                        OPEN IN NEW TAB
+                      </Link>
+                    </div>
                   </div>
                   <h2 className="text-3xl md:text-5xl font-black font-display tracking-tight leading-tight break-words">
                     {selectedRecord.title || selectedRecord.field_identifier || '[UNTITLED OBJECT]'}
