@@ -88,7 +88,7 @@ Built on top of the Lakehouse's high-performance DuckDB WASM engine, the Fronten
 |---|---|---|---|
 | **Alma** | Ex Libris Library Management | 54,985 | Binary MARC (`.mrc`) parsing via PyMARC & Physical Item (`.csv`) mapping |
 | **Proficio** | Museum Collection Database | 61,049 | Kerberos-authenticated SQL Server via ODBC |
-| **Islandora** | Public Digital Archive | 268,807 | Paginated REST API with concurrent fetching |
+| **Islandora** | Public Digital Archive | 268,844 | Paginated REST API with concurrent fetching |
 | **Unified Gold Catalog** | Merged output | 116,034 | Alma + Proficio aligned and concatenated |
 | **Normalized Gold Catalog** | Analytics-ready output | 116,034 | Harmonized genres, dates, creators & titles |
 | **Records with Images** | Gold Catalog Filter | 55,718 | Distinct records possessing at least one valid image (a single record can have up to 1,000+ images for books/albums) |
